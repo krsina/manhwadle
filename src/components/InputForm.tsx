@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Character } from '../types'; // Import Character type
+import { Character } from '../types';
 
 interface InputFormProps {
     guess: string;
     onGuessChange: (value: string) => void;
     onSubmit: (event: React.FormEvent) => void;
     availableCharacters: Character[];
+    guessedIds: number[]; // Prop for guessed IDs
     disabled?: boolean;
 }
 
@@ -14,33 +15,44 @@ const InputForm: React.FC<InputFormProps> = ({
     onGuessChange,
     onSubmit,
     availableCharacters,
+    guessedIds, // Destructure guessedIds
     disabled = false
 }) => {
     const [suggestions, setSuggestions] = useState<Character[]>([]);
-    // State to control the *potential* visibility of the dropdown container
     const [isDropdownVisible, setIsDropdownVisible] = useState<boolean>(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Effect to filter suggestions based on the current guess value
     useEffect(() => {
-        if (guess.trim().length > 0) {
-            const filtered = availableCharacters.filter(char =>
-                char.name.toLowerCase().includes(guess.toLowerCase())
-            );
-            setSuggestions(filtered);
-            // If input has focus and we found suggestions, ensure dropdown is visible
-            if (document.activeElement === inputRef.current && filtered.length > 0) {
-                setIsDropdownVisible(true);
-            }
-        } else {
-            setSuggestions([]);
-            setIsDropdownVisible(false); // Hide dropdown if input is empty
-        }
-    }, [guess, availableCharacters]); // Re-run when guess or available characters change
+        const trimmedGuess = guess.trim().toLowerCase();
+        let filtered: Character[] = [];
 
-     // Effect to hide dropdown when clicking outside the component
-     useEffect(() => {
+        if (trimmedGuess.length > 0) {
+            try {
+                 filtered = availableCharacters.filter(char => {
+                     if (!char || typeof char.name !== 'string') return false;
+
+                     const nameLower = char.name.toLowerCase();
+                     const starts = nameLower.startsWith(trimmedGuess);
+                     return starts;
+                 });
+            } catch (error) {
+                 console.error("Error during filtering:", error);
+            }
+        }
+
+        setSuggestions(filtered); // Update state
+        // Visibility logic
+        if (document.activeElement === inputRef.current && filtered.length > 0) {
+             setIsDropdownVisible(true);
+        } else if (trimmedGuess.length === 0) {
+             setIsDropdownVisible(false);
+        }
+
+    }, [guess, availableCharacters, guessedIds]); 
+
+    // --- Click outside effect ---
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
                 setIsDropdownVisible(false);
@@ -50,39 +62,26 @@ const InputForm: React.FC<InputFormProps> = ({
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [containerRef]); // Depend only on the container ref
+    }, [containerRef]);
 
-    // Handle changes in the input field
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = event.target.value;
-        onGuessChange(newValue); // Update parent state
-        // If the user is typing something, make the dropdown visible
-        // The actual rendering depends on whether suggestions are available
-        if (newValue.trim().length > 0) {
-             setIsDropdownVisible(true);
-        } else {
-             setIsDropdownVisible(false); // Hide if input is cleared by typing
-        }
+        onGuessChange(newValue);
+        if (newValue.trim().length > 0) { setIsDropdownVisible(true); }
+        else { setIsDropdownVisible(false); }
     };
-
-    // Handle clicking on a suggestion item
     const handleSuggestionClick = (character: Character) => {
-        onGuessChange(character.name); // Set input value
-        setIsDropdownVisible(false); // Hide dropdown after selection
-        inputRef.current?.focus(); // Re-focus the input field
+        onGuessChange(character.name);
+        setIsDropdownVisible(false);
+        inputRef.current?.focus();
     };
-
-    // Handle when the input field gains focus
-    const handleFocus = () => {
-        // Show the dropdown container if there's already text in the input
-        // (suggestions will be populated by the useEffect)
-        if(guess.trim().length > 0) {
+     const handleFocus = () => {
+        if(guess.trim().length > 0 && suggestions.length > 0) { // Check suggestions state too
              setIsDropdownVisible(true);
         }
-    }
+    };
 
     return (
-        // Container with ref for click-outside detection
         <div ref={containerRef} className="relative flex justify-center mb-5 w-full max-w-md mx-auto">
             <form onSubmit={onSubmit} className="flex w-full">
                 <input
@@ -95,30 +94,21 @@ const InputForm: React.FC<InputFormProps> = ({
                     placeholder="Enter character name..."
                     autoComplete="off"
                     disabled={disabled}
-                    className="px-3 py-2 text-base border border-gray-300 rounded-l-md flex-grow focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed text-gray-900" /* Explicit text color */
+                    className="px-3 py-2 text-base border border-gray-300 rounded-l-md flex-grow focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed text-gray-900"
                 />
-                <button
-                    type="submit"
-                    disabled={disabled}
-                    className="px-4 py-2 text-base bg-purple-700 text-white border-none rounded-r-md cursor-pointer transition hover:bg-purple-800 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                    Submit
-                </button>
+                <button> Submit </button>
             </form>
 
-            {/* Suggestions Dropdown: Render only if visibility flag is true AND there are suggestions */}
-            {isDropdownVisible && suggestions.length > 0 && (
-                <ul
-                  className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md list-none p-0 max-h-60 overflow-y-auto z-10 shadow-lg" /* z-10 is usually enough */
-                >
+            {isDropdownVisible && Array.isArray(suggestions) && suggestions.length > 0 && (
+                <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md list-none p-0 max-h-60 overflow-y-auto z-10 shadow-lg">
                     {suggestions.map((char) => (
                         <li
-                            key={char.id}
-                            onMouseDown={() => handleSuggestionClick(char)} // Use onMouseDown for better interaction with focus/blur
+                            key={char?.id || Math.random()} // Added fallback key for safety
+                            onMouseDown={() => handleSuggestionClick(char)}
                             className="px-3 py-2 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-100 text-gray-900"
-                            tabIndex={-1} // Prevent list item from taking focus
+                            tabIndex={-1}
                         >
-                            {char.name}
+                            {char?.name || 'Error'} 
                         </li>
                     ))}
                 </ul>
