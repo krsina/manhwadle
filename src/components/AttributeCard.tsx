@@ -18,7 +18,20 @@ const AttributeCard: React.FC<AttributeCardProps> = ({
 }) => {
   const [isFlipped, setIsFlipped] = useState(!isNewest);
 
-  useEffect(() => { /* ... */ }, [isNewest, index]);
+  // useEffect for flip animation
+  useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+    if (isNewest) {
+      timer = setTimeout(() => {
+        setIsFlipped(true);
+      }, 100 + index * 700); // Base delay + stagger delay per card
+    }
+    return () => {
+        if (timer) {
+            clearTimeout(timer);
+        }
+    };
+  }, [isNewest, index]);
   const getResultClasses = (): string => {
     switch (result) {
       case 'correct': return 'bg-green-600 border-green-700';
