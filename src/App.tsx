@@ -98,6 +98,7 @@ const compareCharacters = (guess: Character, answer: Character): GuessComparison
 
 function App() {
   const [guess, setGuess] = useState(""); // Current value in the input field
+  const [guessCount, setGuessCount] = useState(0); // Number of guesses made
   const [guesses, setGuesses] = useState<GuessResult[]>([]); // Store list of past guess results
   const [message, setMessage] = useState<string>("");
   const [isGameOver, setIsGameOver] = useState<boolean>(false);
@@ -142,10 +143,15 @@ function App() {
 
      // Add the new guess result to the beginning of the list (optional, shows newest first)
      setGuesses(prevGuesses => [resultToAdd, ...prevGuesses]);
-
+     setGuessCount(prevCount => prevCount + 1); // Increment guess count
      // Check for win condition
      if (guessedChar.id === correctAnswer.id) {
-         setMessage(`Correct! You guessed ${correctAnswer.name}!`);
+        if(guessCount === 0) {
+         setMessage(`Correct! You guessed ${correctAnswer.name} in one try!`);
+        }
+        else {
+            setMessage(`Correct! You guessed ${correctAnswer.name} in ${guessCount + 1} tries!`);
+        }
          setIsGameOver(true); // End the game
      }
      // Optional: Add message for incorrect guess
@@ -168,7 +174,7 @@ function App() {
     // Apply Tailwind classes for overall App layout and background
     <div className="min-h-screen bg-gray-100 py-8 px-4 font-sans flex justify-center">
         {/* Centered container with max-width, padding, background, rounded corners, and shadow */}
-        <div className="w-full max-w-5xl p-4 sm:p-6 bg-white rounded-xl shadow-lg">
+        <div className="w-full max-w-2xl p-4 sm:p-6 bg-white rounded-xl shadow-lg">
             {/* Heading with Tailwind classes */}
             <h1 className="text-center text-2xl sm:text-3xl font-bold text-purple-800 mb-6 sm:mb-8">
                 Return of the Mount Hua Sect - Character Guessing Game
