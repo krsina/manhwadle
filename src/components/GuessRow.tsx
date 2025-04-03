@@ -23,6 +23,7 @@ const GuessRow: React.FC<GuessRowProps> = ({ guessResult, isNewest }) => {
   `;
 
   const attributes = [
+      { name: "Character", value: guessedCharacter.name, result: comparison.name },
       { name: "Gender", value: guessedCharacter.gender, result: comparison.gender },
       { name: "Affiliation", value: guessedCharacter.affiliation, result: comparison.affiliation },
       { name: "Height", value: guessedCharacter.height, result: comparison.height },
@@ -32,11 +33,6 @@ const GuessRow: React.FC<GuessRowProps> = ({ guessResult, isNewest }) => {
 
   return (
     <div className={rowClasses.trim().replace(/\s+/g, ' ')}>
-      {/* Character Name Cell */}
-      <div className={nameCellClasses.trim().replace(/\s+/g, ' ')}>
-          {guessedCharacter.name}
-      </div>
-      {/* Attribute Cards - will inherit flex sizing from their own classes */}
       {attributes.map((attr, index) => (
           <AttributeCard
               key={attr.name}
