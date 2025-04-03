@@ -39,57 +39,61 @@ const findCharacterByName = (name: string): Character | undefined => {
 }
 
 // Function to dynamically compare guessed character to the answer
-// THIS IS WHERE YOUR CORE GAME LOGIC GOES - REPLACE PLACEHOLDERS
 const compareCharacters = (guess: Character, answer: Character): GuessComparison => {
-    // Height comparison logic (example assumes ordered Short < Average < Tall)
+    // Height comparison logic (remains the same)
     const heightOrder = { 'Short': 1, 'Average': 2, 'Tall': 3, 'Unknown': 0 };
     let heightResult: GuessComparison['height'] = 'incorrect';
     if (guess.height === answer.height) {
         heightResult = 'correct';
-    } else if (heightOrder[guess.height] > heightOrder[answer.height]) {
-        heightResult = 'lower'; // Guessed character is taller (lower on list if sorted short->tall)
-    } else if (heightOrder[guess.height] < heightOrder[answer.height]) {
-        heightResult = 'higher'; // Guessed character is shorter (higher on list if sorted short->tall)
+    } else if (heightOrder[guess.height] > 0 && heightOrder[answer.height] > 0) { // Only compare if both known
+       if (heightOrder[guess.height] > heightOrder[answer.height]) {
+           heightResult = 'lower';
+       } else if (heightOrder[guess.height] < heightOrder[answer.height]) {
+           heightResult = 'higher';
+       }
     }
-    // Handle Unknown cases if necessary - currently 'incorrect' if different
 
-    // Alias comparison logic (example: partial if any alias matches)
+    // *** UPDATED ALIAS LOGIC ***
     let aliasResult: GuessComparison['aliases'] = 'incorrect';
-    const answerAliasesLower = answer.aliases.map(a => a.toLowerCase());
-    const guessAliasesLower = guess.aliases.map(a => a.toLowerCase());
-    const matchingAliases = guessAliasesLower.filter(alias => answerAliasesLower.includes(alias));
+    // Create sets of lowercase aliases for efficient comparison, ignore empty strings
+    const answerAliasSet = new Set(answer.aliases.map(a => a.toLowerCase()).filter(Boolean));
+    const guessAliasSet = new Set(guess.aliases.map(a => a.toLowerCase()).filter(Boolean));
 
-    if (guessAliasesLower.length === answerAliasesLower.length && matchingAliases.length === guessAliasesLower.length) {
-         // Consider order? For now, exact match of sets.
-         if (guessAliasesLower.every((alias, index) => alias === answerAliasesLower[index])) {
-             aliasResult = 'correct'; // Perfect match including order (if desired)
-         } else if (new Set(guessAliasesLower).size === new Set(answerAliasesLower).size && matchingAliases.length === guessAliasesLower.length) {
-              aliasResult = 'correct'; // Same aliases, potentially different order
-         } else if (matchingAliases.length > 0) {
-             aliasResult = 'partial'; // Some overlap but not identical sets
-         }
+    if (answerAliasSet.size === 0 && guessAliasSet.size === 0) {
+        // Both have no aliases (correct)
+        aliasResult = 'correct';
+    } else if (answerAliasSet.size === guessAliasSet.size && [...guessAliasSet].every(alias => answerAliasSet.has(alias))) {
+        // Sets are identical in content (correct)
+        aliasResult = 'correct';
+    } else {
+        // Check for partial match (any overlap)
+        let partialMatchFound = false;
+        for (const guessAlias of guessAliasSet) {
+            if (answerAliasSet.has(guessAlias)) {
+                partialMatchFound = true;
+                break; // Found one match, no need to check further
+            }
+        }
+        if (partialMatchFound) {
+            aliasResult = 'partial'; // At least one alias matches
+        }
+        // Otherwise, it remains 'incorrect'
     }
-     else if (matchingAliases.length > 0) {
-        aliasResult = 'partial';
-    }
-     else if (guessAliasesLower.length === 0 && answerAliasesLower.length === 0) {
-         aliasResult = 'correct'; // Both have no aliases
-     }
 
 
     return {
+        name: guess.name === answer.name ? 'correct' : 'incorrect',
         gender: guess.gender === answer.gender ? 'correct' : 'incorrect',
         affiliation: guess.affiliation === answer.affiliation ? 'correct' : 'incorrect',
         height: heightResult,
         firstSeenChapter: guess.firstSeenChapter === answer.firstSeenChapter
             ? 'correct'
             : guess.firstSeenChapter > answer.firstSeenChapter
-                ? 'later' // Guessed character appeared later (higher chapter number)
-                : 'earlier', // Guessed character appeared earlier (lower chapter number)
-        aliases: aliasResult,
+                ? 'later'
+                : 'earlier',
+        aliases: aliasResult, // Use the updated result
     };
 }
-
 // --- App Component ---
 
 function App() {
@@ -97,6 +101,7 @@ function App() {
   const [guesses, setGuesses] = useState<GuessResult[]>([]); // Store list of past guess results
   const [message, setMessage] = useState<string>("");
   const [isGameOver, setIsGameOver] = useState<boolean>(false);
+  const guessedCharacterIds = guesses.map(g => g.guessedCharacter.id);
 
   // Handler to update the guess state in App based on InputForm changes
   const handleGuessValueChange = (value: string) => {
@@ -149,6 +154,7 @@ function App() {
      // }
 
 
+
      setGuess(""); // Clear input field after submission
    };
 
@@ -174,6 +180,7 @@ function App() {
                 onGuessChange={handleGuessValueChange}
                 onSubmit={handleSubmit}
                 availableCharacters={availableCharacters}
+                guessedIds={guessedCharacterIds}
                 disabled={isGameOver}
             />
 
