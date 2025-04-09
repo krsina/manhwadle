@@ -172,15 +172,11 @@ function App() {
 
   return (
     // Apply Tailwind classes for overall App layout and background
-    <div className="min-h-screen bg-gray-100 py-8 px-4 font-sans flex justify-center">
+    <div className="min-h-screen bg-transparent py-8 px-4 font-sans flex justify-center items-center">
         {/* Centered container with max-width, padding, background, rounded corners, and shadow */}
-        <div className="w-full max-w-2xl p-4 sm:p-6 bg-white rounded-xl shadow-lg">
-            {/* Heading with Tailwind classes */}
-            <h1 className="text-center text-2xl sm:text-3xl font-bold text-purple-800 mb-6 sm:mb-8">
-                Return of the Mount Hua Sect - Character Guessing Game
-            </h1>
+        <div className="w-full max-w-2xl bg-white rounded-xl flex flex-col shadow-lg justify-center items-center">
+            <img src="/header.png" alt="Logo" className="scale-[0.70]" />
 
-            {/* Render the Input Form component */}
             <InputForm
                 guess={guess}
                 onGuessChange={handleGuessValueChange}
