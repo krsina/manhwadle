@@ -15,13 +15,6 @@ const GuessRow: React.FC<GuessRowProps> = ({ guessResult, isNewest }) => {
     mb-2 bg-gray-50 rounded-lg shadow-sm p-1
   `;
 
-  const nameCellClasses = `
-    flex items-center justify-center font-bold p-1 mx-1 /* Reduced padding slightly */
-    border border-gray-300 rounded-md bg-gray-200
-    text-center text-sm sm:text-base
-    flex-1 basis-0 min-w-[100px] /* Match first header */
-  `;
-
   const attributes = [
       { name: "Character", value: guessedCharacter.name, result: comparison.name },
       { name: "Gender", value: guessedCharacter.gender, result: comparison.gender },

@@ -1,0 +1,89 @@
+[33mcommit f34fe8fee882539eb67952baa4fcbea676e5dc84[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Thu Jul 17 21:33:46 2025 -0700
+
+    fixed styling
+
+[33mcommit da5863d3db58fcabbcf36fac470d648e269629f7[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Thu Jul 17 21:07:46 2025 -0700
+
+    style changes
+
+[33mcommit 52564f035e75e8147345777e4543f556de3369d1[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Wed Apr 9 04:27:46 2025 -0700
+
+    added padding
+
+[33mcommit fa9f4aa71ff1e2be9457a5b6f30b4c9d20e9b5b4[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Wed Apr 9 04:23:05 2025 -0700
+
+    replaced manhua sect guessing game with an image logo
+
+[33mcommit 6c1237954bac877f5532ebecccfa569601be7eff[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Wed Apr 2 23:38:41 2025 -0700
+
+    tightened container width
+
+[33mcommit 7937daaa0dc375538f1b1c2de2daad66ef303521[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Wed Apr 2 21:06:03 2025 -0700
+
+    fixed comparison logic not comparing character names
+
+[33mcommit 9e9b20f630729315d94fa97c450b2a70c3a1eaaf[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Wed Apr 2 21:04:02 2025 -0700
+
+    fixed styling. attributes are now centered correctly and character name displays the correct color
+
+[33mcommit 08bfc040100a7cde32effecd6f59868bf298013d[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Wed Apr 2 21:00:56 2025 -0700
+
+    added tailwindcss
+
+[33mcommit 9af3b303c497c2ead65ba1a1ce91225987babc1e[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Tue Apr 1 21:36:06 2025 -0700
+
+    re-add flip animation
+
+[33mcommit c6b985855daaa70d316586b04f9e31aae55fcaf1[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Tue Apr 1 21:12:12 2025 -0700
+
+    added responsive widths and overflow handling to attribute cards
+
+[33mcommit 9af6b57304be16b1d55f49106bff36ba78ebcb2b[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Tue Apr 1 21:11:49 2025 -0700
+
+    added responsive widths and overflow handling to attribute cards
+
+[33mcommit 8df4f84a0c10fe9148821aa7f672f5ca9a19a57a[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Tue Apr 1 18:18:04 2025 -0700
+
+    added tailwindcss
+
+[33mcommit 77076e0aa292790394c6abf4d79faabaf445b7a5[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Tue Apr 1 18:17:44 2025 -0700
+
+    added components and tailwindcss styling
+
+[33mcommit f38b0043ad4f15c1e493d07134ba0d535f86317f[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Tue Apr 1 18:15:17 2025 -0700
+
+    added components and tailwind styling
+
+[33mcommit b9bbb72a91cd5e50ed89422d41e62d669602780e[m
+Author: krsina <krisnaoeurn@gmail.com>
+Date:   Fri Mar 21 09:34:52 2025 -0700
+
+    first commit

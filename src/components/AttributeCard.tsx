@@ -10,7 +10,6 @@ interface AttributeCardProps {
 }
 
 const AttributeCard: React.FC<AttributeCardProps> = ({
-    attributeName,
     value,
     result,
     index,
