@@ -82,8 +82,8 @@ const InputForm: React.FC<InputFormProps> = ({
     };
 
     return (
-        <div ref={containerRef} className="relative flex justify-center mb-5 w-full max-w-md mx-auto">
-            <form onSubmit={onSubmit} className="flex w-full">
+        <div ref={containerRef} className="relative flex justify-center px-2 mb-5 w-full max-w-2xs mx-auto">
+            <form onSubmit={onSubmit} className="flex w-full space-x-1">
                 <input
                     ref={inputRef}
                     type="text"
@@ -94,7 +94,7 @@ const InputForm: React.FC<InputFormProps> = ({
                     placeholder="Enter character name..."
                     autoComplete="off"
                     disabled={disabled}
-                    className="px-3 py-2 text-base border border-gray-300 rounded-l-md flex-grow focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed text-gray-900"
+                    className="px-3 py-2 text-base border border-gray-300 rounded-md flex-grow focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed text-gray-900"
                 />
                 <button> Submit </button>
             </form>
