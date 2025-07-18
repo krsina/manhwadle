@@ -100,7 +100,7 @@ const InputForm: React.FC<InputFormProps> = ({
             </form>
 
             {isDropdownVisible && Array.isArray(suggestions) && suggestions.length > 0 && (
-                <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md list-none p-0 max-h-60 overflow-y-auto z-10 shadow-lg">
+                <ul className="absolute top-full left-2 right-18 mt-1 bg-white border border-gray-300 rounded-md list-none p-0 max-h-60 overflow-y-auto z-10 shadow-lg">
                     {suggestions.map((char) => (
                         <li
                             key={char?.id || Math.random()} // Added fallback key for safety

@@ -9,22 +9,22 @@ interface GuessResultsListProps {
 const GuessResultsList: React.FC<GuessResultsListProps> = ({ guesses }) => {
 
   const attributeHeaderClasses = `
-    flex-1 basis-0      /* Allow grow/shrink starting from 0 */
-    min-w-[70px]        /* Minimum width (adjust to match height for square) */
-    text-center font-semibold p-1 mx-1 /* Reduced padding slightly */
+    flex-1 basis-0      /* Match AttributeCard flex sizing */
+    min-w-[70px]        /* Match AttributeCard minimum width */
+    text-center font-semibold p-1 mx-1
     text-gray-600 text-xs sm:text-sm box-border
+    h-[40px]           /* Fixed height for header */
+    flex items-center justify-center
   `;
 
   const firstHeaderClasses = `
-    flex-1 basis-0      /* Allow grow/shrink */
-    min-w-[100px]       /* Larger minimum width */
+    min-w-[70px]       /* Match first AttributeCard larger minimum width */
   `;
 
   return (
-    // Let the container fill width up to max-w-5xl, overflow-x-auto for very small screens
-    <div className="mt-5 w-full max-w-5xl mx-auto px-1 sm:px-0 overflow-x-auto">
+    <div className="w-full max-w-5xl mx-auto overflow-x-auto">
        {guesses.length > 0 && (
-         <div className="flex mb-1 px-1 items-stretch">
+         <div className="flex px-1 items-stretch">
             <div className={`${attributeHeaderClasses} ${firstHeaderClasses}`.trim().replace(/\s+/g, ' ')}>Character</div>
             <div className={attributeHeaderClasses.trim().replace(/\s+/g, ' ')}>Gender</div>
             <div className={attributeHeaderClasses.trim().replace(/\s+/g, ' ')}>Affiliation</div>

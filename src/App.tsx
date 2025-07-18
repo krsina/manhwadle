@@ -29,7 +29,7 @@ const availableCharacters: Character[] = [
   { id: 7, name: "Hyun Jong", gender: "Male", affiliation: "Mount Hua Sect", height: "Average", firstSeenChapter: 5, aliases: ["Mount Hua Sect Leader"] },
   { id: 8, name: "Jin Geumryong", gender: "Male", affiliation: "Southern Edge Sect", height: "Tall", firstSeenChapter: 30, aliases: [] },
   { id: 9, name: "Hyun Young", gender: "Male", affiliation: "Mount Hua Sect", height: "Short", firstSeenChapter: 5, aliases: [] }, // Added more examples
-  { id: 10, name: "Im Sobyeong", gender: "Male", affiliation: "Hao Clan", height: 'Average', firstSeenChapter: 70, aliases: ["King of the Green Forest"] }
+  { id: 10, name: "Im Sobyeong", gender: "Male", affiliation: "Hao Clan", height: 'Average', firstSeenChapter: 70, aliases: ["King of the Green Forest"] },
 ];
 
 // Function to find a character by name (case-insensitive)
@@ -175,7 +175,7 @@ function App() {
     <div className="min-h-screen bg-transparent py-8 px-4 font-sans flex justify-center items-center">
         {/* Centered container with max-width, padding, background, rounded corners, and shadow */}
         <div className="w-full max-w-2xl sm:p-6 bg-white rounded-xl flex flex-col shadow-lg justify-center items-center">
-            <img src="/header.png" alt="Logo" className="h-[150px]" />
+            <img src="/header.png" alt="Logo" className="h-[150px] my-5" />
 
             <InputForm
                 guess={guess}
