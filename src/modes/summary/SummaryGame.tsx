@@ -1,0 +1,150 @@
+import { useMemo, useState } from 'react'
+import { FeedbackGrid } from '../../components/FeedbackGrid'
+import { GuessInput } from '../../components/GuessInput'
+import { KnownInfoPanel } from '../../components/KnownInfoPanel'
+import { ResultModal } from '../../components/ResultModal'
+import { SummaryClue } from '../../components/SummaryClue'
+import { APP_NAME } from '../../brand'
+import type { DayState, GuessFeedback, Manhwa } from '../../lib/anilist-types'
+import {
+  buildShareText,
+  compareGuess,
+  feedbackToShareLine,
+} from '../../lib/compare'
+import { displayTitle, getDailyAnswer, getTodayKey } from '../../lib/daily'
+import { buildKnownInfo } from '../../lib/knowledge'
+import { findById } from '../../lib/search'
+import { scrubSummary } from '../../lib/spoiler'
+import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
+import type { GameModeProps } from '../types'
+import { summaryModeMeta } from './config'
+
+function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): GuessFeedback[] {
+  return state.guessIds
+    .map((id) => findById(pool, id))
+    .filter((m): m is Manhwa => Boolean(m))
+    .map((guess) => compareGuess(guess, answer))
+}
+
+/** Default Manhwadle mode: guess from a spoiler-scrubbed summary. */
+export function SummaryGame({ pool }: GameModeProps) {
+  const { seedPrefix, storagePrefix, maxGuesses, tagline } = summaryModeMeta
+  const dateKey = getTodayKey()
+  const answer = useMemo(
+    () => getDailyAnswer(pool, dateKey, seedPrefix),
+    [pool, dateKey, seedPrefix],
+  )
+  const clue = useMemo(() => scrubSummary(answer), [answer])
+
+  const [dayState, setDayState] = useState<DayState>(() => {
+    const saved = loadDayState(dateKey, storagePrefix)
+    if (saved && saved.answerId === answer.id) return saved
+    return createInitialState(dateKey, answer.id)
+  })
+
+  const [showResult, setShowResult] = useState(
+    () => dayState.status === 'won' || dayState.status === 'lost',
+  )
+
+  const feedbackRows = useMemo(
+    () => buildFeedbackRows(dayState, answer, pool),
+    [dayState, answer, pool],
+  )
+
+  const knownInfo = useMemo(() => buildKnownInfo(feedbackRows), [feedbackRows])
+
+  const excludedIds = useMemo(() => new Set(dayState.guessIds), [dayState.guessIds])
+  const remaining = maxGuesses - dayState.guessIds.length
+  const finished = dayState.status !== 'playing'
+
+  const shareText = useMemo(() => {
+    const lines = feedbackRows.map(feedbackToShareLine)
+    return buildShareText(
+      APP_NAME,
+      dateKey,
+      dayState.guessIds.length,
+      maxGuesses,
+      dayState.status === 'won',
+      lines,
+    )
+  }, [feedbackRows, dateKey, dayState, maxGuesses])
+
+  function handleGuess(manhwa: Manhwa) {
+    if (dayState.status !== 'playing') return
+    if (dayState.guessIds.includes(manhwa.id)) return
+
+    const nextGuesses = [...dayState.guessIds, manhwa.id]
+    const won = manhwa.id === answer.id
+    const lost = !won && nextGuesses.length >= maxGuesses
+    const next: DayState = {
+      ...dayState,
+      guessIds: nextGuesses,
+      status: won ? 'won' : lost ? 'lost' : 'playing',
+    }
+
+    setDayState(next)
+    saveDayState(next, storagePrefix)
+    if (won || lost) setShowResult(true)
+  }
+
+  return (
+    <>
+      <header className="hero">
+        <div className="hero-copy">
+          <p className="brand">{APP_NAME}</p>
+          <p className="tagline">{tagline}</p>
+        </div>
+        <p className="day-meta">
+          <span>{dateKey}</span>
+          <span aria-hidden="true">·</span>
+          <span>
+            {finished
+              ? dayState.status === 'won'
+                ? `Solved in ${dayState.guessIds.length}`
+                : 'Better luck tomorrow'
+              : `${remaining} guess${remaining === 1 ? '' : 'es'} left`}
+          </span>
+        </p>
+      </header>
+
+      <div className="shell">
+        <section className="play-top">
+          <SummaryClue text={clue} />
+          <GuessInput
+            pool={pool}
+            disabled={finished}
+            excludedIds={excludedIds}
+            onGuess={handleGuess}
+          />
+        </section>
+
+        <aside className="side-rail" aria-label="Clue dossier">
+          <KnownInfoPanel info={knownInfo} hasGuesses={feedbackRows.length > 0} />
+          {finished && (
+            <button
+              type="button"
+              className="btn btn-primary reveal-btn"
+              onClick={() => setShowResult(true)}
+            >
+              {showResult ? 'Show result again' : `Show answer — ${displayTitle(answer)}`}
+            </button>
+          )}
+        </aside>
+
+        <section className="play-bottom">
+          <FeedbackGrid rows={feedbackRows} />
+        </section>
+      </div>
+
+      <ResultModal
+        open={showResult}
+        won={dayState.status === 'won'}
+        answer={answer}
+        guessCount={dayState.guessIds.length}
+        maxGuesses={maxGuesses}
+        shareText={shareText}
+        onClose={() => setShowResult(false)}
+      />
+    </>
+  )
+}

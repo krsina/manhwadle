@@ -1,10 +1,11 @@
 import type { DayState } from './anilist-types'
 
-const STORAGE_PREFIX = 'manhwaguessr-day-'
-
-export function loadDayState(dateKey: string): DayState | null {
+export function loadDayState(
+  dateKey: string,
+  storagePrefix: string,
+): DayState | null {
   try {
-    const raw = localStorage.getItem(STORAGE_PREFIX + dateKey)
+    const raw = localStorage.getItem(storagePrefix + dateKey)
     if (!raw) return null
     const parsed = JSON.parse(raw) as DayState
     if (
@@ -21,9 +22,9 @@ export function loadDayState(dateKey: string): DayState | null {
   }
 }
 
-export function saveDayState(state: DayState): void {
+export function saveDayState(state: DayState, storagePrefix: string): void {
   try {
-    localStorage.setItem(STORAGE_PREFIX + state.dateKey, JSON.stringify(state))
+    localStorage.setItem(storagePrefix + state.dateKey, JSON.stringify(state))
   } catch {
     // Ignore quota / private mode failures
   }

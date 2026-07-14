@@ -16,6 +16,7 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const rootRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLUListElement>(null)
 
   useEffect(() => {
     if (!query.trim()) {
@@ -44,6 +45,13 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
     return () => document.removeEventListener('mousedown', onDocClick)
   }, [])
 
+  // Keep the highlighted option in view while arrowing through the list
+  useEffect(() => {
+    if (!open || !listRef.current) return
+    const active = listRef.current.querySelector<HTMLElement>('[aria-selected="true"]')
+    active?.scrollIntoView({ block: 'nearest' })
+  }, [activeIndex, open, hits])
+
   function selectHit(hit: SearchHit) {
     onGuess(hit.manhwa)
     setQuery('')
@@ -59,10 +67,10 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
 
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActiveIndex((i) => (i + 1) % hits.length)
+      setActiveIndex((i) => Math.min(i + 1, hits.length - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setActiveIndex((i) => (i - 1 + hits.length) % hits.length)
+      setActiveIndex((i) => Math.max(i - 1, 0))
     } else if (e.key === 'Enter') {
       e.preventDefault()
       const hit = hits[activeIndex]
@@ -93,10 +101,12 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
         aria-expanded={open}
         aria-controls={listId}
         aria-autocomplete="list"
-        aria-activedescendant={open && hits[activeIndex] ? `${listId}-${hits[activeIndex].manhwa.id}` : undefined}
+        aria-activedescendant={
+          open && hits[activeIndex] ? `${listId}-${hits[activeIndex].manhwa.id}` : undefined
+        }
       />
       {open && (
-        <ul id={listId} className="guess-list" role="listbox">
+        <ul id={listId} className="guess-list" role="listbox" ref={listRef}>
           {hits.map((hit, index) => (
             <li key={hit.manhwa.id} role="presentation">
               <button

@@ -18,16 +18,29 @@ export function hashString(input: string): number {
   return hash >>> 0
 }
 
-export function getDailyIndex(dateKey: string, poolSize: number): number {
+export function getDailyIndex(
+  dateKey: string,
+  poolSize: number,
+  seedPrefix: string,
+): number {
   if (poolSize <= 0) return 0
-  return hashString(`manhwaguessr-${dateKey}`) % poolSize
+  return hashString(`${seedPrefix}-${dateKey}`) % poolSize
 }
 
-export function getDailyAnswer(pool: Manhwa[], dateKey = getTodayKey()): Manhwa {
-  const index = getDailyIndex(dateKey, pool.length)
+export function getDailyAnswer(
+  pool: Manhwa[],
+  dateKey: string,
+  seedPrefix: string,
+): Manhwa {
+  const index = getDailyIndex(dateKey, pool.length, seedPrefix)
   return pool[index]!
 }
 
 export function displayTitle(manhwa: Manhwa): string {
-  return manhwa.title.english?.trim() || manhwa.title.romaji?.trim() || manhwa.title.native?.trim() || `Manhwa #${manhwa.id}`
+  return (
+    manhwa.title.english?.trim() ||
+    manhwa.title.romaji?.trim() ||
+    manhwa.title.native?.trim() ||
+    `Manhwa #${manhwa.id}`
+  )
 }

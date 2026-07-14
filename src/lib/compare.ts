@@ -136,6 +136,7 @@ export function feedbackToShareLine(feedback: GuessFeedback): string {
 }
 
 export function buildShareText(
+  appName: string,
   dateKey: string,
   guessCount: number,
   maxGuesses: number,
@@ -143,5 +144,5 @@ export function buildShareText(
   lines: string[],
 ): string {
   const score = won ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`
-  return [`ManhwaGuessr ${dateKey} ${score}`, '', ...lines].join('\n')
+  return [`${appName} ${dateKey} ${score}`, '', ...lines].join('\n')
 }
