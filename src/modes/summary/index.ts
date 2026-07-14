@@ -3,8 +3,8 @@ import { summaryModeMeta } from './config'
 import { SummaryGame } from './SummaryGame'
 
 /**
- * Classic / default variant: spoiler-scrubbed synopsis as the clue,
- * with genre / year / status / tag feedback after each guess.
+ * Classic / default variant: authored storyDescriptionBlurb tiers (t0 → t1),
+ * then spoiler-scrubbed publisher description, with genre / year / status / tag feedback.
  */
 export const summaryMode: GameModeDefinition = {
   ...summaryModeMeta,

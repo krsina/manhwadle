@@ -23,7 +23,7 @@ function App() {
           <a href="https://anilist.co" target="_blank" rel="noreferrer">
             AniList
           </a>
-          . Top 250 Korean manhwa by popularity.
+          . Top 500 Korean manhwa by popularity.
         </p>
       </footer>
     </div>

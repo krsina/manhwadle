@@ -5,7 +5,14 @@ import { KnownInfoPanel } from '../../components/KnownInfoPanel'
 import { ResultModal } from '../../components/ResultModal'
 import { SummaryClue } from '../../components/SummaryClue'
 import { APP_NAME } from '../../brand'
+import storyBlurbData from '../../data/storyDescriptionBlurb.json'
 import type { DayState, GuessFeedback, Manhwa } from '../../lib/anilist-types'
+import {
+  buildRevealLadder,
+  indexStoryBlurbs,
+  revealedBlurbCount,
+  type StoryDescriptionBlurbFile,
+} from '../../lib/blurbs'
 import {
   buildShareText,
   compareGuess,
@@ -19,6 +26,10 @@ import { createInitialState, loadDayState, saveDayState } from '../../lib/storag
 import type { GameModeProps } from '../types'
 import { summaryModeMeta } from './config'
 
+const storyBlurbIndex = indexStoryBlurbs(
+  storyBlurbData as StoryDescriptionBlurbFile,
+)
+
 function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): GuessFeedback[] {
   return state.guessIds
     .map((id) => findById(pool, id))
@@ -26,15 +37,27 @@ function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): Gue
     .map((guess) => compareGuess(guess, answer))
 }
 
-/** Default Manhwadle mode: guess from a spoiler-scrubbed summary. */
+/** Default Manhwadle mode: progressive story blurbs → full scrubbed description. */
 export function SummaryGame({ pool }: GameModeProps) {
   const { seedPrefix, storagePrefix, maxGuesses, tagline } = summaryModeMeta
   const dateKey = getTodayKey()
-  const answer = useMemo(
-    () => getDailyAnswer(pool, dateKey, seedPrefix),
-    [pool, dateKey, seedPrefix],
+
+  // Daily answers only from titles that have authored story blurbs
+  const playablePool = useMemo(
+    () => pool.filter((m) => storyBlurbIndex.has(m.id)),
+    [pool],
   )
-  const clue = useMemo(() => scrubSummary(answer), [answer])
+
+  const answer = useMemo(
+    () => getDailyAnswer(playablePool.length > 0 ? playablePool : pool, dateKey, seedPrefix),
+    [playablePool, pool, dateKey, seedPrefix],
+  )
+
+  const blurbs = useMemo(() => {
+    const authored = storyBlurbIndex.get(answer.id)
+    const full = scrubSummary(answer)
+    return buildRevealLadder(authored, full)
+  }, [answer])
 
   const [dayState, setDayState] = useState<DayState>(() => {
     const saved = loadDayState(dateKey, storagePrefix)
@@ -56,6 +79,17 @@ export function SummaryGame({ pool }: GameModeProps) {
   const excludedIds = useMemo(() => new Set(dayState.guessIds), [dayState.guessIds])
   const remaining = maxGuesses - dayState.guessIds.length
   const finished = dayState.status !== 'playing'
+
+  const failedGuesses =
+    dayState.status === 'won'
+      ? Math.max(0, dayState.guessIds.length - 1)
+      : dayState.guessIds.length
+
+  const unlockedCount = revealedBlurbCount(failedGuesses, blurbs.length, { finished })
+  const visibleBlurbs = useMemo(
+    () => blurbs.slice(0, unlockedCount),
+    [blurbs, unlockedCount],
+  )
 
   const shareText = useMemo(() => {
     const lines = feedbackRows.map(feedbackToShareLine)
@@ -109,7 +143,11 @@ export function SummaryGame({ pool }: GameModeProps) {
 
       <div className="shell">
         <section className="play-top">
-          <SummaryClue text={clue} />
+          <SummaryClue
+            blurbs={visibleBlurbs}
+            totalBlurbs={blurbs.length}
+            finished={finished}
+          />
           <GuessInput
             pool={pool}
             disabled={finished}

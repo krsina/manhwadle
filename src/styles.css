@@ -187,8 +187,17 @@ input {
   animation-delay: 80ms;
 }
 
+.clue-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.55rem;
+}
+
 .clue-label {
-  margin: 0 0 0.55rem;
+  margin: 0;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -196,11 +205,28 @@ input {
   color: var(--accent-deep);
 }
 
+.clue-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.clue-blurbs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
 .clue-text {
   margin: 0;
   font-size: 1.05rem;
   line-height: 1.55;
   white-space: pre-wrap;
+  animation: rise 420ms ease both;
+}
+
+.clue-text.is-newest {
+  color: var(--ink);
 }
 
 .guess {
