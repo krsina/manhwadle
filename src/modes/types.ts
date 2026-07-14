@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import type { Manhwa } from '../lib/anilist-types'
+import type { HowToPlayGuide } from '../lib/howto'
 
 export interface GameModeProps {
   pool: Manhwa[]
@@ -21,5 +22,7 @@ export interface GameModeDefinition {
   /** localStorage key prefix — keep unique per mode */
   storagePrefix: string
   maxGuesses: number
+  /** First-visit / “?” how-to content for this mode */
+  howTo: HowToPlayGuide
   Component: ComponentType<GameModeProps>
 }

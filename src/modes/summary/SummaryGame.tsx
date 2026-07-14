@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import { FeedbackGrid } from '../../components/FeedbackGrid'
 import { GuessInput } from '../../components/GuessInput'
+import { HowToPlay } from '../../components/howto/HowToPlay'
 import { KnownInfoPanel } from '../../components/KnownInfoPanel'
 import { ResultModal } from '../../components/ResultModal'
 import { SummaryClue } from '../../components/SummaryClue'
+import { ThemeToggle } from '../../components/ThemeToggle'
 import { APP_NAME } from '../../brand'
 import storyBlurbData from '../../data/storyDescriptionBlurb.json'
 import type { DayState, GuessFeedback, Manhwa } from '../../lib/anilist-types'
@@ -19,6 +21,7 @@ import {
   feedbackToShareLine,
 } from '../../lib/compare'
 import { displayTitle, getDailyAnswer, getTodayKey } from '../../lib/daily'
+import { hasSeenHowTo } from '../../lib/howto'
 import { buildKnownInfo } from '../../lib/knowledge'
 import { findById } from '../../lib/search'
 import { scrubSummary } from '../../lib/spoiler'
@@ -39,7 +42,7 @@ function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): Gue
 
 /** Default Manhwadle mode: progressive story blurbs → full scrubbed description. */
 export function SummaryGame({ pool }: GameModeProps) {
-  const { seedPrefix, storagePrefix, maxGuesses, tagline } = summaryModeMeta
+  const { id, seedPrefix, storagePrefix, maxGuesses, tagline, howTo } = summaryModeMeta
   const dateKey = getTodayKey()
 
   // Daily answers only from titles that have authored story blurbs
@@ -66,7 +69,8 @@ export function SummaryGame({ pool }: GameModeProps) {
   })
 
   const [showResult, setShowResult] = useState(
-    () => dayState.status === 'won' || dayState.status === 'lost',
+    () =>
+      (dayState.status === 'won' || dayState.status === 'lost') && hasSeenHowTo(id),
   )
 
   const feedbackRows = useMemo(
@@ -128,17 +132,23 @@ export function SummaryGame({ pool }: GameModeProps) {
           <p className="brand">{APP_NAME}</p>
           <p className="tagline">{tagline}</p>
         </div>
-        <p className="day-meta">
-          <span>{dateKey}</span>
-          <span aria-hidden="true">·</span>
-          <span>
-            {finished
-              ? dayState.status === 'won'
-                ? `Solved in ${dayState.guessIds.length}`
-                : 'Better luck tomorrow'
-              : `${remaining} guess${remaining === 1 ? '' : 'es'} left`}
-          </span>
-        </p>
+        <div className="hero-aside">
+          <div className="hero-controls">
+            <HowToPlay modeId={id} guide={howTo} />
+            <ThemeToggle />
+          </div>
+          <p className="day-meta">
+            <span>{dateKey}</span>
+            <span aria-hidden="true">·</span>
+            <span>
+              {finished
+                ? dayState.status === 'won'
+                  ? `Solved in ${dayState.guessIds.length}`
+                  : 'Better luck tomorrow'
+                : `${remaining} guess${remaining === 1 ? '' : 'es'} left`}
+            </span>
+          </p>
+        </div>
       </header>
 
       <div className="shell">
@@ -156,7 +166,7 @@ export function SummaryGame({ pool }: GameModeProps) {
           />
         </section>
 
-        <aside className="side-rail" aria-label="Clue dossier">
+        <aside className="side-rail" aria-label="Known information">
           <KnownInfoPanel info={knownInfo} hasGuesses={feedbackRows.length > 0} />
           {finished && (
             <button

@@ -31,10 +31,18 @@ function genreKnownValue(info: KnownInfo['genres']): string {
 
 function yearKnownValue(info: KnownInfo['year']): string {
   if (info.exact != null) return String(info.exact)
-  const parts: string[] = []
-  if (info.minExclusive != null) parts.push(`>${info.minExclusive}`)
-  if (info.maxExclusive != null) parts.push(`<${info.maxExclusive}`)
-  return parts.length > 0 ? parts.join(' · ') : '—'
+
+  const clues: { year: number; label: string }[] = []
+  if (info.minExclusive != null) {
+    clues.push({ year: info.minExclusive, label: `${info.minExclusive} ↑` })
+  }
+  if (info.maxExclusive != null) {
+    clues.push({ year: info.maxExclusive, label: `${info.maxExclusive} ↓` })
+  }
+
+  if (clues.length === 0) return '—'
+  clues.sort((a, b) => a.year - b.year)
+  return clues.map((c) => c.label).join(' · ')
 }
 
 function yearToneClass(info: KnownInfo['year']): string {
@@ -78,8 +86,8 @@ function ChipList({
 export function KnownInfoPanel({ info, hasGuesses }: KnownInfoPanelProps) {
   if (!hasGuesses) {
     return (
-      <section className="dossier" aria-label="Known information">
-        <p className="dossier-empty">Guess to fill this dossier.</p>
+      <section className="known" aria-label="Known information">
+        <p className="known-empty">Guess to fill in what you know.</p>
       </section>
     )
   }
@@ -90,9 +98,9 @@ export function KnownInfoPanel({ info, hasGuesses }: KnownInfoPanelProps) {
     info.tags.ruledOut.length > 0
 
   return (
-    <section className="dossier" aria-label="Known information">
-      <div className="dossier-block">
-        <p className="dossier-heading">Known</p>
+    <section className="known" aria-label="Known information">
+      <div className="known-block">
+        <p className="known-heading">Known</p>
         <div className="rail-stack">
           <div className={`rail-item ${genreToneClass(info.genres.state)}`}>
             <span className="rail-label">Genres</span>
@@ -114,8 +122,8 @@ export function KnownInfoPanel({ info, hasGuesses }: KnownInfoPanelProps) {
       </div>
 
       {hasRuledOut && (
-        <div className="dossier-block">
-          <p className="dossier-heading">Ruled out</p>
+        <div className="known-block">
+          <p className="known-heading">Ruled out</p>
           <div className="rail-stack">
             <div className="rail-item tone-incorrect">
               <span className="rail-label">Genres</span>

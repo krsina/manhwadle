@@ -81,7 +81,7 @@ function statusSummary(known: ManhwaStatus | null, ruledOut: ManhwaStatus[]): st
   return 'No status clues yet'
 }
 
-/** Aggregate per-guess feedback into a running dossier of known facts */
+/** Aggregate per-guess feedback into a running set of known facts */
 export function buildKnownInfo(rows: GuessFeedback[]): KnownInfo {
   if (rows.length === 0) {
     return {

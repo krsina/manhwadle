@@ -1,5 +1,6 @@
 import type { Manhwa } from '../lib/anilist-types'
 import { displayTitle } from '../lib/daily'
+import { ConfettiBurst } from './ConfettiBurst'
 
 interface ResultModalProps {
   open: boolean
@@ -22,6 +23,8 @@ export function ResultModal({
 }: ResultModalProps) {
   if (!open) return null
 
+  const firstTry = won && guessCount === 1
+
   async function handleShare() {
     try {
       if (navigator.share) {
@@ -42,19 +45,29 @@ export function ResultModal({
 
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
+      {won && <ConfettiBurst active firstTry={firstTry} />}
       <div
-        className="modal"
+        className={`modal${firstTry ? ' is-first-try' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="result-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="modal-kicker">{won ? 'Solved' : 'Out of guesses'}</p>
+        <p className="modal-kicker">
+          {firstTry
+            ? 'First try!'
+            : won
+              ? 'Solved'
+              : 'Out of guesses, try again tomorrow!'}
+        </p>
         <h2 id="result-title" className="modal-title">
           {displayTitle(answer)}
         </h2>
         <p className="modal-score">
           {won ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`}
+          {firstTry && (
+            <span className="modal-first-try-note">Nailed it on the opening guess</span>
+          )}
         </p>
 
         {answer.coverImage && (
