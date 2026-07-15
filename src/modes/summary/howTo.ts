@@ -11,7 +11,7 @@ export const summaryHowTo: HowToPlayGuide = {
     },
     {
       title: 'Type a title',
-      body: 'Search the list and submit a guess. Feedback appears for genres, year, status, and tags.',
+      body: 'Search the list and submit a guess. Feedback appears for genres, year, status, publisher, and tags.',
     },
     {
       title: 'Read the colors',

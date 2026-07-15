@@ -192,7 +192,12 @@ export function CharacterEditModal({
               <h3>Default image</h3>
               <p className="editor-help">AniList portrait. Click the editor image to set focus.</p>
               {defaultImage ? (
-                <img className="char-modal-default" src={defaultImage} alt="" />
+                <img
+                  className="char-modal-default"
+                  src={defaultImage}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                />
               ) : (
                 <div className="char-modal-default is-empty">No default image</div>
               )}
@@ -222,7 +227,12 @@ export function CharacterEditModal({
                       transformOrigin: `${focusX}% ${focusY}%`,
                     }}
                   >
-                    <img src={sourceUrl} alt="" draggable={false} />
+                    <img
+                      src={sourceUrl}
+                      alt=""
+                      draggable={false}
+                      referrerPolicy="no-referrer"
+                    />
                   </div>
                 </div>
               ) : (
@@ -253,7 +263,12 @@ export function CharacterEditModal({
                 role="presentation"
                 title="Click to set focus point"
               >
-                <img src={sourceUrl} alt="" draggable={false} />
+                <img
+                  src={sourceUrl}
+                  alt=""
+                  draggable={false}
+                  referrerPolicy="no-referrer"
+                />
                 <span
                   className="char-focus-mark"
                   style={{ left: `${focusX}%`, top: `${focusY}%` }}

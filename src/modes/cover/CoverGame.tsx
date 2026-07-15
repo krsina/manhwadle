@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { AuthButton } from '../../components/AuthButton'
+import { useAuth } from '../../components/AuthProvider'
 import { CoverClue } from '../../components/CoverClue'
 import { FeedbackGrid } from '../../components/FeedbackGrid'
 import { GuessInput } from '../../components/GuessInput'
@@ -15,14 +17,17 @@ import {
   feedbackToShareLine,
 } from '../../lib/compare'
 import { manhwaHasCover } from '../../lib/cover'
-import { displayTitle, getDailyAnswer, getTodayKey } from '../../lib/daily'
+import { displayTitle, getTodayKey } from '../../lib/daily'
 import { hasSeenHowTo } from '../../lib/howto'
 import { buildKnownInfo } from '../../lib/knowledge'
 import { randomPlayableIndex } from '../../lib/random'
 import { findById } from '../../lib/search'
+import { applyGuess } from '../../lib/guessLoop'
 import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
 import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
 import { recordDailyResult } from '../../lib/stats'
+import { syncAfterLocalChange } from '../../lib/sync'
+import { useDailyPuzzleAnswer } from '../../lib/useDailyPuzzleAnswer'
 import type { GameModeProps } from '../types'
 import { coverModeMeta } from './config'
 
@@ -37,6 +42,8 @@ function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): Gue
 export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
   const { id, name, seedPrefix, storagePrefix, maxGuesses, tagline, howTo } =
     coverModeMeta
+  const { user } = useAuth()
+  const sync = syncAfterLocalChange(user?.id)
   const dateKey = getTodayKey()
   const tasteSeed = withTastePrefix(seedPrefix, taste)
   const tasteStorage = withTastePrefix(storagePrefix, taste)
@@ -48,12 +55,12 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
 
   const hasCovers = playablePool.length > 0
 
-  const dailyAnswer = useMemo(
-    () =>
-      hasCovers
-        ? getDailyAnswer(playablePool, dateKey, tasteSeed)
-        : pool[0]!,
-    [hasCovers, playablePool, pool, dateKey, tasteSeed],
+  const { answer: dailyAnswer } = useDailyPuzzleAnswer(
+    'cover',
+    taste,
+    playablePool,
+    pool,
+    tasteSeed,
   )
 
   const [practiceIndex, setPracticeIndex] = useState<number | null>(null)
@@ -74,6 +81,20 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
     if (saved && saved.answerId === dailyAnswer.id) return saved
     return createInitialState(dateKey, dailyAnswer.id)
   })
+
+  useEffect(() => {
+    if (!hasCovers || isPractice) return
+    const saved = loadDayState(dateKey, tasteStorage)
+    if (saved && saved.answerId === dailyAnswer.id) {
+      setDayState(saved)
+      return
+    }
+    setDayState((prev) => {
+      if (prev.answerId === dailyAnswer.id) return prev
+      if (prev.guessIds.length > 0) return prev
+      return createInitialState(dateKey, dailyAnswer.id)
+    })
+  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasCovers])
 
   const [showResult, setShowResult] = useState(
     () =>
@@ -112,22 +133,22 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
   }, [feedbackRows, dateKey, dayState, maxGuesses, name, taste])
 
   function handleGuess(manhwa: Manhwa) {
-    if (!hasCovers || dayState.status !== 'playing') return
-    if (dayState.guessIds.includes(manhwa.id)) return
-
-    const nextGuesses = [...dayState.guessIds, manhwa.id]
-    const won = manhwa.id === answer.id
-    const lost = !won && nextGuesses.length >= maxGuesses
+    if (!hasCovers) return
+    const transition = applyGuess(dayState, manhwa.id, answer.id, maxGuesses)
+    if (!transition) return
     const next: DayState = {
       ...dayState,
       answerId: answer.id,
-      guessIds: nextGuesses,
-      status: won ? 'won' : lost ? 'lost' : 'playing',
+      guessIds: transition.guessIds,
+      status: transition.status,
     }
+    const won = transition.status === 'won'
+    const lost = transition.status === 'lost'
 
     setDayState(next)
     if (!isPractice) {
       saveDayState(next, tasteStorage)
+      sync.progress('cover', taste, next)
       if (won || lost) {
         recordDailyResult({
           modeId: 'cover',
@@ -135,8 +156,9 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
           dateKey,
           maxGuesses,
           won,
-          guessCount: nextGuesses.length,
+          guessCount: transition.guessIds.length,
         })
+        sync.stats('cover', taste)
       }
     }
     if (won || lost) setShowResult(true)
@@ -167,6 +189,7 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
               taste={taste}
               maxGuesses={maxGuesses}
             />
+            <AuthButton />
             <ThemeToggle />
           </div>
           <p className="day-meta">

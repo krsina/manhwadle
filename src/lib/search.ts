@@ -1,5 +1,6 @@
 import type { Manhwa, ManhwaCharacter } from './anilist-types'
 import { displayTitle } from './daily'
+import { namesMatch, normalizeSearchKey, scoreSearchKey } from './nameMatch'
 
 export interface SearchHit {
   manhwa: Manhwa
@@ -28,19 +29,6 @@ function englishLabel(manhwa: Manhwa): string {
   return manhwa.title.english?.trim() || displayTitle(manhwa)
 }
 
-function normalize(value: string): string {
-  return value.trim().toLowerCase()
-}
-
-function scoreName(name: string, query: string): number {
-  const n = normalize(name)
-  if (!n) return Infinity
-  if (n === query) return 0
-  if (n.startsWith(query)) return 1
-  if (n.includes(query)) return 2
-  return Infinity
-}
-
 function characterNames(character: ManhwaCharacter): string[] {
   return [
     character.name.full,
@@ -65,7 +53,7 @@ export function collectCharacters(pool: Manhwa[]): ManhwaCharacter[] {
  * Results always show the English name, even when an alias matched.
  */
 export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHit[] {
-  const q = normalize(query)
+  const q = normalizeSearchKey(query)
   if (!q) return []
 
   const scored: Array<SearchHit & { score: number }> = []
@@ -76,13 +64,13 @@ export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHi
     let matchedAlias = false
 
     for (const name of allNames(manhwa)) {
-      const score = scoreName(name, q)
+      const score = scoreSearchKey(name, q)
       if (score < bestScore) {
         bestScore = score
-        matchedAlias = normalize(name) !== normalize(label)
+        matchedAlias = !namesMatch(name, label)
       } else if (score === bestScore && score < Infinity) {
         // Prefer treating it as a primary-title match when scores tie
-        if (normalize(name) === normalize(label)) {
+        if (namesMatch(name, label)) {
           matchedAlias = false
         }
       }
@@ -120,7 +108,7 @@ export function searchCharacters(
   query: string,
   limit = 10,
 ): CharacterSearchHit[] {
-  const q = normalize(query)
+  const q = normalizeSearchKey(query)
   if (!q) return []
 
   const scored: Array<CharacterSearchHit & { score: number }> = []
@@ -130,7 +118,7 @@ export function searchCharacters(
     let matchedName = ''
 
     for (const name of characterNames(character)) {
-      const score = scoreName(name, q)
+      const score = scoreSearchKey(name, q)
       if (score < bestScore) {
         bestScore = score
         matchedName = name.trim()
@@ -154,7 +142,7 @@ export function searchCharacters(
   const seenLabels = new Set<string>()
   const unique: CharacterSearchHit[] = []
   for (const hit of scored) {
-    const key = normalize(hit.label)
+    const key = normalizeSearchKey(hit.label)
     if (!key || seenLabels.has(key)) continue
     seenLabels.add(key)
     unique.push({ character: hit.character, label: hit.label })

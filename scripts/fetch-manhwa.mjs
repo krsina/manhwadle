@@ -6,6 +6,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { parsePublisher } from './lib/publisher.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const OUT_PATH = join(__dirname, '..', 'src', 'data', 'manhwa.json')
@@ -112,6 +113,7 @@ function normalizeEntry(media) {
     genres: media.genres ?? [],
     tags,
     status: mapStatus(media.status),
+    publisher: parsePublisher(media.description),
     startDate: {
       year: media.startDate?.year ?? null,
       month: media.startDate?.month ?? null,

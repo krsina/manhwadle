@@ -1,4 +1,6 @@
 import type { Manhwa } from './anilist-types'
+import { catalogSizePhrase } from './catalogConfig'
+import tasteLaneOverrides from '../data/tasteLaneOverrides.json'
 
 export type ReaderTaste = 'action' | 'romance' | 'both'
 
@@ -24,7 +26,7 @@ export const READER_TASTE_OPTIONS: ReaderTasteOption[] = [
   {
     id: 'both',
     label: 'Both',
-    description: 'Draw today’s puzzle from the full top-500 catalog.',
+    description: `Draw today’s puzzle from the full ${catalogSizePhrase()} catalog.`,
   },
 ]
 
@@ -80,6 +82,33 @@ const ROMANCE_TAGS = new Set([
   'Work',
 ])
 
+/** Feminine / otome signals used to break score ties and gate Romance titles. */
+const FEMININE_TAGS = new Set([
+  'Villainess',
+  'Otome Game',
+  'Female Protagonist',
+  'Ojou-sama',
+  'Love Triangle',
+  'Royal Affairs',
+  'Male Harem',
+])
+
+/** Strong otome / feminine tags — enough alone with Romance to force romance lane. */
+const OTOME_TAGS = new Set([
+  'Villainess',
+  'Otome Game',
+  'Ojou-sama',
+  'Male Harem',
+  'Royal Affairs',
+])
+
+const LANE_OVERRIDES: ReadonlyMap<number, ManhwaTasteLane> = new Map(
+  Object.entries(tasteLaneOverrides.lanes || {}).map(([id, lane]) => [
+    Number(id),
+    lane as ManhwaTasteLane,
+  ]),
+)
+
 export function isReaderTaste(value: string): value is ReaderTaste {
   return value === 'action' || value === 'romance' || value === 'both'
 }
@@ -133,19 +162,73 @@ function scoreSide(
   return score
 }
 
-/** Which focused lane(s) a title belongs to. Ties / weak scores → both lanes. */
+function hasGenre(manhwa: Manhwa, genre: string): boolean {
+  return (manhwa.genres || []).some((g) => g === genre)
+}
+
+function hasAnyTag(manhwa: Manhwa, tags: Set<string>): boolean {
+  return (manhwa.tags || []).some((t) => tags.has(t))
+}
+
+/**
+ * Otome / princess-romance titles often score as "action" because Fantasy +
+ * Isekai outweigh Romance. Detect feminine Romance before numeric scoring.
+ */
+function isFeminineRomanceTitle(manhwa: Manhwa): boolean {
+  if (!hasGenre(manhwa, 'Romance')) return false
+  if (hasAnyTag(manhwa, OTOME_TAGS)) return true
+  const femaleLead = hasAnyTag(manhwa, new Set(['Female Protagonist']))
+  const maleLead = hasAnyTag(manhwa, new Set(['Male Protagonist']))
+  if (femaleLead && !maleLead) return true
+  // Classic fantasy romance / isekai otome without an Action genre tag
+  if (hasGenre(manhwa, 'Fantasy') && !hasGenre(manhwa, 'Action')) return true
+  return false
+}
+
+/**
+ * Break equal action/romance scores toward masculine (action) or feminine (romance).
+ * Fantasy+Romance otome leans romance; Action without Romance leans action.
+ */
+function breakTasteTie(manhwa: Manhwa): ManhwaTasteLane {
+  if (isFeminineRomanceTitle(manhwa)) return 'romance'
+  const hasRomance = hasGenre(manhwa, 'Romance')
+  const hasAction = hasGenre(manhwa, 'Action')
+  const hasFantasy = hasGenre(manhwa, 'Fantasy')
+  const feminine = hasAnyTag(manhwa, FEMININE_TAGS)
+  const maleLead = hasAnyTag(manhwa, new Set(['Male Protagonist']))
+  const femaleLead = hasAnyTag(manhwa, new Set(['Female Protagonist']))
+
+  if (hasRomance && (feminine || (hasFantasy && !hasAction))) return 'romance'
+  if (hasAction && !hasRomance) return 'action'
+  if (hasAction && maleLead && !femaleLead) return 'action'
+  if (hasFantasy && hasRomance) return 'romance'
+  if (hasAction || maleLead) return 'action'
+  if (hasRomance || feminine) return 'romance'
+  return 'both'
+}
+
+/** Which focused lane a title belongs to. Manual overrides win; else score + tie-break. */
 export function classifyManhwaTaste(manhwa: Manhwa): ManhwaTasteLane {
+  const override = LANE_OVERRIDES.get(manhwa.id)
+  if (override === 'action' || override === 'romance' || override === 'both') {
+    return override
+  }
+
+  // Prefer feminine/otome Romance over Fantasy/Isekai action inflation.
+  if (isFeminineRomanceTitle(manhwa)) return 'romance'
+
   const action = scoreSide(manhwa, ACTION_GENRES, ACTION_TAGS)
   const romance = scoreSide(manhwa, ROMANCE_GENRES, ROMANCE_TAGS)
 
-  if (action === 0 && romance === 0) return 'both'
-  if (action === romance) return 'both'
+  if (action === 0 && romance === 0) return breakTasteTie(manhwa)
+  if (action === romance) return breakTasteTie(manhwa)
   return action > romance ? 'action' : 'romance'
 }
 
 export function manhwaMatchesTaste(manhwa: Manhwa, taste: ReaderTaste): boolean {
   if (taste === 'both') return true
   const lane = classifyManhwaTaste(manhwa)
+  // "both" lane titles still appear in either focused preference.
   return lane === taste || lane === 'both'
 }
 

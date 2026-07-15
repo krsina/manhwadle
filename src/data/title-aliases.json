@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "version": 1,
+    "updatedAt": "2026-07-15T07:21:51.207Z",
+    "source": "asurascans.com/browse + AniList search",
+    "notes": [
+      "Extra synonyms keyed by AniList media id.",
+      "Merged into manhwa.synonyms by sync-game-data.mjs and apply-title-aliases.mjs."
+    ]
+  },
+  "aliases": {
+    "130210": [
+      "Demon in Mount Hua"
+    ],
+    "142352": [
+      "Star Instructor, Master Baek"
+    ],
+    "159439": [
+      "Boundless Necromancer"
+    ],
+    "166658": [
+      "Solo Farming In The Tower"
+    ]
+  }
+}

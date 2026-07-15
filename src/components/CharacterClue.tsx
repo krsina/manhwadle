@@ -44,6 +44,7 @@ export function CharacterClue({
               src={crop.imageUrl}
               alt=""
               draggable={false}
+              referrerPolicy="no-referrer"
             />
           </div>
         </div>

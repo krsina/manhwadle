@@ -68,10 +68,12 @@ export interface Manhwa {
   genres: string[]
   tags: string[]
   status: ManhwaStatus
+  /** English platform / publisher from AniList Source tag (e.g. WEBTOON, Tapas) */
+  publisher: string
   startDate: StartDate
   coverImage: string | null
   siteUrl: string
-  /** Characters attached from top-500 ETL (MAIN first) */
+  /** Characters attached from catalog ETL (MAIN first) */
   characters: ManhwaCharacter[]
 }
 
@@ -94,6 +96,11 @@ export interface StatusFeedback {
   status: ManhwaStatus
 }
 
+export interface PublisherFeedback {
+  tone: FeedbackTone
+  publisher: string
+}
+
 export interface TagFeedback {
   tone: FeedbackTone
   guessed: string[]
@@ -107,6 +114,7 @@ export interface GuessFeedback {
   genres: GenreFeedback
   year: YearFeedback
   status: StatusFeedback
+  publisher: PublisherFeedback
   tags: TagFeedback
 }
 

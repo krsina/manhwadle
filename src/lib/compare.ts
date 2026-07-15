@@ -3,6 +3,7 @@ import type {
   GenreFeedback,
   GuessFeedback,
   Manhwa,
+  PublisherFeedback,
   StatusFeedback,
   TagFeedback,
   YearFeedback,
@@ -85,6 +86,15 @@ export function compareStatus(guess: Manhwa, answer: Manhwa): StatusFeedback {
   return { tone, status: guess.status }
 }
 
+export function comparePublisher(guess: Manhwa, answer: Manhwa): PublisherFeedback {
+  const tone: FeedbackTone =
+    guess.publisher.trim().toLowerCase() === answer.publisher.trim().toLowerCase()
+      ? 'correct'
+      : 'incorrect'
+
+  return { tone, publisher: guess.publisher }
+}
+
 export function compareTags(guess: Manhwa, answer: Manhwa): TagFeedback {
   const shared = sharedLabels(guess.tags, answer.tags)
   return {
@@ -109,6 +119,9 @@ export function compareGuess(guess: Manhwa, answer: Manhwa): GuessFeedback {
     status: isCorrect
       ? { tone: 'correct', status: guess.status }
       : compareStatus(guess, answer),
+    publisher: isCorrect
+      ? { tone: 'correct', publisher: guess.publisher }
+      : comparePublisher(guess, answer),
     tags: isCorrect
       ? {
           tone: 'correct',
@@ -131,6 +144,7 @@ export function feedbackToShareLine(feedback: GuessFeedback): string {
     TONE_EMOJI[feedback.genres.tone],
     TONE_EMOJI[feedback.year.tone],
     TONE_EMOJI[feedback.status.tone],
+    TONE_EMOJI[feedback.publisher.tone],
     TONE_EMOJI[feedback.tags.tone],
   ].join('')
 }

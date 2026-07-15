@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { AuthButton } from '../../components/AuthButton'
+import { useAuth } from '../../components/AuthProvider'
 import { CharacterClue } from '../../components/CharacterClue'
 import { FeedbackGrid } from '../../components/FeedbackGrid'
 import { GuessInput } from '../../components/GuessInput'
@@ -21,14 +23,18 @@ import {
   resolveDailyCharacterCrop,
   type CharacterCropFile,
 } from '../../lib/crops'
-import { displayTitle, getDailyAnswer, getTodayKey } from '../../lib/daily'
+import { displayTitle, getTodayKey } from '../../lib/daily'
 import { hasSeenHowTo } from '../../lib/howto'
 import { buildKnownInfo } from '../../lib/knowledge'
 import { randomPlayableIndex } from '../../lib/random'
 import { findById } from '../../lib/search'
+import { applyGuess } from '../../lib/guessLoop'
 import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
 import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
 import { recordBonusResult, recordDailyResult } from '../../lib/stats'
+import { syncAfterLocalChange } from '../../lib/sync'
+import { catalogSizePhrase } from '../../lib/catalogConfig'
+import { useDailyPuzzleAnswer } from '../../lib/useDailyPuzzleAnswer'
 import type { GameModeProps } from '../types'
 import { characterModeMeta } from './config'
 
@@ -45,6 +51,8 @@ function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): Gue
 export function CharacterGame({ pool, guessPool, taste }: GameModeProps) {
   const { id, name, seedPrefix, storagePrefix, maxGuesses, tagline, howTo } =
     characterModeMeta
+  const { user } = useAuth()
+  const sync = syncAfterLocalChange(user?.id)
   const dateKey = getTodayKey()
   const tasteSeed = withTastePrefix(seedPrefix, taste)
   const tasteStorage = withTastePrefix(storagePrefix, taste)
@@ -59,12 +67,12 @@ export function CharacterGame({ pool, guessPool, taste }: GameModeProps) {
 
   const hasCrops = playablePool.length > 0
 
-  const dailyAnswer = useMemo(
-    () =>
-      hasCrops
-        ? getDailyAnswer(playablePool, dateKey, tasteSeed)
-        : pool[0]!,
-    [hasCrops, playablePool, pool, dateKey, tasteSeed],
+  const { answer: dailyAnswer } = useDailyPuzzleAnswer(
+    'character',
+    taste,
+    playablePool,
+    pool,
+    tasteSeed,
   )
 
   /** When set, play a random practice title instead of today's answer (not persisted). */
@@ -115,6 +123,20 @@ export function CharacterGame({ pool, guessPool, taste }: GameModeProps) {
     return createInitialState(dateKey, dailyAnswer.id)
   })
 
+  useEffect(() => {
+    if (!hasCrops || isPractice) return
+    const saved = loadDayState(dateKey, tasteStorage)
+    if (saved && saved.answerId === dailyAnswer.id) {
+      setDayState(saved)
+      return
+    }
+    setDayState((prev) => {
+      if (prev.answerId === dailyAnswer.id) return prev
+      if (prev.guessIds.length > 0) return prev
+      return createInitialState(dateKey, dailyAnswer.id)
+    })
+  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasCrops])
+
   const [showResult, setShowResult] = useState(
     () =>
       hasCrops &&
@@ -160,23 +182,23 @@ export function CharacterGame({ pool, guessPool, taste }: GameModeProps) {
   }, [feedbackRows, dateKey, dayState, maxGuesses, name, taste, doubleSolve])
 
   function handleGuess(manhwa: Manhwa) {
-    if (!hasCrops || dayState.status !== 'playing') return
-    if (dayState.guessIds.includes(manhwa.id)) return
-
-    const nextGuesses = [...dayState.guessIds, manhwa.id]
-    const won = manhwa.id === answer.id
-    const lost = !won && nextGuesses.length >= maxGuesses
+    if (!hasCrops) return
+    const transition = applyGuess(dayState, manhwa.id, answer.id, maxGuesses)
+    if (!transition) return
     const next: DayState = {
       ...dayState,
       answerId: answer.id,
-      guessIds: nextGuesses,
-      status: won ? 'won' : lost ? 'lost' : 'playing',
+      guessIds: transition.guessIds,
+      status: transition.status,
     }
+    const won = transition.status === 'won'
+    const lost = transition.status === 'lost'
 
     setDayState(next)
     // Practice rounds stay in-memory so today's daily progress is preserved.
     if (!isPractice) {
       saveDayState(next, tasteStorage)
+      sync.progress('character', taste, next)
       if (won || lost) {
         recordDailyResult({
           modeId: 'character',
@@ -184,8 +206,9 @@ export function CharacterGame({ pool, guessPool, taste }: GameModeProps) {
           dateKey,
           maxGuesses,
           won,
-          guessCount: nextGuesses.length,
+          guessCount: transition.guessIds.length,
         })
+        sync.stats('character', taste)
       }
     }
     if (won || lost) setShowResult(true)
@@ -214,6 +237,7 @@ export function CharacterGame({ pool, guessPool, taste }: GameModeProps) {
     setDayState(next)
     if (!isPractice) {
       saveDayState(next, tasteStorage)
+      sync.progress('character', taste, next)
       recordBonusResult({
         modeId: 'character',
         taste,
@@ -222,6 +246,7 @@ export function CharacterGame({ pool, guessPool, taste }: GameModeProps) {
         correct: result.correct,
         doubleSolve: isDoubleSolve,
       })
+      sync.stats('character', taste)
     }
   }
 
@@ -241,6 +266,7 @@ export function CharacterGame({ pool, guessPool, taste }: GameModeProps) {
               taste={taste}
               maxGuesses={maxGuesses}
             />
+            <AuthButton />
             <ThemeToggle />
           </div>
           <p className="day-meta">
@@ -267,7 +293,7 @@ export function CharacterGame({ pool, guessPool, taste }: GameModeProps) {
           <p className="mode-empty-body">
             Enable character images in the{' '}
             <a href="/library.html">library editor</a> (cast is included by default),
-            then this daily mode will unlock for the top 500.
+            then this daily mode will unlock for the {catalogSizePhrase()}.
           </p>
         </section>
       ) : (

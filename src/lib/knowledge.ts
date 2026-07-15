@@ -20,6 +20,11 @@ export interface KnownInfo {
     ruledOut: ManhwaStatus[]
     summary: string
   }
+  publisher: {
+    known: string | null
+    ruledOut: string[]
+    summary: string
+  }
   tags: {
     confirmed: string[]
     ruledOut: string[]
@@ -81,6 +86,12 @@ function statusSummary(known: ManhwaStatus | null, ruledOut: ManhwaStatus[]): st
   return 'No status clues yet'
 }
 
+function publisherSummary(known: string | null, ruledOut: string[]): string {
+  if (known) return `Publisher is ${known}`
+  if (ruledOut.length > 0) return `Not ${ruledOut.join(' or ')}`
+  return 'No publisher clues yet'
+}
+
 /** Aggregate per-guess feedback into a running set of known facts */
 export function buildKnownInfo(rows: GuessFeedback[]): KnownInfo {
   if (rows.length === 0) {
@@ -93,6 +104,7 @@ export function buildKnownInfo(rows: GuessFeedback[]): KnownInfo {
         summary: yearSummary(null, null, null),
       },
       status: { known: null, ruledOut: [], summary: statusSummary(null, []) },
+      publisher: { known: null, ruledOut: [], summary: publisherSummary(null, []) },
       tags: { confirmed: [], ruledOut: [] },
     }
   }
@@ -111,6 +123,10 @@ export function buildKnownInfo(rows: GuessFeedback[]): KnownInfo {
   let knownStatus: ManhwaStatus | null = null
   const ruledOutStatuses: ManhwaStatus[] = []
   const ruledOutStatusKeys = new Set<string>()
+
+  let knownPublisher: string | null = null
+  const ruledOutPublishers: string[] = []
+  const ruledOutPublisherKeys = new Set<string>()
 
   const confirmedTags: string[] = []
   const confirmedTagKeys = new Set<string>()
@@ -182,6 +198,16 @@ export function buildKnownInfo(rows: GuessFeedback[]): KnownInfo {
       }
     }
 
+    if (row.publisher.tone === 'correct') {
+      knownPublisher = row.publisher.publisher
+    } else {
+      const k = keyOf(row.publisher.publisher)
+      if (k && !ruledOutPublisherKeys.has(k)) {
+        ruledOutPublisherKeys.add(k)
+        ruledOutPublishers.push(row.publisher.publisher)
+      }
+    }
+
     for (const tag of row.tags.shared) {
       const k = keyOf(tag)
       if (!k || confirmedTagKeys.has(k)) continue
@@ -215,6 +241,10 @@ export function buildKnownInfo(rows: GuessFeedback[]): KnownInfo {
     ruledOutStatuses.length = 0
   }
 
+  if (knownPublisher) {
+    ruledOutPublishers.length = 0
+  }
+
   return {
     genres: {
       state: genreState,
@@ -232,6 +262,11 @@ export function buildKnownInfo(rows: GuessFeedback[]): KnownInfo {
       known: knownStatus,
       ruledOut: uniquePreserve(ruledOutStatuses.map(String)),
       summary: statusSummary(knownStatus, ruledOutStatuses),
+    },
+    publisher: {
+      known: knownPublisher,
+      ruledOut: uniquePreserve(ruledOutPublishers),
+      summary: publisherSummary(knownPublisher, ruledOutPublishers),
     },
     tags: {
       confirmed: uniquePreserve(confirmedTags),

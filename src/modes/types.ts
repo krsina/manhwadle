@@ -6,7 +6,7 @@ import type { ReaderTaste } from '../lib/readerTaste'
 export interface GameModeProps {
   /** Answer-eligible titles (taste-filtered, or full when preference is "both") */
   pool: Manhwa[]
-  /** Full catalog for autocomplete / feedback lookups */
+  /** Search / autocomplete / feedback lookup pool (same taste filter as `pool`) */
   guessPool: Manhwa[]
   /** Active reader preference — folded into daily seeds and day storage */
   taste: ReaderTaste

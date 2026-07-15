@@ -487,6 +487,12 @@ function EditorForm({
               )}
             </select>
           </Field>
+          <Field label="Publisher">
+            <input
+              value={manhwa.publisher ?? ''}
+              onChange={(e) => patchManhwa({ publisher: e.target.value || 'Unknown' })}
+            />
+          </Field>
           <Field label="Start year">
             <input
               type="number"
@@ -663,6 +669,7 @@ function EditorForm({
                         alt=""
                         loading="lazy"
                         draggable={false}
+                        referrerPolicy="no-referrer"
                       />
                     ) : (
                       <div className="character-tile-image is-empty">No image</div>

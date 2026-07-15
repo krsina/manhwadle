@@ -1,4 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { AuthProvider, useAuth } from './components/AuthProvider'
+import {
+  loadStoredModeId,
+  ModeSwitcher,
+  readModeIdFromUrl,
+  saveStoredModeId,
+} from './components/ModeSwitcher'
+import { ReaderTastePrompt } from './components/ReaderTastePrompt'
 import manhwaData from './data/manhwa.json'
 import type { Manhwa } from './lib/anilist-types'
 import {
@@ -8,13 +16,8 @@ import {
   saveReaderTaste,
   type ReaderTaste,
 } from './lib/readerTaste'
-import {
-  loadStoredModeId,
-  ModeSwitcher,
-  readModeIdFromUrl,
-  saveStoredModeId,
-} from './components/ModeSwitcher'
-import { ReaderTastePrompt } from './components/ReaderTastePrompt'
+import { catalogSizeLabel } from './lib/catalogConfig'
+import { syncAfterLocalChange } from './lib/sync'
 import { resolveActiveMode } from './modes'
 import './styles.css'
 
@@ -24,14 +27,15 @@ function initialModeId(): string {
   return readModeIdFromUrl() || loadStoredModeId() || resolveActiveMode().id
 }
 
-/**
- * Shell: resolve which guessing variant to run.
- * Mode comes from ?mode= / #hash, then localStorage, then default.
- * Reader taste gates first visit and filters the daily answer pool.
- */
-function App() {
+function AppInner({
+  taste,
+  setTaste,
+}: {
+  taste: ReaderTaste | null
+  setTaste: (taste: ReaderTaste) => void
+}) {
+  const { user } = useAuth()
   const [modeId, setModeId] = useState(initialModeId)
-  const [taste, setTaste] = useState<ReaderTaste | null>(() => loadReaderTaste())
   const [showTasteEditor, setShowTasteEditor] = useState(false)
 
   const mode = resolveActiveMode(modeId)
@@ -55,6 +59,7 @@ function App() {
     saveReaderTaste(next)
     setTaste(next)
     setShowTasteEditor(false)
+    syncAfterLocalChange(user?.id).taste(next)
   }
 
   return (
@@ -66,7 +71,7 @@ function App() {
         <ModeGame
           key={`${mode.id}-${taste}`}
           pool={answerPool}
-          guessPool={fullPool}
+          guessPool={answerPool}
           taste={taste}
         />
       ) : (
@@ -84,7 +89,7 @@ function App() {
           <a href="https://anilist.co" target="_blank" rel="noreferrer">
             AniList
           </a>
-          . Top 500 Korean manhwa by popularity.
+          . {catalogSizeLabel()} Korean manhwa by popularity.
         </p>
         {taste && (
           <p className="footer-taste">
@@ -108,6 +113,26 @@ function App() {
         />
       )}
     </div>
+  )
+}
+
+/**
+ * Shell: resolve which guessing variant to run.
+ * Mode comes from ?mode= / #hash, then localStorage, then default.
+ * Reader taste gates first visit and filters the daily answer + guess pools.
+ */
+function App() {
+  const [taste, setTaste] = useState<ReaderTaste | null>(() => loadReaderTaste())
+
+  const handleSyncedTaste = useCallback((next: ReaderTaste) => {
+    saveReaderTaste(next)
+    setTaste(next)
+  }, [])
+
+  return (
+    <AuthProvider onSyncedTaste={handleSyncedTaste}>
+      <AppInner taste={taste} setTaste={setTaste} />
+    </AuthProvider>
   )
 }
 

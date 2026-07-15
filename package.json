@@ -1,16 +1,31 @@
 {
-  "name": "manhwaguessr",
+  "name": "manhwadle",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "library": "vite --open /library.html",
+    "review:images": "node scripts/build-character-image-review.mjs && vite --open /character-images.html",
+    "verify:images": "python scripts/generate_character_image_report.py && python scripts/serve_character_image_verify.py",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:live": "node scripts/smoke-supabase.mjs",
+    "test:live:auth": "node scripts/smoke-auth-sync.mjs",
     "preview": "vite preview",
-    "fetch-data": "node scripts/fetch-manhwa.mjs"
+    "fetch-data": "node scripts/fetch-manhwa.mjs",
+    "sync-data": "node scripts/sync-game-data.mjs",
+    "sync-pools": "node scripts/sync-puzzle-pools.mjs",
+    "backup:local": "node scripts/mirror-local-backup.mjs",
+    "etl:fetch": "npm --prefix manhwadle-etl run fetch",
+    "etl:fetch:reset": "npm --prefix manhwadle-etl run fetch:reset",
+    "etl:export:top": "node scripts/etl-export-top.mjs",
+    "etl:export:top500": "node scripts/etl-export-top.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.5",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
@@ -21,6 +36,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "oxlint": "^1.71.0",
     "typescript": "~6.0.2",
-    "vite": "^8.1.1"
+    "vite": "^8.1.1",
+    "vitest": "^4.1.10"
   }
 }

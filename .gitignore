@@ -11,6 +11,30 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
+!.env.example
+
+# Generated puzzle pool dumps (recreate via npm run sync-pools)
+scripts/puzzle-pools.sql
+scripts/puzzle-pools.json
+scripts/pool-chunks/
+
+# AniList ETL artifacts (large; resume locally)
+manhwadle-etl
+
+# Local offline mirror of top-N JSON + images (do not push)
+local-backup/
+
+# Multi-machine character shard scrape outputs
+scripts/character-shards/
+scripts/top-1000.json
+scripts/characters-shard-*.json
+scripts/characters-shard-*.checkpoint.json
+scripts/characters-shard-*.json.tmp
+scripts/characters-shard-*.checkpoint.json.tmp
+*.enrich-images.checkpoint.json
+manhwadle-etl/output/*.enrich-images.checkpoint.json
 
 # Editor directories and files
 .vscode/*

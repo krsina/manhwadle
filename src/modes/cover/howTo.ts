@@ -1,4 +1,5 @@
 import type { HowToPlayGuide } from '../../lib/howto'
+import { catalogSizePhrase } from '../../lib/catalogConfig'
 
 export const coverHowTo: HowToPlayGuide = {
   title: 'How to play',
@@ -10,7 +11,7 @@ export const coverHowTo: HowToPlayGuide = {
     },
     {
       title: 'Type a title',
-      body: 'Search the top 500 list and submit a guess. Feedback covers genres, year, status, and tags.',
+      body: `Search the ${catalogSizePhrase()} list and submit a guess. Feedback covers genres, year, status, publisher, and tags.`,
     },
     {
       title: 'Read the colors',

@@ -74,6 +74,11 @@ function saveStatsStore(store: StatsStore): void {
   }
 }
 
+/** Persist a full stats store (used by cloud merge). */
+export function saveStatsStoreExternal(store: StatsStore): void {
+  saveStatsStore(store)
+}
+
 export function getModeStats(
   modeId: StatsModeId,
   taste: ReaderTaste,

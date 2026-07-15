@@ -8,7 +8,7 @@ interface FeedbackGridProps {
 
 const FLIP_DURATION_MS = 700
 const FLIP_STAGGER_MS = 360
-const CELL_COUNT = 5
+const CELL_COUNT = 6
 
 function yearLabel(row: GuessFeedback): string {
   const { year, direction } = row.year
@@ -109,7 +109,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
     return (
       <section className="feedback" aria-label="Guess feedback">
         <p className="feedback-empty">
-          Guesses will appear here with genre, year, status, and tag clues.
+          Guesses will appear here with genre, year, status, publisher, and tag clues.
         </p>
       </section>
     )
@@ -122,6 +122,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
         <span>Genres</span>
         <span>Year</span>
         <span>Status</span>
+        <span>Publisher</span>
         <span>Tags</span>
       </div>
       <ul className="feedback-list">
@@ -172,6 +173,14 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
               <FlipCell
                 animate={animate}
                 delayMs={FLIP_STAGGER_MS * 4}
+                className={`tile tone-${row.publisher.tone}`}
+              >
+                <span className="tile-label">Publisher</span>
+                <span className="tile-value">{row.publisher.publisher}</span>
+              </FlipCell>
+              <FlipCell
+                animate={animate}
+                delayMs={FLIP_STAGGER_MS * 5}
                 className="tile tile-tags"
               >
                 <span className="tile-label">Tags</span>

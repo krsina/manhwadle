@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { AuthButton } from '../../components/AuthButton'
+import { useAuth } from '../../components/AuthProvider'
 import { FeedbackGrid } from '../../components/FeedbackGrid'
 import { GuessInput } from '../../components/GuessInput'
 import { HowToPlay } from '../../components/howto/HowToPlay'
@@ -21,15 +23,18 @@ import {
   compareGuess,
   feedbackToShareLine,
 } from '../../lib/compare'
-import { displayTitle, getDailyAnswer, getTodayKey } from '../../lib/daily'
+import { displayTitle, getTodayKey } from '../../lib/daily'
 import { hasSeenHowTo } from '../../lib/howto'
 import { buildKnownInfo } from '../../lib/knowledge'
 import { randomPlayableIndex } from '../../lib/random'
 import { findById } from '../../lib/search'
 import { scrubSummary } from '../../lib/spoiler'
+import { applyGuess } from '../../lib/guessLoop'
 import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
 import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
 import { recordDailyResult } from '../../lib/stats'
+import { syncAfterLocalChange } from '../../lib/sync'
+import { useDailyPuzzleAnswer } from '../../lib/useDailyPuzzleAnswer'
 import type { GameModeProps } from '../types'
 import { summaryModeMeta } from './config'
 
@@ -48,6 +53,8 @@ function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): Gue
 export function SummaryGame({ pool, guessPool, taste }: GameModeProps) {
   const { id, name, seedPrefix, storagePrefix, maxGuesses, tagline, howTo } =
     summaryModeMeta
+  const { user } = useAuth()
+  const sync = syncAfterLocalChange(user?.id)
   const dateKey = getTodayKey()
   const tasteSeed = withTastePrefix(seedPrefix, taste)
   const tasteStorage = withTastePrefix(storagePrefix, taste)
@@ -58,14 +65,12 @@ export function SummaryGame({ pool, guessPool, taste }: GameModeProps) {
     [pool],
   )
 
-  const dailyAnswer = useMemo(
-    () =>
-      getDailyAnswer(
-        playablePool.length > 0 ? playablePool : pool,
-        dateKey,
-        tasteSeed,
-      ),
-    [playablePool, pool, dateKey, tasteSeed],
+  const { answer: dailyAnswer } = useDailyPuzzleAnswer(
+    'summary',
+    taste,
+    playablePool.length > 0 ? playablePool : pool,
+    pool,
+    tasteSeed,
   )
 
   /** When set, play a random practice title instead of today's answer (not persisted). */
@@ -86,6 +91,20 @@ export function SummaryGame({ pool, guessPool, taste }: GameModeProps) {
     if (saved && saved.answerId === dailyAnswer.id) return saved
     return createInitialState(dateKey, dailyAnswer.id)
   })
+
+  useEffect(() => {
+    if (isPractice) return
+    const saved = loadDayState(dateKey, tasteStorage)
+    if (saved && saved.answerId === dailyAnswer.id) {
+      setDayState(saved)
+      return
+    }
+    setDayState((prev) => {
+      if (prev.answerId === dailyAnswer.id) return prev
+      if (prev.guessIds.length > 0) return prev
+      return createInitialState(dateKey, dailyAnswer.id)
+    })
+  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice])
 
   const [showResult, setShowResult] = useState(
     () =>
@@ -129,22 +148,21 @@ export function SummaryGame({ pool, guessPool, taste }: GameModeProps) {
   }, [feedbackRows, dateKey, dayState, maxGuesses, name, taste])
 
   function handleGuess(manhwa: Manhwa) {
-    if (dayState.status !== 'playing') return
-    if (dayState.guessIds.includes(manhwa.id)) return
-
-    const nextGuesses = [...dayState.guessIds, manhwa.id]
-    const won = manhwa.id === answer.id
-    const lost = !won && nextGuesses.length >= maxGuesses
+    const transition = applyGuess(dayState, manhwa.id, answer.id, maxGuesses)
+    if (!transition) return
     const next: DayState = {
       ...dayState,
       answerId: answer.id,
-      guessIds: nextGuesses,
-      status: won ? 'won' : lost ? 'lost' : 'playing',
+      guessIds: transition.guessIds,
+      status: transition.status,
     }
+    const won = transition.status === 'won'
+    const lost = transition.status === 'lost'
 
     setDayState(next)
     if (!isPractice) {
       saveDayState(next, tasteStorage)
+      sync.progress('summary', taste, next)
       if (won || lost) {
         recordDailyResult({
           modeId: 'summary',
@@ -152,8 +170,9 @@ export function SummaryGame({ pool, guessPool, taste }: GameModeProps) {
           dateKey,
           maxGuesses,
           won,
-          guessCount: nextGuesses.length,
+          guessCount: transition.guessIds.length,
         })
+        sync.stats('summary', taste)
       }
     }
     if (won || lost) setShowResult(true)
@@ -184,6 +203,7 @@ export function SummaryGame({ pool, guessPool, taste }: GameModeProps) {
               taste={taste}
               maxGuesses={maxGuesses}
             />
+            <AuthButton />
             <ThemeToggle />
           </div>
           <p className="day-meta">

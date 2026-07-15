@@ -4,6 +4,7 @@ import { characterImageUrl } from '../lib/anilist-types'
 import { characterDisplayName } from '../lib/characterNames'
 import { displayTitle, formatCountdown, msUntilNextUtcMidnight } from '../lib/daily'
 import { collectCharacters } from '../lib/search'
+import { namesMatch } from '../lib/nameMatch'
 import { BonusCelebrate } from './BonusCelebrate'
 import { CharacterGuessInput } from './CharacterGuessInput'
 import { ConfettiBurst } from './ConfettiBurst'
@@ -43,21 +44,11 @@ function characterNameList(character: ManhwaCharacter): string[] {
   ].filter((name): name is string => Boolean(name?.trim()))
 }
 
-/** Keep Latin, digits, kana, CJK, and Hangul — empty results must not count as matches. */
-function normalizeName(value: string): string {
-  return value
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]+/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
 /**
  * Bonus asks for the character's name. Accept the same AniList id, or a selected
  * autocomplete label that matches any of the answer character's names/aliases
  * (shared first names like "Emily" exist across different ids in the catalog).
+ * Hyphens/spaces/merged forms match ("Mori Jin" ≡ "Mo-Ri Jin").
  */
 function isBonusCharacterCorrect(
   guessed: ManhwaCharacter,
@@ -66,13 +57,10 @@ function isBonusCharacterCorrect(
 ): boolean {
   if (guessed.id === answerCharacter.id) return true
 
-  const label = matchedLabel?.trim() ? normalizeName(matchedLabel) : ''
+  const label = matchedLabel?.trim() || ''
   if (!label) return false
 
-  return characterNameList(answerCharacter).some((name) => {
-    const normalized = normalizeName(name)
-    return Boolean(normalized) && normalized === label
-  })
+  return characterNameList(answerCharacter).some((name) => namesMatch(name, label))
 }
 
 export function ResultModal({
@@ -100,6 +88,9 @@ export function ResultModal({
   const firstTry = won && guessCount === 1
   const doubleSolve = firstTry && bonusCorrect
   const showCharacter = Boolean(revealCharacter)
+  // Don't spoil the bonus: reveal the depicted name only after it's answered
+  // (or on a loss, when there is no bonus).
+  const showCharacterName = showCharacter && !bonusPending
 
   const heroImage = showCharacter
     ? characterImageUrlOverride?.trim() ||
@@ -107,7 +98,7 @@ export function ResultModal({
       null
     : answer.coverImage
 
-  const titleText = showCharacter
+  const titleText = showCharacterName
     ? characterDisplayName(revealCharacter!)
     : displayTitle(answer)
 
@@ -204,10 +195,13 @@ export function ResultModal({
             src={heroImage}
             alt={
               showCharacter
-                ? `Portrait of ${titleText}`
+                ? showCharacterName
+                  ? `Portrait of ${titleText}`
+                  : 'Character portrait'
                 : `Cover of ${displayTitle(answer)}`
             }
             loading="lazy"
+            referrerPolicy="no-referrer"
           />
         )}
 
@@ -269,7 +263,7 @@ export function ResultModal({
           <button type="button" className="btn btn-primary" onClick={handleShare}>
             Share
           </button>
-          {showCharacter && revealCharacter?.siteUrl && (
+          {showCharacterName && revealCharacter?.siteUrl && (
             <a
               className="btn btn-ghost"
               href={revealCharacter.siteUrl}

@@ -1,0 +1,33 @@
+# Minimal Supabase CLI config for manhwadle (schema + edge functions).
+# Auth Site URL / Redirect URLs for hosted projects are set in the Dashboard:
+#   Authentication → URL Configuration
+#   - Site URL: http://localhost:5173 (local) or your production origin
+#   - Redirect URLs: http://localhost:5173/** and https://<your-domain>/**
+
+project_id = "snzhnkcccbxkwerbaido"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+# Match Vite default; override for production deploys in the hosted Dashboard.
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/**"]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false

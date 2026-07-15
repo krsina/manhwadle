@@ -56,6 +56,11 @@ function statusToneClass(info: KnownInfo['status']): string {
   return 'tone-incorrect'
 }
 
+function publisherToneClass(info: KnownInfo['publisher']): string {
+  if (info.known) return 'tone-correct'
+  return 'tone-incorrect'
+}
+
 function ChipList({
   items,
   variant,
@@ -95,6 +100,7 @@ export function KnownInfoPanel({ info, hasGuesses }: KnownInfoPanelProps) {
   const hasRuledOut =
     info.genres.ruledOut.length > 0 ||
     info.status.ruledOut.length > 0 ||
+    info.publisher.ruledOut.length > 0 ||
     info.tags.ruledOut.length > 0
 
   return (
@@ -113,6 +119,10 @@ export function KnownInfoPanel({ info, hasGuesses }: KnownInfoPanelProps) {
           <div className={`rail-item ${statusToneClass(info.status)}`}>
             <span className="rail-label">Status</span>
             <span className="rail-value">{info.status.known ?? '—'}</span>
+          </div>
+          <div className={`rail-item ${publisherToneClass(info.publisher)}`}>
+            <span className="rail-label">Publisher</span>
+            <span className="rail-value">{info.publisher.known ?? '—'}</span>
           </div>
           <div className="rail-item rail-item-tags">
             <span className="rail-label">Tags</span>
@@ -135,6 +145,14 @@ export function KnownInfoPanel({ info, hasGuesses }: KnownInfoPanelProps) {
               <span className="rail-label">Status</span>
               <span className="rail-value">
                 {info.status.ruledOut.length > 0 ? info.status.ruledOut.join(', ') : '—'}
+              </span>
+            </div>
+            <div className="rail-item tone-incorrect">
+              <span className="rail-label">Publisher</span>
+              <span className="rail-value">
+                {info.publisher.ruledOut.length > 0
+                  ? info.publisher.ruledOut.join(', ')
+                  : '—'}
               </span>
             </div>
             <div className="rail-item rail-item-tags">

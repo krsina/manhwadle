@@ -1,0 +1,19 @@
+{
+  "topN": 1000,
+  "excludeIds": [
+    55322,
+    108423,
+    31076,
+    40685,
+    40249,
+    85827
+  ],
+  "excludeNotes": {
+    "55322": "Yeol-Ahobseumulhana (Nineteen, Twenty-One) — no clear EN/KR digital publisher link",
+    "108423": "Kalgwa Deuleseu — no clear EN/KR digital publisher link",
+    "31076": "Ares — print classic, no clear digital publisher link",
+    "40685": "Yongbi the Invincible — print classic, no clear digital publisher link",
+    "40249": "Veritas — print classic, no clear digital publisher link",
+    "85827": "Seolleneun Gibun — cancelled, no clear digital publisher link"
+  }
+}
