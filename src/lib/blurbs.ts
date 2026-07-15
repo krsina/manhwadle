@@ -21,7 +21,16 @@ export interface StoryDescriptionBlurbEntry {
 }
 
 export interface StoryDescriptionBlurbFile {
-  meta?: { tiers?: string[] }
+  meta?: {
+    version?: number
+    blurbType?: string
+    tiers?: string[]
+    source?: string
+    styleGuide?: string
+    count?: number
+    generatedAt?: string
+    notes?: string[]
+  }
   entries: StoryDescriptionBlurbEntry[]
 }
 

@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "version": 1,
+    "mode": "character",
+    "count": 0,
+    "generatedAt": "2026-07-14T00:00:00.000Z",
+    "notes": [
+      "One character still per manhwa for the character-crop game mode.",
+      "imageUrl may be absolute or a public/ path (e.g. /crops/105398.jpg).",
+      "focusX/focusY (0–100) set the zoom origin; wrong guesses pull the camera out.",
+      "Add and edit crops in the library editor (/library.html).",
+      "Relational import: one row per manhwa_id with image_url, focus_x, focus_y."
+    ]
+  },
+  "entries": []
+}

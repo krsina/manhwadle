@@ -62,7 +62,7 @@ function makeParticle(
     color: pickColor(palette),
     life: 1,
     decay: firstTry ? 0.004 + Math.random() * 0.006 : 0.006 + Math.random() * 0.008,
-    shape: firstTry && Math.random() < 0.28 ? 'star' : 'rect',
+    shape: firstTry && Math.random() < 0.4 ? 'star' : 'rect',
   }
 }
 
@@ -76,15 +76,15 @@ function createBurst(
   const cy = height * 0.42
   const particles: Particle[] = []
   const centerCount = firstTry
-    ? Math.min(220, Math.floor((width * height) / 5500) + 140)
+    ? Math.min(280, Math.floor((width * height) / 4500) + 180)
     : Math.min(140, Math.floor((width * height) / 9000) + 80)
 
   for (let i = 0; i < centerCount; i++) {
-    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * (firstTry ? 1.7 : 1.35)
-    const speed = (firstTry ? 9 : 7) + Math.random() * (firstTry ? 14 : 11)
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * (firstTry ? 1.85 : 1.35)
+    const speed = (firstTry ? 10 : 7) + Math.random() * (firstTry ? 16 : 11)
     particles.push(
       makeParticle(
-        cx + (Math.random() - 0.5) * (firstTry ? 120 : 80),
+        cx + (Math.random() - 0.5) * (firstTry ? 140 : 80),
         cy + (Math.random() - 0.5) * 40,
         angle,
         speed,
@@ -94,17 +94,17 @@ function createBurst(
     )
   }
 
-  const sideCount = firstTry ? 64 : 36
+  const sideCount = firstTry ? 80 : 36
   for (let i = 0; i < sideCount; i++) {
     const left = i % 2 === 0
     const angle = left
       ? -0.45 + Math.random() * 1.05
       : Math.PI + 0.45 - Math.random() * 1.05
-    const speed = (firstTry ? 10 : 8) + Math.random() * (firstTry ? 12 : 10)
+    const speed = (firstTry ? 11 : 8) + Math.random() * (firstTry ? 14 : 10)
     particles.push(
       makeParticle(
         left ? width * 0.06 : width * 0.94,
-        height * (firstTry ? 0.48 + Math.random() * 0.18 : 0.55),
+        height * (firstTry ? 0.45 + Math.random() * 0.22 : 0.55),
         angle,
         speed,
         palette,
@@ -114,13 +114,12 @@ function createBurst(
   }
 
   if (firstTry) {
-    // Top “firework” rings for a hole-in-one feel
-    for (let ring = 0; ring < 2; ring++) {
-      const ox = width * (0.35 + ring * 0.3)
-      const oy = height * 0.22
-      for (let i = 0; i < 28; i++) {
-        const angle = (Math.PI * 2 * i) / 28 + Math.random() * 0.2
-        const speed = 5 + Math.random() * 8
+    for (let ring = 0; ring < 3; ring++) {
+      const ox = width * (0.28 + ring * 0.22)
+      const oy = height * (0.18 + (ring % 2) * 0.06)
+      for (let i = 0; i < 34; i++) {
+        const angle = (Math.PI * 2 * i) / 34 + Math.random() * 0.2
+        const speed = 6 + Math.random() * 10
         particles.push(makeParticle(ox, oy, angle, speed, palette, true))
       }
     }

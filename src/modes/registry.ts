@@ -1,3 +1,4 @@
+import { characterMode } from './character'
 import { summaryMode } from './summary'
 import type { GameModeDefinition } from './types'
 
@@ -5,11 +6,12 @@ import type { GameModeDefinition } from './types'
 export const DEFAULT_MODE_ID = summaryMode.id
 
 /**
- * Register future variants here (cover crop, panel guess, etc.).
+ * Register playable variants here.
  * Import the mode module and add it to this map.
  */
 const modes: Record<string, GameModeDefinition> = {
   [summaryMode.id]: summaryMode,
+  [characterMode.id]: characterMode,
 }
 
 export function getMode(id: string): GameModeDefinition | undefined {

@@ -28,6 +28,38 @@ export interface StartDate {
   day: number | null
 }
 
+export interface ManhwaCharacter {
+  id: number
+  /** AniList role on this title */
+  role: 'MAIN' | 'SUPPORTING' | 'BACKGROUND' | string
+  name: {
+    full: string | null
+    native: string | null
+    alternative: string[]
+  }
+  description: string | null
+  image: {
+    large: string | null
+    medium: string | null
+  }
+  siteUrl: string | null
+  favourites: number | null
+  /**
+   * When true (default), this character may be used as a Character-mode guess image.
+   * Omitted / undefined is treated as true.
+   */
+  useForGuess?: boolean
+}
+
+/** Eligible for Character mode unless explicitly opted out. */
+export function isCharacterEnabledForGuess(character: ManhwaCharacter): boolean {
+  return character.useForGuess !== false
+}
+
+export function characterImageUrl(character: ManhwaCharacter): string | null {
+  return character.image.large || character.image.medium || null
+}
+
 export interface Manhwa {
   id: number
   title: ManhwaTitle
@@ -39,6 +71,8 @@ export interface Manhwa {
   startDate: StartDate
   coverImage: string | null
   siteUrl: string
+  /** Characters attached from top-500 ETL (MAIN first) */
+  characters: ManhwaCharacter[]
 }
 
 export type FeedbackTone = 'correct' | 'close' | 'incorrect'

@@ -3,9 +3,9 @@ import { displayTitle } from './daily'
 
 export interface SearchHit {
   manhwa: Manhwa
-  /** Label shown in autocomplete — matched alias when query hit an alias */
+  /** Always the English (or primary) title — never an alias */
   label: string
-  /** True when label is not the primary display title */
+  /** True when the query matched via an alias rather than the display title */
   matchedAlias: boolean
 }
 
@@ -16,6 +16,10 @@ function allNames(manhwa: Manhwa): string[] {
     manhwa.title.native,
     ...manhwa.synonyms,
   ].filter((n): n is string => Boolean(n && n.trim()))
+}
+
+function englishLabel(manhwa: Manhwa): string {
+  return manhwa.title.english?.trim() || displayTitle(manhwa)
 }
 
 function normalize(value: string): string {
@@ -33,7 +37,7 @@ function scoreName(name: string, query: string): number {
 
 /**
  * Ranked autocomplete against English titles and all aliases.
- * When the query matches an alias better (or instead), that alias is the label.
+ * Results always show the English name, even when an alias matched.
  */
 export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHit[] {
   const q = normalize(query)
@@ -42,19 +46,19 @@ export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHi
   const scored: Array<SearchHit & { score: number }> = []
 
   for (const manhwa of pool) {
-    const primary = displayTitle(manhwa)
+    const label = englishLabel(manhwa)
     let bestScore = Infinity
-    let bestLabel = primary
+    let matchedAlias = false
 
     for (const name of allNames(manhwa)) {
       const score = scoreName(name, q)
       if (score < bestScore) {
         bestScore = score
-        bestLabel = name.trim()
+        matchedAlias = normalize(name) !== normalize(label)
       } else if (score === bestScore && score < Infinity) {
-        // Prefer the primary title when scores tie
-        if (normalize(name) === normalize(primary)) {
-          bestLabel = primary
+        // Prefer treating it as a primary-title match when scores tie
+        if (normalize(name) === normalize(label)) {
+          matchedAlias = false
         }
       }
     }
@@ -62,8 +66,8 @@ export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHi
     if (bestScore < Infinity) {
       scored.push({
         manhwa,
-        label: bestLabel,
-        matchedAlias: normalize(bestLabel) !== normalize(primary),
+        label,
+        matchedAlias,
         score: bestScore,
       })
     }

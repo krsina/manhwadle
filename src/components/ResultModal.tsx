@@ -1,6 +1,7 @@
 import type { Manhwa } from '../lib/anilist-types'
 import { displayTitle } from '../lib/daily'
 import { ConfettiBurst } from './ConfettiBurst'
+import { ElectricBorder } from './ElectricBorder'
 
 interface ResultModalProps {
   open: boolean
@@ -53,6 +54,7 @@ export function ResultModal({
         aria-labelledby="result-title"
         onClick={(e) => e.stopPropagation()}
       >
+        {firstTry && <ElectricBorder />}
         <p className="modal-kicker">
           {firstTry
             ? 'First try!'
