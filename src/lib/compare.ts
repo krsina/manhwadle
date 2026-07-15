@@ -135,14 +135,47 @@ export function feedbackToShareLine(feedback: GuessFeedback): string {
   ].join('')
 }
 
-export function buildShareText(
-  appName: string,
-  dateKey: string,
-  guessCount: number,
-  maxGuesses: number,
-  won: boolean,
-  lines: string[],
-): string {
+export interface ShareTextOptions {
+  appName: string
+  modeLabel: string
+  tasteLabel: string
+  dateKey: string
+  guessCount: number
+  maxGuesses: number
+  won: boolean
+  lines: string[]
+  /** When bonus was answered: true/false; omit if unanswered */
+  bonusCorrect?: boolean | null
+  doubleSolve?: boolean
+  siteUrl?: string
+}
+
+export function buildShareText(options: ShareTextOptions): string {
+  const {
+    appName,
+    modeLabel,
+    tasteLabel,
+    dateKey,
+    guessCount,
+    maxGuesses,
+    won,
+    lines,
+    bonusCorrect = null,
+    doubleSolve = false,
+    siteUrl,
+  } = options
+
   const score = won ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`
-  return [`${appName} ${dateKey} ${score}`, '', ...lines].join('\n')
+  const header = `${appName} ${modeLabel} · ${tasteLabel}  ${dateKey}  ${score}`
+  const parts = [header, '', ...lines]
+
+  if (bonusCorrect === true) parts.push('', 'Bonus ✓')
+  else if (bonusCorrect === false) parts.push('', 'Bonus ✗')
+
+  if (doubleSolve) parts.push('✦ Double solve')
+
+  const url = siteUrl?.trim() || (typeof window !== 'undefined' ? window.location.origin : '')
+  if (url) parts.push('', url)
+
+  return parts.join('\n')
 }

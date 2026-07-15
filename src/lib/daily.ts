@@ -8,6 +8,29 @@ export function getTodayKey(date = new Date()): string {
   return `${y}-${m}-${d}`
 }
 
+/** Milliseconds until the next UTC midnight (when the daily puzzle rolls). */
+export function msUntilNextUtcMidnight(now = new Date()): number {
+  const next = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate() + 1,
+    0,
+    0,
+    0,
+    0,
+  )
+  return Math.max(0, next - now.getTime())
+}
+
+/** Format a duration as H:MM:SS for countdown UI. */
+export function formatCountdown(ms: number): string {
+  const totalSec = Math.max(0, Math.floor(ms / 1000))
+  const h = Math.floor(totalSec / 3600)
+  const m = Math.floor((totalSec % 3600) / 60)
+  const s = totalSec % 60
+  return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
 /** Deterministic hash for daily puzzle seeding */
 export function hashString(input: string): number {
   let hash = 2166136261

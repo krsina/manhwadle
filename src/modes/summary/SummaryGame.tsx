@@ -4,6 +4,7 @@ import { GuessInput } from '../../components/GuessInput'
 import { HowToPlay } from '../../components/howto/HowToPlay'
 import { KnownInfoPanel } from '../../components/KnownInfoPanel'
 import { ResultModal } from '../../components/ResultModal'
+import { StatsButton } from '../../components/StatsButton'
 import { SummaryClue } from '../../components/SummaryClue'
 import { ThemeToggle } from '../../components/ThemeToggle'
 import { APP_NAME } from '../../brand'
@@ -23,9 +24,12 @@ import {
 import { displayTitle, getDailyAnswer, getTodayKey } from '../../lib/daily'
 import { hasSeenHowTo } from '../../lib/howto'
 import { buildKnownInfo } from '../../lib/knowledge'
+import { randomPlayableIndex } from '../../lib/random'
 import { findById } from '../../lib/search'
 import { scrubSummary } from '../../lib/spoiler'
 import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
+import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
+import { recordDailyResult } from '../../lib/stats'
 import type { GameModeProps } from '../types'
 import { summaryModeMeta } from './config'
 
@@ -41,9 +45,12 @@ function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): Gue
 }
 
 /** Default Manhwadle mode: progressive story blurbs → full scrubbed description. */
-export function SummaryGame({ pool }: GameModeProps) {
-  const { id, seedPrefix, storagePrefix, maxGuesses, tagline, howTo } = summaryModeMeta
+export function SummaryGame({ pool, guessPool, taste }: GameModeProps) {
+  const { id, name, seedPrefix, storagePrefix, maxGuesses, tagline, howTo } =
+    summaryModeMeta
   const dateKey = getTodayKey()
+  const tasteSeed = withTastePrefix(seedPrefix, taste)
+  const tasteStorage = withTastePrefix(storagePrefix, taste)
 
   // Daily answers only from titles that have authored story blurbs
   const playablePool = useMemo(
@@ -51,10 +58,22 @@ export function SummaryGame({ pool }: GameModeProps) {
     [pool],
   )
 
-  const answer = useMemo(
-    () => getDailyAnswer(playablePool.length > 0 ? playablePool : pool, dateKey, seedPrefix),
-    [playablePool, pool, dateKey, seedPrefix],
+  const dailyAnswer = useMemo(
+    () =>
+      getDailyAnswer(
+        playablePool.length > 0 ? playablePool : pool,
+        dateKey,
+        tasteSeed,
+      ),
+    [playablePool, pool, dateKey, tasteSeed],
   )
+
+  /** When set, play a random practice title instead of today's answer (not persisted). */
+  const [practiceIndex, setPracticeIndex] = useState<number | null>(null)
+  const answerPool = playablePool.length > 0 ? playablePool : pool
+  const answer =
+    practiceIndex != null ? answerPool[practiceIndex] ?? dailyAnswer : dailyAnswer
+  const isPractice = practiceIndex != null
 
   const blurbs = useMemo(() => {
     const authored = storyBlurbIndex.get(answer.id)
@@ -63,9 +82,9 @@ export function SummaryGame({ pool }: GameModeProps) {
   }, [answer])
 
   const [dayState, setDayState] = useState<DayState>(() => {
-    const saved = loadDayState(dateKey, storagePrefix)
-    if (saved && saved.answerId === answer.id) return saved
-    return createInitialState(dateKey, answer.id)
+    const saved = loadDayState(dateKey, tasteStorage)
+    if (saved && saved.answerId === dailyAnswer.id) return saved
+    return createInitialState(dateKey, dailyAnswer.id)
   })
 
   const [showResult, setShowResult] = useState(
@@ -74,8 +93,8 @@ export function SummaryGame({ pool }: GameModeProps) {
   )
 
   const feedbackRows = useMemo(
-    () => buildFeedbackRows(dayState, answer, pool),
-    [dayState, answer, pool],
+    () => buildFeedbackRows(dayState, answer, guessPool),
+    [dayState, answer, guessPool],
   )
 
   const knownInfo = useMemo(() => buildKnownInfo(feedbackRows), [feedbackRows])
@@ -97,15 +116,17 @@ export function SummaryGame({ pool }: GameModeProps) {
 
   const shareText = useMemo(() => {
     const lines = feedbackRows.map(feedbackToShareLine)
-    return buildShareText(
-      APP_NAME,
+    return buildShareText({
+      appName: APP_NAME,
+      modeLabel: name,
+      tasteLabel: readerTasteShareLabel(taste),
       dateKey,
-      dayState.guessIds.length,
+      guessCount: dayState.guessIds.length,
       maxGuesses,
-      dayState.status === 'won',
+      won: dayState.status === 'won',
       lines,
-    )
-  }, [feedbackRows, dateKey, dayState, maxGuesses])
+    })
+  }, [feedbackRows, dateKey, dayState, maxGuesses, name, taste])
 
   function handleGuess(manhwa: Manhwa) {
     if (dayState.status !== 'playing') return
@@ -116,13 +137,35 @@ export function SummaryGame({ pool }: GameModeProps) {
     const lost = !won && nextGuesses.length >= maxGuesses
     const next: DayState = {
       ...dayState,
+      answerId: answer.id,
       guessIds: nextGuesses,
       status: won ? 'won' : lost ? 'lost' : 'playing',
     }
 
     setDayState(next)
-    saveDayState(next, storagePrefix)
+    if (!isPractice) {
+      saveDayState(next, tasteStorage)
+      if (won || lost) {
+        recordDailyResult({
+          modeId: 'summary',
+          taste,
+          dateKey,
+          maxGuesses,
+          won,
+          guessCount: nextGuesses.length,
+        })
+      }
+    }
     if (won || lost) setShowResult(true)
+  }
+
+  function tryAnotherTitle() {
+    if (answerPool.length === 0) return
+    const nextIndex = randomPlayableIndex(answerPool, answer.id)
+    const nextAnswer = answerPool[nextIndex]!
+    setPracticeIndex(nextIndex)
+    setDayState(createInitialState(dateKey, nextAnswer.id))
+    setShowResult(false)
   }
 
   return (
@@ -135,17 +178,25 @@ export function SummaryGame({ pool }: GameModeProps) {
         <div className="hero-aside">
           <div className="hero-controls">
             <HowToPlay modeId={id} guide={howTo} />
+            <StatsButton
+              modeId="summary"
+              modeLabel={name}
+              taste={taste}
+              maxGuesses={maxGuesses}
+            />
             <ThemeToggle />
           </div>
           <p className="day-meta">
             <span>{dateKey}</span>
             <span aria-hidden="true">·</span>
             <span>
-              {finished
-                ? dayState.status === 'won'
-                  ? `Solved in ${dayState.guessIds.length}`
-                  : 'Better luck tomorrow'
-                : `${remaining} guess${remaining === 1 ? '' : 'es'} left`}
+              {isPractice
+                ? 'Practice'
+                : finished
+                  ? dayState.status === 'won'
+                    ? `Solved in ${dayState.guessIds.length}`
+                    : 'Better luck tomorrow'
+                  : `${remaining} guess${remaining === 1 ? '' : 'es'} left`}
             </span>
           </p>
         </div>
@@ -158,8 +209,18 @@ export function SummaryGame({ pool }: GameModeProps) {
             totalBlurbs={blurbs.length}
             finished={finished}
           />
+          <div className="character-test-bar">
+            <button type="button" className="btn btn-ghost" onClick={tryAnotherTitle}>
+              Guess another title
+            </button>
+            {isPractice && (
+              <p className="character-test-note">
+                Practice round — does not overwrite today’s daily save.
+              </p>
+            )}
+          </div>
           <GuessInput
-            pool={pool}
+            pool={guessPool}
             disabled={finished}
             excludedIds={excludedIds}
             onGuess={handleGuess}

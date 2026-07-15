@@ -115,4 +115,7 @@ export interface DayState {
   answerId: number
   guessIds: number[]
   status: 'playing' | 'won' | 'lost'
+  /** Character-mode bonus: one-shot name guess after a win */
+  bonusNameGuess?: string
+  bonusNameCorrect?: boolean
 }

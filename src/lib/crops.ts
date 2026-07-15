@@ -10,6 +10,7 @@ import {
   type Manhwa,
   type ManhwaCharacter,
 } from './anilist-types'
+import { characterDisplayName } from './characterNames'
 import { hashString } from './daily'
 
 export interface CharacterCropEntry {
@@ -154,7 +155,7 @@ export function resolveDailyCharacterCrop(
       manhwaId: manhwa.id,
       title: manhwa.title.english || undefined,
       characterId: character.id,
-      characterName: character.name.full || character.name.native || undefined,
+      characterName: characterDisplayName(character),
       imageUrl,
       focusX: saved ? clampFocus(saved.focusX) : 50,
       focusY: saved ? clampFocus(saved.focusY, 28) : 28,

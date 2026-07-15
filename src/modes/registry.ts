@@ -1,4 +1,5 @@
 import { characterMode } from './character'
+import { coverMode } from './cover'
 import { summaryMode } from './summary'
 import type { GameModeDefinition } from './types'
 
@@ -12,6 +13,7 @@ export const DEFAULT_MODE_ID = summaryMode.id
 const modes: Record<string, GameModeDefinition> = {
   [summaryMode.id]: summaryMode,
   [characterMode.id]: characterMode,
+  [coverMode.id]: coverMode,
 }
 
 export function getMode(id: string): GameModeDefinition | undefined {
@@ -28,5 +30,6 @@ export function resolveActiveMode(id: string = DEFAULT_MODE_ID): GameModeDefinit
 }
 
 export function listModes(): GameModeDefinition[] {
-  return Object.values(modes)
+  // Stable switcher order (Object.values insertion order can vary across builds).
+  return [summaryMode, characterMode, coverMode].filter((mode) => modes[mode.id])
 }

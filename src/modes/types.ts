@@ -1,9 +1,15 @@
 import type { ComponentType } from 'react'
 import type { Manhwa } from '../lib/anilist-types'
 import type { HowToPlayGuide } from '../lib/howto'
+import type { ReaderTaste } from '../lib/readerTaste'
 
 export interface GameModeProps {
+  /** Answer-eligible titles (taste-filtered, or full when preference is "both") */
   pool: Manhwa[]
+  /** Full catalog for autocomplete / feedback lookups */
+  guessPool: Manhwa[]
+  /** Active reader preference — folded into daily seeds and day storage */
+  taste: ReaderTaste
 }
 
 /**

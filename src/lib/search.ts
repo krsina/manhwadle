@@ -1,4 +1,4 @@
-import type { Manhwa } from './anilist-types'
+import type { Manhwa, ManhwaCharacter } from './anilist-types'
 import { displayTitle } from './daily'
 
 export interface SearchHit {
@@ -7,6 +7,12 @@ export interface SearchHit {
   label: string
   /** True when the query matched via an alias rather than the display title */
   matchedAlias: boolean
+}
+
+export interface CharacterSearchHit {
+  character: ManhwaCharacter
+  /** Name that matched the query (primary or alias) — shown in the list */
+  label: string
 }
 
 function allNames(manhwa: Manhwa): string[] {
@@ -33,6 +39,25 @@ function scoreName(name: string, query: string): number {
   if (n.startsWith(query)) return 1
   if (n.includes(query)) return 2
   return Infinity
+}
+
+function characterNames(character: ManhwaCharacter): string[] {
+  return [
+    character.name.full,
+    character.name.native,
+    ...(character.name.alternative || []),
+  ].filter((n): n is string => Boolean(n?.trim()))
+}
+
+/** Unique cast members across a manhwa pool (by AniList character id). */
+export function collectCharacters(pool: Manhwa[]): ManhwaCharacter[] {
+  const byId = new Map<number, ManhwaCharacter>()
+  for (const manhwa of pool) {
+    for (const character of manhwa.characters || []) {
+      if (!byId.has(character.id)) byId.set(character.id, character)
+    }
+  }
+  return [...byId.values()]
 }
 
 /**
@@ -83,6 +108,60 @@ export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHi
     label,
     matchedAlias,
   }))
+}
+
+/**
+ * Ranked autocomplete against character names / aliases from a cast list.
+ * List label is the specific name that matched the query (alias only when typed).
+ * Duplicate labels are collapsed — bonus matching is by name, not AniList id.
+ */
+export function searchCharacters(
+  characters: ManhwaCharacter[],
+  query: string,
+  limit = 10,
+): CharacterSearchHit[] {
+  const q = normalize(query)
+  if (!q) return []
+
+  const scored: Array<CharacterSearchHit & { score: number }> = []
+
+  for (const character of characters) {
+    let bestScore = Infinity
+    let matchedName = ''
+
+    for (const name of characterNames(character)) {
+      const score = scoreName(name, q)
+      if (score < bestScore) {
+        bestScore = score
+        matchedName = name.trim()
+      }
+    }
+
+    if (bestScore < Infinity && matchedName) {
+      scored.push({
+        character,
+        label: matchedName,
+        score: bestScore,
+      })
+    }
+  }
+
+  scored.sort((a, b) => {
+    if (a.score !== b.score) return a.score - b.score
+    return a.label.localeCompare(b.label)
+  })
+
+  const seenLabels = new Set<string>()
+  const unique: CharacterSearchHit[] = []
+  for (const hit of scored) {
+    const key = normalize(hit.label)
+    if (!key || seenLabels.has(key)) continue
+    seenLabels.add(key)
+    unique.push({ character: hit.character, label: hit.label })
+    if (unique.length >= limit) break
+  }
+
+  return unique
 }
 
 export function findById(pool: Manhwa[], id: number): Manhwa | undefined {

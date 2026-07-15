@@ -1,14 +1,21 @@
-/** Decorative SVG electricity frame for first-try wins. */
-export function ElectricBorder() {
+interface ElectricBorderProps {
+  variant?: 'first-try' | 'double-solve'
+}
+
+/** Decorative SVG electricity frame for exceptional wins. */
+export function ElectricBorder({ variant = 'first-try' }: ElectricBorderProps) {
+  const filterId =
+    variant === 'double-solve' ? 'double-solve-electricity' : 'anime-electricity'
+
   return (
     <svg
-      className="electric-border"
+      className={`electric-border electric-border-${variant}`}
       viewBox="0 0 100 100"
       preserveAspectRatio="none"
       aria-hidden="true"
     >
       <defs>
-        <filter id="anime-electricity" x="-30%" y="-30%" width="160%" height="160%">
+        <filter id={filterId} x="-30%" y="-30%" width="160%" height="160%">
           <feTurbulence
             type="fractalNoise"
             baseFrequency="0.025 0.16"
@@ -32,7 +39,11 @@ export function ElectricBorder() {
             result="displaced"
           />
           <feGaussianBlur in="displaced" stdDeviation="1.4" result="blur" />
-          <feFlood floodColor="#2563eb" floodOpacity="0.95" result="blue" />
+          <feFlood
+            floodColor={variant === 'double-solve' ? '#f59e0b' : '#2563eb'}
+            floodOpacity="0.95"
+            result="blue"
+          />
           <feComposite in="blue" in2="blur" operator="in" result="blueGlow" />
           <feMerge>
             <feMergeNode in="blueGlow" />
@@ -42,7 +53,7 @@ export function ElectricBorder() {
         </filter>
       </defs>
 
-      <g className="electric-current" filter="url(#anime-electricity)">
+      <g className="electric-current" filter={`url(#${filterId})`}>
         <rect
           className="electric-corona"
           x="1.5"

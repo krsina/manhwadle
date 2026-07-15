@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { frameScale } from '../lib/animationFrame'
 
 interface ConfettiBurstProps {
   /** Remount or change this to replay the burst */
@@ -161,6 +162,7 @@ export function ConfettiBurst({ active, firstTry = false }: ConfettiBurstProps) 
 
     let frame = 0
     let running = true
+    let lastTs = 0
     let particles: Particle[] = []
 
     function resize() {
@@ -183,22 +185,28 @@ export function ConfettiBurst({ active, firstTry = false }: ConfettiBurstProps) 
     const gravity = firstTry ? 0.14 : 0.18
     const drag = 0.99
 
-    function tick() {
+    function tick(timestamp: number) {
       if (!running || !ctx || !canvas) return
+      const dt = lastTs === 0 ? 1 : frameScale(timestamp - lastTs)
+      lastTs = timestamp
+
       const width = canvas.clientWidth
       const height = canvas.clientHeight
       ctx.clearRect(0, 0, width, height)
+
+      // Convert per-frame drag into dt-scaled damping (drag^dt ≈ continuous).
+      const frameDrag = Math.pow(drag, dt)
 
       let alive = 0
       for (const p of particles) {
         if (p.life <= 0) continue
         alive++
-        p.vx *= drag
-        p.vy = p.vy * drag + gravity
-        p.x += p.vx
-        p.y += p.vy
-        p.rotation += p.spin
-        p.life -= p.decay
+        p.vx *= frameDrag
+        p.vy = p.vy * frameDrag + gravity * dt
+        p.x += p.vx * dt
+        p.y += p.vy * dt
+        p.rotation += p.spin * dt
+        p.life -= p.decay * dt
 
         ctx.save()
         ctx.translate(p.x, p.y)
