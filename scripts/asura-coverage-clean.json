@@ -1,0 +1,553 @@
+{
+  "source": "https://asurascans.com/browse?page=1..17",
+  "notes": "Filtered page numbers / nav junk; re-matched remaining missing against aliases.",
+  "cleanTotalApprox": 345,
+  "matched": 294,
+  "missing": 51,
+  "coveragePct": 85.2,
+  "rescuedFromAlias": [
+    {
+      "asuraTitle": "A Cadet Becomes a Prophet?!",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "A Mercenary’s Rebirth Among Nobles",
+      "anilistId": 113607,
+      "anilistTitle": "Descent of the Demon Master",
+      "rank": 122,
+      "popularity": 16670
+    },
+    {
+      "asuraTitle": "Above the Heavens",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "After the Moonlight Falls",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Arcana Fantasy",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Becoming the Cheon Clan's Mad Dog",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Boundless Necromancer",
+      "anilistId": 132144,
+      "anilistTitle": "Return of the Blossoming Blade",
+      "rank": 22,
+      "popularity": 41987
+    },
+    {
+      "asuraTitle": "Breakers",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Carnivorous Hunter",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Dangerous Dungeon Escape",
+      "anilistId": 146139,
+      "anilistTitle": "Maybe Meant to Be",
+      "rank": 50,
+      "popularity": 26700
+    },
+    {
+      "asuraTitle": "Demonic Beast Hunter Survival Guide",
+      "anilistId": 118408,
+      "anilistTitle": "Villains Are Destined to Die",
+      "rank": 26,
+      "popularity": 40647
+    },
+    {
+      "asuraTitle": "Dungeon Defense",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Echoes of the Reverse Planet",
+      "anilistId": 111075,
+      "anilistTitle": "A Stepmother’s Märchen",
+      "rank": 94,
+      "popularity": 19160
+    },
+    {
+      "asuraTitle": "Emperor of Steel",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Emperor’s Domination",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Genius Prismatic Mage",
+      "anilistId": 105393,
+      "anilistTitle": "A Returner's Magic Should Be Special",
+      "rank": 11,
+      "popularity": 48711
+    },
+    {
+      "asuraTitle": "God-Tier Extra's Ultimate Guide",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Gods' Gambit",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "I Became the Successor of the Martial God",
+      "anilistId": 175776,
+      "anilistTitle": "The S-Class Lady",
+      "rank": 504,
+      "popularity": 5303
+    },
+    {
+      "asuraTitle": "I Captured The Tyrant's Heart",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Immortal’s Way of Life",
+      "anilistId": 142894,
+      "anilistTitle": "My In-Laws are Obsessed with Me",
+      "rank": 181,
+      "popularity": 12722
+    },
+    {
+      "asuraTitle": "Initializing the Sect System",
+      "anilistId": 136220,
+      "anilistTitle": "Doom Breaker",
+      "rank": 27,
+      "popularity": 39335
+    },
+    {
+      "asuraTitle": "Is It Bad That the Main Character’s a Roleplayer?",
+      "anilistId": 187140,
+      "anilistTitle": "Destined To Be Loved by the Villains",
+      "rank": 326,
+      "popularity": 7905
+    },
+    {
+      "asuraTitle": "King of Runes",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Legendary Ranker's Comeback",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Limit-Breaking Genius Mage",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Logging 10,000 Years into the Future",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "My Slain Dragon Bride",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "My Wife is the Demonic Cult Leader",
+      "anilistId": 141007,
+      "anilistTitle": "How to Use a Returner",
+      "rank": 63,
+      "popularity": 23372
+    },
+    {
+      "asuraTitle": "Necromancer's Evolutionary Traits",
+      "anilistId": 130429,
+      "anilistTitle": "I Shall Master this Family!",
+      "rank": 62,
+      "popularity": 23783
+    },
+    {
+      "asuraTitle": "On My Way to Kill God",
+      "anilistId": 85143,
+      "anilistTitle": "Tower of God",
+      "rank": 3,
+      "popularity": 98298
+    },
+    {
+      "asuraTitle": "Only I Have an EX-Grade Summon",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Otherworldly Skeleton Evolution",
+      "anilistId": 167834,
+      "anilistTitle": "The Martial God Who Regressed Back to Level 2",
+      "rank": 96,
+      "popularity": 19030
+    },
+    {
+      "asuraTitle": "Player Who Can't Level Up",
+      "anilistId": 85143,
+      "anilistTitle": "Tower of God",
+      "rank": 3,
+      "popularity": 98298
+    },
+    {
+      "asuraTitle": "Raising the Princess to Overcome Death",
+      "anilistId": 140951,
+      "anilistTitle": "Killer Crush",
+      "rank": 640,
+      "popularity": 4246
+    },
+    {
+      "asuraTitle": "Reincarnator’s Stream",
+      "anilistId": 105393,
+      "anilistTitle": "A Returner's Magic Should Be Special",
+      "rank": 11,
+      "popularity": 48711
+    },
+    {
+      "asuraTitle": "Return From The Abyss",
+      "anilistId": 132144,
+      "anilistTitle": "Return of the Blossoming Blade",
+      "rank": 22,
+      "popularity": 41987
+    },
+    {
+      "asuraTitle": "Return of the Disaster-Class Hero",
+      "anilistId": 143056,
+      "anilistTitle": "The Return of the Disaster-Class Hero",
+      "rank": 33,
+      "popularity": 36901
+    },
+    {
+      "asuraTitle": "Rise From The Rubble",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Rise of The Cheat User",
+      "anilistId": 118424,
+      "anilistTitle": "The Archmage Returns After 4000 Years",
+      "rank": 31,
+      "popularity": 37263
+    },
+    {
+      "asuraTitle": "Shenwu Tianzun",
+      "anilistId": 138222,
+      "anilistTitle": "Level Up with the Gods",
+      "rank": 48,
+      "popularity": 27900
+    },
+    {
+      "asuraTitle": "Somebody Stop the Pope",
+      "anilistId": 135325,
+      "anilistTitle": "The Lazy Lord Masters the Sword",
+      "rank": 39,
+      "popularity": 31700
+    },
+    {
+      "asuraTitle": "Son's Retribution",
+      "anilistId": 140407,
+      "anilistTitle": "The Greatest Estate Developer",
+      "rank": 6,
+      "popularity": 63671
+    },
+    {
+      "asuraTitle": "Status",
+      "anilistId": 105393,
+      "anilistTitle": "A Returner's Magic Should Be Special",
+      "rank": 11,
+      "popularity": 48711
+    },
+    {
+      "asuraTitle": "Super Evolution",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "Sword of the Undying",
+      "anilistId": 100954,
+      "anilistTitle": "Sweet Home",
+      "rank": 9,
+      "popularity": 54597
+    },
+    {
+      "asuraTitle": "Terms of Service",
+      "anilistId": 105393,
+      "anilistTitle": "A Returner's Magic Should Be Special",
+      "rank": 11,
+      "popularity": 48711
+    },
+    {
+      "asuraTitle": "The Blood Knight's Villains",
+      "anilistId": 135325,
+      "anilistTitle": "The Lazy Lord Masters the Sword",
+      "rank": 39,
+      "popularity": 31700
+    },
+    {
+      "asuraTitle": "The Cold-Blooded Warrior",
+      "anilistId": 85143,
+      "anilistTitle": "Tower of God",
+      "rank": 3,
+      "popularity": 98298
+    },
+    {
+      "asuraTitle": "The Demon Faction’s Return",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "The Demonic Cult Instructor Returns",
+      "anilistId": 107918,
+      "anilistTitle": "Doctor Elise: The Royal Lady with the Lamp",
+      "rank": 98,
+      "popularity": 18869
+    },
+    {
+      "asuraTitle": "The First Order",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "The God of Pro Wrestling",
+      "anilistId": 151512,
+      "anilistTitle": "My Blasted Reincarnated Life",
+      "rank": 38,
+      "popularity": 33946
+    },
+    {
+      "asuraTitle": "The Heavenly Demon's Descendant",
+      "anilistId": 140407,
+      "anilistTitle": "The Greatest Estate Developer",
+      "rank": 6,
+      "popularity": 63671
+    },
+    {
+      "asuraTitle": "The Hero Starts Over at the Academy",
+      "anilistId": 105393,
+      "anilistTitle": "A Returner's Magic Should Be Special",
+      "rank": 11,
+      "popularity": 48711
+    },
+    {
+      "asuraTitle": "The Immortal Emperor Luo Wuji Has Returned",
+      "anilistId": 107918,
+      "anilistTitle": "Doctor Elise: The Royal Lady with the Lamp",
+      "rank": 98,
+      "popularity": 18869
+    },
+    {
+      "asuraTitle": "The King Of Bugs",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "The King's Avatar",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "The Nebula's Civilization",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "The Regressor Can Make Them All",
+      "anilistId": 132144,
+      "anilistTitle": "Return of the Blossoming Blade",
+      "rank": 22,
+      "popularity": 41987
+    },
+    {
+      "asuraTitle": "The Return of the Prodigious Swordmaster",
+      "anilistId": 156193,
+      "anilistTitle": "The Nine Heavens Swordmaster",
+      "rank": 201,
+      "popularity": 11854
+    },
+    {
+      "asuraTitle": "The Ruler Of Darkness",
+      "anilistId": 132144,
+      "anilistTitle": "Return of the Blossoming Blade",
+      "rank": 22,
+      "popularity": 41987
+    },
+    {
+      "asuraTitle": "The Star of a Supreme Ruler",
+      "anilistId": 118408,
+      "anilistTitle": "Villains Are Destined to Die",
+      "rank": 26,
+      "popularity": 40647
+    },
+    {
+      "asuraTitle": "The Strongest Player",
+      "anilistId": 119257,
+      "anilistTitle": "Omniscient Reader",
+      "rank": 2,
+      "popularity": 127780
+    },
+    {
+      "asuraTitle": "The Tang Clan Chronicles",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "The Ultimate Shut-In",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    },
+    {
+      "asuraTitle": "The Youngest Son of the Eunhae Merchant Group",
+      "anilistId": 123573,
+      "anilistTitle": "Lout of Count’s Family",
+      "rank": 18,
+      "popularity": 43198
+    },
+    {
+      "asuraTitle": "Ultimate Devouring System",
+      "anilistId": 105393,
+      "anilistTitle": "A Returner's Magic Should Be Special",
+      "rank": 11,
+      "popularity": 48711
+    },
+    {
+      "asuraTitle": "Worn and Torn Newbie",
+      "anilistId": 127102,
+      "anilistTitle": "The Worn and Torn Newbie",
+      "rank": 182,
+      "popularity": 12709
+    },
+    {
+      "asuraTitle": "Your Talent is Mine",
+      "anilistId": 105398,
+      "anilistTitle": "Solo Leveling",
+      "rank": 1,
+      "popularity": 279619
+    }
+  ],
+  "missingTitles": [
+    "10",
+    "11",
+    "12",
+    "14",
+    "15",
+    "16",
+    "17",
+    "A Comic Artist's Survival Guide",
+    "A Million-Sub Gym Influencer Becomes a Webtoon Loser?",
+    "A Painter Who Draws Dungeons",
+    "Children of the Rune",
+    "Death King Karnak",
+    "Debtbound by Blood",
+    "Demon in Mount Hua",
+    "Demon King",
+    "Duke Pendragon",
+    "Golden Mage",
+    "I Am the Fated Villain",
+    "I Awoke as a God After Auto Battling For a Million Years",
+    "King of the Mound",
+    "King of Violence",
+    "Legend of Mir: The Golden Armored Dragon",
+    "Light of Arad: Forerunner",
+    "Love Letter From The Future",
+    "Margrave’s Worthless Mage",
+    "Max Level Returner",
+    "My Healing Game",
+    "My Path to Killing Gods in Another World",
+    "Playing the Perfect Fox-Eyed Villain",
+    "Privacy Policy",
+    "Rebirth of the Divine Demon",
+    "Reborn on the Demonic Cult Battlefield",
+    "Reincarnation Of The Strongest Sword God",
+    "Sandmancer of the Scorched Desert",
+    "Sichuan's Supreme King",
+    "Star Instructor, Master Baek",
+    "Sword God's Livestream",
+    "The Berserker's Second Playthrough",
+    "The Dark Swordsman Returns",
+    "The Demon God",
+    "The Forgotten Field",
+    "The Frenzy Of Evolution",
+    "The Game That I Came From",
+    "The Martial Genius Who Remembers Everything",
+    "The Seventh Prince Wants to Bail",
+    "The Supreme Poison Demon Becomes a Pharma Chairman",
+    "The Sword Emperor’s Rise of Namgung",
+    "The Time of the Terminally ill Extra",
+    "To Hell With the Status Window",
+    "Tomb Raider King — End Line",
+    "World-Saving is a Skill"
+  ]
+}

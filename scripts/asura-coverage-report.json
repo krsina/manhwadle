@@ -1,0 +1,445 @@
+{
+  "source": "https://asurascans.com/browse?page=1..17",
+  "topN": 1000,
+  "pages": [
+    {
+      "page": 1,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse",
+      "extracted": 22,
+      "newUnique": 22
+    },
+    {
+      "page": 2,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=2",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 3,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=3",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 4,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=4",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 5,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=5",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 6,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=6",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 7,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=7",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 8,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=8",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 9,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=9",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 10,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=10",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 11,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=11",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 12,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=12",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 13,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=13",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 14,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=14",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 15,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=15",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 16,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=16",
+      "extracted": 22,
+      "newUnique": 20
+    },
+    {
+      "page": 17,
+      "status": 200,
+      "finalUrl": "https://asurascans.com/browse?page=17",
+      "extracted": 16,
+      "newUnique": 14
+    }
+  ],
+  "totalUniqueTitles": 336,
+  "matched": 234,
+  "missing": 102,
+  "coveragePct": 69.6,
+  "missingTitles": [
+    "A Cadet Becomes a Prophet?!",
+    "A Comic Artist's Survival Guide",
+    "A Mercenary’s Rebirth Among Nobles",
+    "A Million-Sub Gym Influencer Becomes a Webtoon Loser?",
+    "A Painter Who Draws Dungeons",
+    "Above the Heavens",
+    "After the Moonlight Falls",
+    "Arcana Fantasy",
+    "Becoming the Cheon Clan's Mad Dog",
+    "Breakers",
+    "Browse",
+    "Carnivorous Hunter",
+    "Children of the Rune",
+    "Dangerous Dungeon Escape",
+    "Death King Karnak",
+    "Debtbound by Blood",
+    "Demon King",
+    "Demonic Beast Hunter Survival Guide",
+    "Duke Pendragon",
+    "Dungeon Defense",
+    "Echoes of the Reverse Planet",
+    "Emperor of Steel",
+    "Emperor’s Domination",
+    "God-Tier Extra's Ultimate Guide",
+    "Gods' Gambit",
+    "Golden Mage",
+    "I Am the Fated Villain",
+    "I Awoke as a God After Auto Battling For a Million Years",
+    "I Became the Successor of the Martial God",
+    "I Captured The Tyrant's Heart",
+    "Immortal’s Way of Life",
+    "Initializing the Sect System",
+    "Is It Bad That the Main Character’s a Roleplayer?",
+    "King of Runes",
+    "King of the Mound",
+    "King of Violence",
+    "Legend of Mir: The Golden Armored Dragon",
+    "Legendary Ranker's Comeback",
+    "Light of Arad: Forerunner",
+    "Limit-Breaking Genius Mage",
+    "Logging 10,000 Years into the Future",
+    "Love Letter From The Future",
+    "Margrave’s Worthless Mage",
+    "My Healing Game",
+    "My Path to Killing Gods in Another World",
+    "My Slain Dragon Bride",
+    "My Wife is the Demonic Cult Leader",
+    "Necromancer's Evolutionary Traits",
+    "On My Way to Kill God",
+    "Only I Have an EX-Grade Summon",
+    "Otherworldly Skeleton Evolution",
+    "Playing the Perfect Fox-Eyed Villain",
+    "Raising the Princess to Overcome Death",
+    "Rebirth of the Divine Demon",
+    "Reborn on the Demonic Cult Battlefield",
+    "Reincarnation Of The Strongest Sword God",
+    "Reincarnator’s Stream",
+    "Return From The Abyss",
+    "Rise From The Rubble",
+    "Rise of The Cheat User",
+    "Sandmancer of the Scorched Desert",
+    "Shenwu Tianzun",
+    "Sichuan's Supreme King",
+    "Somebody Stop the Pope",
+    "Son's Retribution",
+    "Status",
+    "Super Evolution",
+    "Sword God's Livestream",
+    "Sword of the Undying",
+    "The Berserker's Second Playthrough",
+    "The Blood Knight's Villains",
+    "The Cold-Blooded Warrior",
+    "The Dark Swordsman Returns",
+    "The Demon Faction’s Return",
+    "The Demon God",
+    "The Demonic Cult Instructor Returns",
+    "The First Order",
+    "The Forgotten Field",
+    "The Frenzy Of Evolution",
+    "The Game That I Came From",
+    "The God of Pro Wrestling",
+    "The Heavenly Demon's Descendant",
+    "The Hero Starts Over at the Academy",
+    "The Immortal Emperor Luo Wuji Has Returned",
+    "The King Of Bugs",
+    "The King's Avatar",
+    "The Martial Genius Who Remembers Everything",
+    "The Regressor Can Make Them All",
+    "The Return of the Prodigious Swordmaster",
+    "The Ruler Of Darkness",
+    "The Seventh Prince Wants to Bail",
+    "The Star of a Supreme Ruler",
+    "The Strongest Player",
+    "The Supreme Poison Demon Becomes a Pharma Chairman",
+    "The Sword Emperor’s Rise of Namgung",
+    "The Tang Clan Chronicles",
+    "The Youngest Son of the Eunhae Merchant Group",
+    "To Hell With the Status Window",
+    "Tomb Raider King — End Line",
+    "Ultimate Devouring System",
+    "World-Saving is a Skill",
+    "Your Talent is Mine"
+  ],
+  "matchedSample": [
+    {
+      "asuraTitle": "Villain To Kill",
+      "anilistId": 130149,
+      "anilistTitle": "Villain to Kill",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Chronicles Of The Martial God's Return",
+      "anilistId": 150319,
+      "anilistTitle": "Return of the War God",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The Knight King Who Returned with a God",
+      "anilistId": 165287,
+      "anilistTitle": "Singwahamkke Doraon Gisawangnim",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Return of the Apocalypse-Class Death Knight",
+      "anilistId": 195334,
+      "anilistTitle": "The Apocalypse-Level Death Knight Returns",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "I Killed an Academy Player",
+      "anilistId": 173020,
+      "anilistTitle": "I Killed the Main Player",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Return of the Mount Hua Sect",
+      "anilistId": 132144,
+      "anilistTitle": "Return of the Blossoming Blade",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Star-Embracing Swordmaster",
+      "anilistId": 170400,
+      "anilistTitle": "The Stellar Swordmaster",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The S-Classes That I Raised",
+      "anilistId": 141958,
+      "anilistTitle": "My S-Class Hunters",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The Player Hides His Past",
+      "anilistId": 166154,
+      "anilistTitle": "The Player Hides His Past",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Infinite Mage",
+      "anilistId": 159930,
+      "anilistTitle": "The Infinite Mage",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The Nebula's Civilization",
+      "anilistId": 174515,
+      "anilistTitle": "Nebula's Civilization",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "I Became the First Prince: Legend of Sword's Song",
+      "anilistId": 207089,
+      "anilistTitle": "Became the Lout First Prince",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The World After The End",
+      "anilistId": 144957,
+      "anilistTitle": "The World After the Fall",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "I Obtained a Mythic Item",
+      "anilistId": 151025,
+      "anilistTitle": "Mythic Item Obtained",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The Max Level Hero has Returned!",
+      "anilistId": 125636,
+      "anilistTitle": "The Max Level Hero Strikes Back!",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Martial God Regressed to Level 2",
+      "anilistId": 167834,
+      "anilistTitle": "The Martial God Who Regressed Back to Level 2",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The Indomitable Martial King",
+      "anilistId": 176812,
+      "anilistTitle": "The Reincarnated King of Fists",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "My Exclusive Tower Guide",
+      "anilistId": 177012,
+      "anilistTitle": "My Very Own Tower Strategy Guide",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Reborn As The Heavenly Demon",
+      "anilistId": 176790,
+      "anilistTitle": "Reincarnated Murim Lord",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The Heavenly Demon Can't Live a Normal Life",
+      "anilistId": 136204,
+      "anilistTitle": "Descended from Divinity",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Margrave’s Bastard Son was The Emperor",
+      "anilistId": 179963,
+      "anilistTitle": "Ian the Illegitimate Son Was an Emperor",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The Great Mage Returns After 4000 Years",
+      "anilistId": 118424,
+      "anilistTitle": "The Archmage Returns After 4000 Years",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The Wandering Knight’s Survival Manual",
+      "anilistId": 202718,
+      "anilistTitle": "Bangnanggisaro Saraganeun Beop",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The Regressed Mercenary's Machinations",
+      "anilistId": 182066,
+      "anilistTitle": "The Regressed Mercenary Has a Plan",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Player Who Can't Level Up",
+      "anilistId": 130511,
+      "anilistTitle": "The Player Who Can't Level Up",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Absolute Regression",
+      "anilistId": 180891,
+      "anilistTitle": "Absolute Regression",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Mount Hua Sect's Genius Phantom Swordsman",
+      "anilistId": 188155,
+      "anilistTitle": "The Genius Swordsman of Mount Hua",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "Surviving as a Genius on Borrowed Time",
+      "anilistId": 183376,
+      "anilistTitle": "Chronicles of a Doomed Prodigy",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The Novel’s Extra",
+      "anilistId": 152128,
+      "anilistTitle": "The Novel's Extra",
+      "popularity": null,
+      "rank": null
+    },
+    {
+      "asuraTitle": "The Tutorial is Too Hard",
+      "anilistId": 129632,
+      "anilistTitle": "The Tutorial Is Too Tough!",
+      "popularity": null,
+      "rank": null
+    }
+  ]
+}

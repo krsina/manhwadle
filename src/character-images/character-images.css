@@ -1,0 +1,208 @@
+.cir-page {
+  width: min(1280px, calc(100% - 2rem));
+}
+
+.cir-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 2rem;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.cir-lede {
+  color: var(--ink-soft);
+  max-width: 42rem;
+  margin: 0.35rem 0 0;
+}
+
+.cir-stats {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.cir-stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 5.5rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.cir-stat-num {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.cir-stat-label {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.cir-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.cir-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.cir-tabs button {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: var(--radius);
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+}
+
+.cir-tabs button.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, var(--panel));
+}
+
+.cir-search {
+  flex: 1 1 14rem;
+  min-width: 12rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.cir-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: 1rem;
+}
+
+.cir-card {
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--panel);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cir-card--warn {
+  border-color: color-mix(in srgb, var(--close) 35%, var(--line));
+}
+
+.cir-card h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.cir-sub,
+.cir-meta,
+.cir-muted,
+.cir-note,
+.cir-empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.cir-manhwa-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.875rem;
+}
+
+.cir-manhwa-list li + li {
+  margin-top: 0.35rem;
+}
+
+.cir-rank {
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.cir-role {
+  margin-left: 0.35rem;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  background: var(--chip);
+  color: var(--ink-soft);
+}
+
+.cir-badge {
+  margin-left: 0.5rem;
+  font-size: 0.7rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--accent-deep);
+}
+
+.cir-badge--muted {
+  background: var(--chip);
+  color: var(--ink-soft);
+}
+
+.cir-images {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.cir-images figcaption,
+.cir-single-img figcaption {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  margin-bottom: 0.35rem;
+}
+
+.cir-images img,
+.cir-single-img img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel-muted);
+}
+
+.cir-single-img img {
+  max-width: 10rem;
+}
+
+.cir-no-img {
+  aspect-ratio: 3 / 4;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.cir-note {
+  grid-column: 1 / -1;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--panel-muted);
+  border: 1px solid var(--line);
+}

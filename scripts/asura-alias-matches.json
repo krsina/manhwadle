@@ -1,0 +1,1145 @@
+{
+  "accepted": [
+    {
+      "asuraTitle": "Boundless Necromancer",
+      "anilistId": 159439,
+      "anilistTitle": "Boundless Ascension",
+      "method": "curated",
+      "score": 1
+    },
+    {
+      "asuraTitle": "Demon in Mount Hua",
+      "anilistId": 130210,
+      "anilistTitle": "Hwasangwonma",
+      "rank": 551,
+      "popularity": 4855,
+      "score": 0.95,
+      "exact": false,
+      "jac": 0.6,
+      "contAny": 1,
+      "method": "fuzzy"
+    },
+    {
+      "asuraTitle": "Solo Farming In The Tower",
+      "anilistId": 166658,
+      "anilistTitle": "The Top Dungeon Farmer",
+      "method": "curated",
+      "score": 1
+    },
+    {
+      "asuraTitle": "Star Instructor, Master Baek",
+      "anilistId": 142352,
+      "anilistTitle": "Best Teacher Baek",
+      "method": "curated",
+      "score": 1
+    }
+  ],
+  "rejected": [
+    {
+      "asuraTitle": "A Cadet Becomes a Prophet?!",
+      "best": {
+        "anilistId": 105398,
+        "anilistTitle": "Solo Leveling",
+        "score": 0,
+        "jac": 0,
+        "contAny": 0
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "A Comic Artist's Survival Guide",
+      "best": {
+        "anilistId": 172619,
+        "anilistTitle": "The Extra’s Academy Survival Guide",
+        "score": 0.475,
+        "jac": 0.25,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "A Mercenary’s Rebirth Among Nobles",
+      "best": {
+        "anilistId": 126297,
+        "anilistTitle": "Teenage Mercenary",
+        "score": 0.2375,
+        "jac": 0.08333333333333333,
+        "contAny": 0.25
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "A Million-Sub Gym Influencer Becomes a Webtoon Loser?",
+      "best": {
+        "anilistId": 138705,
+        "anilistTitle": "Suyo Webtoon-ui Na Kang-Rim",
+        "score": 0.15833333333333333,
+        "jac": 0.09090909090909091,
+        "contAny": 0.16666666666666666
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "A Painter Who Draws Dungeons",
+      "best": {
+        "anilistId": 126594,
+        "anilistTitle": "Dungeons & Artifacts",
+        "score": 0.31666666666666665,
+        "jac": 0.1111111111111111,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Above the Heavens",
+      "best": {
+        "anilistId": 156193,
+        "anilistTitle": "The Nine Heavens Swordmaster",
+        "score": 0.475,
+        "jac": 0.125,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "After the Moonlight Falls",
+      "best": {
+        "anilistId": 144957,
+        "anilistTitle": "The World After the Fall",
+        "score": 0.31666666666666665,
+        "jac": 0.07692307692307693,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Arcana Fantasy",
+      "best": {
+        "anilistId": 114605,
+        "anilistTitle": "Latna Saga: Survival of a Sword King",
+        "score": 0.475,
+        "jac": 0.058823529411764705,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Becoming the Cheon Clan's Mad Dog",
+      "best": {
+        "anilistId": 136025,
+        "anilistTitle": "Mad Dog",
+        "score": 0.4,
+        "jac": 0.4,
+        "contAny": 0.4
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Breakers",
+      "best": {
+        "anilistId": 105398,
+        "anilistTitle": "Solo Leveling",
+        "score": 0,
+        "jac": 0,
+        "contAny": 0
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Carnivorous Hunter",
+      "best": {
+        "anilistId": 128067,
+        "anilistTitle": "SSS-Class Revival Hunter",
+        "score": 0.475,
+        "jac": 0.1111111111111111,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Children of the Rune",
+      "best": {
+        "anilistId": 105398,
+        "anilistTitle": "Solo Leveling",
+        "score": 0,
+        "jac": 0,
+        "contAny": 0
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Dangerous Dungeon Escape",
+      "best": {
+        "anilistId": 103156,
+        "anilistTitle": "The Skeleton Soldier Failed to Defend the Dungeon",
+        "score": 0.31666666666666665,
+        "jac": 0.07692307692307693,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Death King Karnak",
+      "best": {
+        "anilistId": 118408,
+        "anilistTitle": "Villains Are Destined to Die",
+        "score": 0.31666666666666665,
+        "jac": 0.024390243902439025,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Debtbound by Blood",
+      "best": {
+        "anilistId": 115000,
+        "anilistTitle": "Unholy Blood",
+        "score": 0.475,
+        "jac": 0.08333333333333333,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Demon King",
+      "best": {
+        "anilistId": 160750,
+        "anilistTitle": "Demon King of the Royal Class",
+        "score": 0.95,
+        "jac": 0.2,
+        "contAny": 1
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Demonic Beast Hunter Survival Guide",
+      "best": {
+        "anilistId": 172619,
+        "anilistTitle": "The Extra’s Academy Survival Guide",
+        "score": 0.38,
+        "jac": 0.2222222222222222,
+        "contAny": 0.4
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Duke Pendragon",
+      "best": {
+        "anilistId": 104973,
+        "anilistTitle": "The Reason Why Raeliana Ended Up at the Duke's Mansion",
+        "score": 0.475,
+        "jac": 0.024390243902439025,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Dungeon Defense",
+      "best": {
+        "anilistId": 103156,
+        "anilistTitle": "The Skeleton Soldier Failed to Defend the Dungeon",
+        "score": 0.475,
+        "jac": 0.08333333333333333,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Echoes of the Reverse Planet",
+      "best": {
+        "anilistId": 118593,
+        "anilistTitle": "Reverse Villain",
+        "score": 0.31666666666666665,
+        "jac": 0.25,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Emperor of Steel",
+      "best": {
+        "anilistId": 145306,
+        "anilistTitle": "How to Hide the Emperor’s Child",
+        "score": 0.475,
+        "jac": 0.03571428571428571,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Emperor’s Domination",
+      "best": {
+        "anilistId": 145306,
+        "anilistTitle": "How to Hide the Emperor’s Child",
+        "score": 0.475,
+        "jac": 0.03571428571428571,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "God-Tier Extra's Ultimate Guide",
+      "best": {
+        "anilistId": 172619,
+        "anilistTitle": "The Extra’s Academy Survival Guide",
+        "score": 0.38,
+        "jac": 0.2222222222222222,
+        "contAny": 0.4
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Gods' Gambit",
+      "best": {
+        "anilistId": 138222,
+        "anilistTitle": "Level Up with the Gods",
+        "score": 0.475,
+        "jac": 0.1,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Golden Mage",
+      "best": {
+        "anilistId": 159930,
+        "anilistTitle": "The Infinite Mage",
+        "score": 0.475,
+        "jac": 0.2,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "I Am the Fated Villain",
+      "best": {
+        "anilistId": 118408,
+        "anilistTitle": "Villains Are Destined to Die",
+        "score": 0.475,
+        "jac": 0.025,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "I Awoke as a God After Auto Battling For a Million Years",
+      "best": {
+        "anilistId": 118424,
+        "anilistTitle": "The Archmage Returns After 4000 Years",
+        "score": 0.2714285714285714,
+        "jac": 0.1111111111111111,
+        "contAny": 0.2857142857142857
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "I Became the Successor of the Martial God",
+      "best": {
+        "anilistId": 167834,
+        "anilistTitle": "The Martial God Who Regressed Back to Level 2",
+        "score": 0.475,
+        "jac": 0.18181818181818182,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "I Captured The Tyrant's Heart",
+      "best": {
+        "anilistId": 153513,
+        "anilistTitle": "Tyrant of the Tower Defense Game",
+        "score": 0.31666666666666665,
+        "jac": 0.1111111111111111,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Immortal’s Way of Life",
+      "best": {
+        "anilistId": 109957,
+        "anilistTitle": "Second Life Ranker",
+        "score": 0.31666666666666665,
+        "jac": 0.1,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Initializing the Sect System",
+      "best": {
+        "anilistId": 132144,
+        "anilistTitle": "Return of the Blossoming Blade",
+        "score": 0.31666666666666665,
+        "jac": 0.058823529411764705,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Is It Bad That the Main Character’s a Roleplayer?",
+      "best": {
+        "anilistId": 173020,
+        "anilistTitle": "I Killed the Main Player",
+        "score": 0.2375,
+        "jac": 0.1111111111111111,
+        "contAny": 0.25
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "King of Runes",
+      "best": {
+        "anilistId": 110462,
+        "anilistTitle": "Tomb Raider King",
+        "score": 0.475,
+        "jac": 0.07692307692307693,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "King of the Mound",
+      "best": {
+        "anilistId": 110462,
+        "anilistTitle": "Tomb Raider King",
+        "score": 0.475,
+        "jac": 0.07692307692307693,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "King of Violence",
+      "best": {
+        "anilistId": 110462,
+        "anilistTitle": "Tomb Raider King",
+        "score": 0.475,
+        "jac": 0.07692307692307693,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Legend of Mir: The Golden Armored Dragon",
+      "best": {
+        "anilistId": 130566,
+        "anilistTitle": "Legend of an Asura - The Poison Dragon",
+        "score": 0.38,
+        "jac": 0.15384615384615385,
+        "contAny": 0.4
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Legendary Ranker's Comeback",
+      "best": {
+        "anilistId": 137280,
+        "anilistTitle": "I’m the Max-Level Newbie",
+        "score": 0.31666666666666665,
+        "jac": 0.1,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Light of Arad: Forerunner",
+      "best": {
+        "anilistId": 139339,
+        "anilistTitle": "Into the Light, Once Again",
+        "score": 0.31666666666666665,
+        "jac": 0.09090909090909091,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Limit-Breaking Genius Mage",
+      "best": {
+        "anilistId": 162190,
+        "anilistTitle": "The Genius Medicinal Mage",
+        "score": 0.475,
+        "jac": 0.2222222222222222,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Logging 10,000 Years into the Future",
+      "best": {
+        "anilistId": 153284,
+        "anilistTitle": "After Ten Millennia in Hell",
+        "score": 0.475,
+        "jac": 0.13333333333333333,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Love Letter From The Future",
+      "best": {
+        "anilistId": 149483,
+        "anilistTitle": "Operation: True Love",
+        "score": 0.31666666666666665,
+        "jac": 0.1111111111111111,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Margrave’s Worthless Mage",
+      "best": {
+        "anilistId": 159930,
+        "anilistTitle": "The Infinite Mage",
+        "score": 0.31666666666666665,
+        "jac": 0.16666666666666666,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "My Healing Game",
+      "best": {
+        "anilistId": 164857,
+        "anilistTitle": "Surviving the Game as a Barbarian",
+        "score": 0.475,
+        "jac": 0.125,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "My Path to Killing Gods in Another World",
+      "best": {
+        "anilistId": 101670,
+        "anilistTitle": "Empress of Another World",
+        "score": 0.38,
+        "jac": 0.16666666666666666,
+        "contAny": 0.4
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "My Slain Dragon Bride",
+      "best": {
+        "anilistId": 160179,
+        "anilistTitle": "The Dragon King’s Bride",
+        "score": 0.6333333333333333,
+        "jac": 0.11764705882352941,
+        "contAny": 0.6666666666666666
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "My Wife is the Demonic Cult Leader",
+      "best": {
+        "anilistId": 113607,
+        "anilistTitle": "Descent of the Demon Master",
+        "score": 0.2375,
+        "jac": 0.1,
+        "contAny": 0.25
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Necromancer's Evolutionary Traits",
+      "best": {
+        "anilistId": 159439,
+        "anilistTitle": "Boundless Ascension",
+        "score": 0.31666666666666665,
+        "jac": 0.1111111111111111,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "On My Way to Kill God",
+      "best": {
+        "anilistId": 85143,
+        "anilistTitle": "Tower of God",
+        "score": 0.31666666666666665,
+        "jac": 0.1,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Only I Have an EX-Grade Summon",
+      "best": {
+        "anilistId": 105398,
+        "anilistTitle": "Solo Leveling",
+        "score": 0.2375,
+        "jac": 0.08333333333333333,
+        "contAny": 0.25
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Otherworldly Skeleton Evolution",
+      "best": {
+        "anilistId": 114605,
+        "anilistTitle": "Latna Saga: Survival of a Sword King",
+        "score": 0.31666666666666665,
+        "jac": 0.05555555555555555,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Playing the Perfect Fox-Eyed Villain",
+      "best": {
+        "anilistId": 190356,
+        "anilistTitle": "Magye Academy-ui Silnun Agyeok",
+        "score": 0.57,
+        "jac": 0.3,
+        "contAny": 0.6
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Raising the Princess to Overcome Death",
+      "best": {
+        "anilistId": 118408,
+        "anilistTitle": "Villains Are Destined to Die",
+        "score": 0.2375,
+        "jac": 0.023809523809523808,
+        "contAny": 0.25
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Rebirth of the Divine Demon",
+      "best": {
+        "anilistId": 198931,
+        "anilistTitle": "The Legend of Enxue",
+        "score": 0.6333333333333333,
+        "jac": 0.18181818181818182,
+        "contAny": 0.6666666666666666
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Reborn on the Demonic Cult Battlefield",
+      "best": {
+        "anilistId": 175262,
+        "anilistTitle": "The Reborn Young Lord is an Assassin",
+        "score": 0.2375,
+        "jac": 0.05263157894736842,
+        "contAny": 0.25
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Reincarnation Of The Strongest Sword God",
+      "best": {
+        "anilistId": 136220,
+        "anilistTitle": "Doom Breaker",
+        "score": 0.475,
+        "jac": 0.15384615384615385,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Reincarnator’s Stream",
+      "best": {
+        "anilistId": 172583,
+        "anilistTitle": "Reincarnator",
+        "score": 0.475,
+        "jac": 0.2,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Return From The Abyss",
+      "best": {
+        "anilistId": 132144,
+        "anilistTitle": "Return of the Blossoming Blade",
+        "score": 0.475,
+        "jac": 0.0625,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Rise From The Rubble",
+      "best": {
+        "anilistId": 194672,
+        "anilistTitle": "Regression of the Third Prince",
+        "score": 0.475,
+        "jac": 0.07692307692307693,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Rise of The Cheat User",
+      "best": {
+        "anilistId": 194672,
+        "anilistTitle": "Regression of the Third Prince",
+        "score": 0.31666666666666665,
+        "jac": 0.07142857142857142,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Sandmancer of the Scorched Desert",
+      "best": {
+        "anilistId": 105398,
+        "anilistTitle": "Solo Leveling",
+        "score": 0,
+        "jac": 0,
+        "contAny": 0
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Shenwu Tianzun",
+      "best": {
+        "anilistId": 105398,
+        "anilistTitle": "Solo Leveling",
+        "score": 0,
+        "jac": 0,
+        "contAny": 0
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Sichuan's Supreme King",
+      "best": {
+        "anilistId": 110462,
+        "anilistTitle": "Tomb Raider King",
+        "score": 0.31666666666666665,
+        "jac": 0.07142857142857142,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Somebody Stop the Pope",
+      "best": {
+        "anilistId": 105398,
+        "anilistTitle": "Solo Leveling",
+        "score": 0,
+        "jac": 0,
+        "contAny": 0
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Son's Retribution",
+      "best": {
+        "anilistId": 149332,
+        "anilistTitle": "The Swordmaster's Son",
+        "score": 0.475,
+        "jac": 0.09090909090909091,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Super Evolution",
+      "best": {
+        "anilistId": 97865,
+        "anilistTitle": "Super Secret",
+        "score": 0.475,
+        "jac": 0.2,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Sword God's Livestream",
+      "best": {
+        "anilistId": 194024,
+        "anilistTitle": "Myeolmanghan Segyeeseo On Geomsin",
+        "score": 0.6333333333333333,
+        "jac": 0.2222222222222222,
+        "contAny": 0.6666666666666666
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Sword of the Undying",
+      "best": {
+        "anilistId": 163824,
+        "anilistTitle": "Revenge of the Baskerville Bloodhound",
+        "score": 0.475,
+        "jac": 0.05,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Berserker's Second Playthrough",
+      "best": {
+        "anilistId": 109957,
+        "anilistTitle": "Second Life Ranker",
+        "score": 0.31666666666666665,
+        "jac": 0.1,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Blood Knight's Villains",
+      "best": {
+        "anilistId": 118408,
+        "anilistTitle": "Villains Are Destined to Die",
+        "score": 0.31666666666666665,
+        "jac": 0.024390243902439025,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Cold-Blooded Warrior",
+      "best": {
+        "anilistId": 163824,
+        "anilistTitle": "Revenge of the Baskerville Bloodhound",
+        "score": 0.31666666666666665,
+        "jac": 0.047619047619047616,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Dark Swordsman Returns",
+      "best": {
+        "anilistId": 149332,
+        "anilistTitle": "The Swordmaster's Son",
+        "score": 0.31666666666666665,
+        "jac": 0.08333333333333333,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Demon Faction’s Return",
+      "best": {
+        "anilistId": 137304,
+        "anilistTitle": "Return of the Mad Demon",
+        "score": 0.6333333333333333,
+        "jac": 0.3333333333333333,
+        "contAny": 0.6666666666666666
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Demon God",
+      "best": {
+        "anilistId": 185817,
+        "anilistTitle": "Paragon Demon: Revenant Saga",
+        "score": 0.95,
+        "jac": 0.2222222222222222,
+        "contAny": 1
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Demonic Cult Instructor Returns",
+      "best": {
+        "anilistId": 118424,
+        "anilistTitle": "The Archmage Returns After 4000 Years",
+        "score": 0.2375,
+        "jac": 0.0625,
+        "contAny": 0.25
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The First Order",
+      "best": {
+        "anilistId": 121276,
+        "anilistTitle": "The First Night With the Duke",
+        "score": 0.475,
+        "jac": 0.03571428571428571,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Forgotten Field",
+      "best": {
+        "anilistId": 105398,
+        "anilistTitle": "Solo Leveling",
+        "score": 0,
+        "jac": 0,
+        "contAny": 0
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Frenzy Of Evolution",
+      "best": {
+        "anilistId": 105398,
+        "anilistTitle": "Solo Leveling",
+        "score": 0,
+        "jac": 0,
+        "contAny": 0
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Game That I Came From",
+      "best": {
+        "anilistId": 164857,
+        "anilistTitle": "Surviving the Game as a Barbarian",
+        "score": 0.475,
+        "jac": 0.125,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The God of Pro Wrestling",
+      "best": {
+        "anilistId": 85143,
+        "anilistTitle": "Tower of God",
+        "score": 0.31666666666666665,
+        "jac": 0.1,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Heavenly Demon's Descendant",
+      "best": {
+        "anilistId": 136204,
+        "anilistTitle": "Descended from Divinity",
+        "score": 0.6333333333333333,
+        "jac": 0.15384615384615385,
+        "contAny": 0.6666666666666666
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Hero Starts Over at the Academy",
+      "best": {
+        "anilistId": 184502,
+        "anilistTitle": "The Academy’s Sashimi Sword Master",
+        "score": 0.475,
+        "jac": 0.125,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Immortal Emperor Luo Wuji Has Returned",
+      "best": {
+        "anilistId": 143056,
+        "anilistTitle": "The Return of the Disaster-Class Hero",
+        "score": 0.31666666666666665,
+        "jac": 0.15384615384615385,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The King Of Bugs",
+      "best": {
+        "anilistId": 110462,
+        "anilistTitle": "Tomb Raider King",
+        "score": 0.475,
+        "jac": 0.07692307692307693,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The King's Avatar",
+      "best": {
+        "anilistId": 110462,
+        "anilistTitle": "Tomb Raider King",
+        "score": 0.475,
+        "jac": 0.07692307692307693,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Martial Genius Who Remembers Everything",
+      "best": {
+        "anilistId": 179655,
+        "anilistTitle": "The Genius Murim Fitness Trainer",
+        "score": 0.475,
+        "jac": 0.2222222222222222,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Regressor Can Make Them All",
+      "best": {
+        "anilistId": 130511,
+        "anilistTitle": "The Player Who Can't Level Up",
+        "score": 0.19,
+        "jac": 0.09090909090909091,
+        "contAny": 0.2
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Return of the Prodigious Swordmaster",
+      "best": {
+        "anilistId": 132144,
+        "anilistTitle": "Return of the Blossoming Blade",
+        "score": 0.31666666666666665,
+        "jac": 0.058823529411764705,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Ruler Of Darkness",
+      "best": {
+        "anilistId": 189380,
+        "anilistTitle": "The Unorthodox Genius of the House of Darkness",
+        "score": 0.475,
+        "jac": 0.07142857142857142,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Seventh Prince Wants to Bail",
+      "best": {
+        "anilistId": 135325,
+        "anilistTitle": "The Lazy Lord Masters the Sword",
+        "score": 0.2375,
+        "jac": 0.045454545454545456,
+        "contAny": 0.25
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Star of a Supreme Ruler",
+      "best": {
+        "anilistId": 170400,
+        "anilistTitle": "The Stellar Swordmaster",
+        "score": 0.31666666666666665,
+        "jac": 0.09090909090909091,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Strongest Player",
+      "best": {
+        "anilistId": 119363,
+        "anilistTitle": "Player",
+        "score": 0.5,
+        "jac": 0.5,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Supreme Poison Demon Becomes a Pharma Chairman",
+      "best": {
+        "anilistId": 137304,
+        "anilistTitle": "Return of the Mad Demon",
+        "score": 0.19,
+        "jac": 0.1111111111111111,
+        "contAny": 0.2
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Sword Emperor’s Rise of Namgung",
+      "best": {
+        "anilistId": 160890,
+        "anilistTitle": "Absolute Master of the Senate",
+        "score": 0.475,
+        "jac": 0.2,
+        "contAny": 0.5
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Tang Clan Chronicles",
+      "best": {
+        "anilistId": 185452,
+        "anilistTitle": "The Sichuan Tang Clan’s Entomologist",
+        "score": 0.6333333333333333,
+        "jac": 0.2857142857142857,
+        "contAny": 0.6666666666666666
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "The Youngest Son of the Eunhae Merchant Group",
+      "best": {
+        "anilistId": 149332,
+        "anilistTitle": "The Swordmaster's Son",
+        "score": 0.38,
+        "jac": 0.15384615384615385,
+        "contAny": 0.4
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "To Hell With the Status Window",
+      "best": {
+        "anilistId": 156488,
+        "anilistTitle": "The Status Window to the Soul",
+        "score": 0.6333333333333333,
+        "jac": 0.14285714285714285,
+        "contAny": 0.6666666666666666
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Tomb Raider King — End Line",
+      "best": {
+        "anilistId": 110462,
+        "anilistTitle": "Tomb Raider King",
+        "score": 0.57,
+        "jac": 0.21428571428571427,
+        "contAny": 0.6
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Ultimate Devouring System",
+      "best": {
+        "anilistId": 168287,
+        "anilistTitle": "The Mage: Swallowed the Dragon",
+        "score": 0.31666666666666665,
+        "jac": 0.1111111111111111,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "World-Saving is a Skill",
+      "best": {
+        "anilistId": 178876,
+        "anilistTitle": "For My Own Good",
+        "score": 0.6333333333333333,
+        "jac": 0.15384615384615385,
+        "contAny": 0.6666666666666666
+      },
+      "reason": "low-confidence"
+    },
+    {
+      "asuraTitle": "Your Talent is Mine",
+      "best": {
+        "anilistId": 114542,
+        "anilistTitle": "Your Throne",
+        "score": 0.31666666666666665,
+        "jac": 0.05555555555555555,
+        "contAny": 0.3333333333333333
+      },
+      "reason": "low-confidence"
+    }
+  ],
+  "stats": {
+    "missingInput": 102,
+    "accepted": 4,
+    "rejected": 100,
+    "aliasEntriesTouched": 4
+  }
+}

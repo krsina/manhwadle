@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="no-referrer" />
+  <title>Character image enrichment verify</title>
+  <style>
+    :root {
+      --bg: #12141a;
+      --panel: #1a1e27;
+      --text: #e8eaef;
+      --muted: #9aa3b2;
+      --ok: #2f6f4e;
+      --bad: #6f2f2f;
+      --line: #2a3140;
+      --accent: #6ea8fe;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(1200px 600px at 20% -10%, #243047, transparent), var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    header {
+      padding: 2rem 1.25rem 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 { margin: 0 0 0.35rem; font-size: 1.75rem; }
+    .sub { color: var(--muted); margin: 0; }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      min-width: 140px;
+    }
+    .stat b { display: block; font-size: 1.4rem; }
+    .stat span { color: var(--muted); font-size: 0.85rem; }
+    nav {
+      display: flex;
+      gap: 0.5rem;
+      margin: 1.25rem 0 0;
+      flex-wrap: wrap;
+    }
+    nav button {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      cursor: pointer;
+    }
+    nav button.active { border-color: var(--accent); }
+    main { max-width: 1200px; margin: 0 auto; padding: 0 1.25rem 3rem; }
+    section { display: none; }
+    section.active { display: block; }
+    .toolbar {
+      display: flex;
+      gap: 0.75rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    input[type="search"], input[type="url"], .image-url {
+      flex: 1;
+      min-width: 220px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.65rem 0.8rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 0.9rem;
+    }
+    .card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.75rem;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.75rem;
+      align-items: start;
+    }
+    .card.ok { border-color: color-mix(in srgb, var(--ok) 55%, var(--line)); }
+    .card.bad { border-color: color-mix(in srgb, var(--bad) 55%, var(--line)); }
+    .card.manual { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+    .thumbs {
+      display: grid;
+      grid-template-columns: 84px 84px;
+      gap: 0.4rem;
+    }
+    .thumbs figure, .thumb { margin: 0; }
+    .thumbs figcaption {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+    .thumb img, .thumbs img, .thumb .missing, .thumbs .missing {
+      width: 84px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #0d0f14;
+      display: block;
+      border: 1px solid var(--line);
+    }
+    .thumb .missing, .thumbs .missing {
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 0.4rem;
+    }
+    .body h3 { margin: 0 0 0.25rem; font-size: 1rem; }
+    .role {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-left: 0.35rem;
+      text-transform: uppercase;
+    }
+    .manhwa { margin: 0 0 0.35rem; color: #c6d0e0; }
+    .more { color: var(--muted); font-size: 0.8rem; }
+    .meta { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.8rem; }
+    .meta a { color: #8ec5ff; }
+    .url-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .url-row button, .toolbar button {
+      background: var(--accent);
+      color: #0b1220;
+      border: 0;
+      border-radius: 8px;
+      padding: 0.55rem 0.85rem;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .status { margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--muted); min-height: 1.1em; }
+    .status.ok { color: #86efac; }
+    .status.err { color: #fca5a5; }
+    .note {
+      grid-column: 1 / -1;
+      margin: 0 0 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: #141924;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .note a { color: #8ec5ff; }
+    .empty { color: var(--muted); }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Character image enrichment</h1>
+    <p class="sub">Generated 2026-07-15T10:32:12Z. MAL-only fills kept. Tyrant placeholders are editable below.</p>
+    <div class="stats">
+      <div class="stat"><b>40</b><span>MAL matched</span></div>
+      <div class="stat"><b>0</b><span>manual (Tyrant)</span></div>
+      <div class="stat"><b>0</b><span>other leftovers</span></div>
+    </div>
+    <nav>
+      <button type="button" class="active" data-tab="manual">Manual Tyrant</button>
+      <button type="button" data-tab="changed">MAL matched</button>
+      <button type="button" data-tab="remaining">Other leftovers</button>
+    </nav>
+  </header>
+  <main>
+    <section id="manual" class="active">
+      <div class="toolbar">
+        <input type="search" id="search-manual" placeholder="Filter Tyrant characters..." />
+        <button type="button" id="save-all-manual">Save all filled URLs</button>
+      </div>
+      <div class="grid" id="grid-manual">
+        <p class="empty">No characters need manual images.</p>
+      </div>
+    </section>
+    <section id="changed">
+      <div class="toolbar">
+        <input type="search" id="search-changed" placeholder="Filter by manhwa or character..." />
+      </div>
+      <div class="grid" id="grid-changed">
+        
+<article class="card ok" data-search="seol baek #myfirstlove">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/5/633329.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Seol Baek</h3>
+    <p class="manhwa">#MyFirstLove</p>
+    <p class="meta">AniList #392568 · matched Baek, Seol · <a href="https://myanimelist.net/character/296716" target="_blank" rel="noreferrer">MAL #296716</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="kang-jin lee afterlife diner">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/3/585537.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Kang-Jin Lee</h3>
+    <p class="manhwa">Afterlife Diner</p>
+    <p class="meta">AniList #337417 · matched Lee, Kang-Jin · <a href="https://myanimelist.net/character/250165" target="_blank" rel="noreferrer">MAL #250165</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="yoojin kim aideur-ui kwon seonsaengnim">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/15/224447.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Yoojin Kim</h3>
+    <p class="manhwa">Aideur-Ui Kwon Seonsaengnim</p>
+    <p class="meta">AniList #139638 · matched Kim, Yoojin · <a href="https://myanimelist.net/character/94267" target="_blank" rel="noreferrer">MAL #94267</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="nova ancient animal tales">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/10/602646.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Nova</h3>
+    <p class="manhwa">Ancient Animal Tales</p>
+    <p class="meta">AniList #370400 · matched Nova · <a href="https://myanimelist.net/character/276985" target="_blank" rel="noreferrer">MAL #276985</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="zeke ancient animal tales">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/12/602645.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Zeke</h3>
+    <p class="manhwa">Ancient Animal Tales</p>
+    <p class="meta">AniList #370401 · matched Zeke · <a href="https://myanimelist.net/character/276984" target="_blank" rel="noreferrer">MAL #276984</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="kirus ares">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/13/431773.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Kirus</h3>
+    <p class="manhwa">Ares</p>
+    <p class="meta">AniList #41874 · matched Kirus · <a href="https://myanimelist.net/character/41874" target="_blank" rel="noreferrer">MAL #41874</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="ketal barbarian&#x27;s adventure in a fantasy world">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/12/617738.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Ketal</h3>
+    <p class="manhwa">Barbarian&#x27;s Adventure in a Fantasy World</p>
+    <p class="meta">AniList #372213 · matched Ketal · <a href="https://myanimelist.net/character/287126" target="_blank" rel="noreferrer">MAL #287126</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="mok-rang bride of the water god">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/11/220275.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Mok-rang</h3>
+    <p class="manhwa">Bride of the Water God</p>
+    <p class="meta">AniList #56925 · matched Mok-rang · <a href="https://myanimelist.net/character/56925" target="_blank" rel="noreferrer">MAL #56925</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="tae-eul-jin-in bride of the water god">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/2/220463.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Tae-eul-jin-in</h3>
+    <p class="manhwa">Bride of the Water God</p>
+    <p class="meta">AniList #56927 · matched Tae-eul-jin-in · <a href="https://myanimelist.net/character/56927" target="_blank" rel="noreferrer">MAL #56927</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="siana cavalier of the abyss">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/7/280979.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Siana</h3>
+    <p class="manhwa">Cavalier of the Abyss</p>
+    <p class="meta">AniList #42675 · matched Siana · <a href="https://myanimelist.net/character/42675" target="_blank" rel="noreferrer">MAL #42675</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="jugeum death&#x27;s game">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/14/535111.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Jugeum</h3>
+    <p class="manhwa">Death&#x27;s Game</p>
+    <p class="meta">AniList #372661 · matched Death · <a href="https://myanimelist.net/character/241169" target="_blank" rel="noreferrer">MAL #241169</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="si-eun kang ghost dating simulation">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/3/626638.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Si-Eun Kang</h3>
+    <p class="manhwa">Ghost Dating Simulation</p>
+    <p class="meta">AniList #372218 · matched Kang, Si-eun · <a href="https://myanimelist.net/character/292861" target="_blank" rel="noreferrer">MAL #292861</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="braun goedame tteoreojyeodo chulgeuneul haeya haneunguna">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/2/635838.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Braun</h3>
+    <p class="manhwa">Goedame Tteoreojyeodo Chulgeuneul Haeya Haneunguna</p>
+    <p class="meta">AniList #400579 · matched Braun · <a href="https://myanimelist.net/character/298304" target="_blank" rel="noreferrer">MAL #298304</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="ga-on yu gyeoulhana">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/14/256931.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Ga-On Yu</h3>
+    <p class="manhwa">Gyeoulhana <span class="more">+1 more</span></p>
+    <p class="meta">AniList #256433 · matched Yu, Ga On · <a href="https://myanimelist.net/character/112111" target="_blank" rel="noreferrer">MAL #112111</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="ha-ram choi gyeoulhana">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/15/256943.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Ha-Ram Choi</h3>
+    <p class="manhwa">Gyeoulhana <span class="more">+1 more</span></p>
+    <p class="meta">AniList #88335 · matched Choi, Ha Ram · <a href="https://myanimelist.net/character/91955" target="_blank" rel="noreferrer">MAL #91955</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="laillo sidgar id">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/13/224475.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Laillo Sidgar</h3>
+    <p class="manhwa">Id</p>
+    <p class="meta">AniList #58429 · matched Sidgar, Laillo · <a href="https://myanimelist.net/character/58429" target="_blank" rel="noreferrer">MAL #58429</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="heimdall mawangeul wihan donghwa">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/3/416550.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Heimdall</h3>
+    <p class="manhwa">Mawangeul Wihan Donghwa</p>
+    <p class="meta">AniList #137250 · matched Heimdall · <a href="https://myanimelist.net/character/155836" target="_blank" rel="noreferrer">MAL #155836</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="thor mawangeul wihan donghwa">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/5/453878.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Thor</h3>
+    <p class="manhwa">Mawangeul Wihan Donghwa</p>
+    <p class="meta">AniList #137251 · matched Thor · <a href="https://myanimelist.net/character/155838" target="_blank" rel="noreferrer">MAL #155838</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="kim baksa mosquito wars">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/8/451963.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Kim Baksa</h3>
+    <p class="manhwa">Mosquito Wars</p>
+    <p class="meta">AniList #267873 · matched Dr. Kim · <a href="https://myanimelist.net/character/201071" target="_blank" rel="noreferrer">MAL #201071</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="bong-seok kim moving">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/14/522520.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Bong-Seok Kim</h3>
+    <p class="manhwa">Moving</p>
+    <p class="meta">AniList #317847 · matched Kim, Bong Seok · <a href="https://myanimelist.net/character/234872" target="_blank" rel="noreferrer">MAL #234872</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="lucy herive my gently raised beast">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/6/463306.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Lucy Herive</h3>
+    <p class="manhwa">My Gently Raised Beast</p>
+    <p class="meta">AniList #285634 · matched Herive, Lucy · <a href="https://myanimelist.net/character/205482" target="_blank" rel="noreferrer">MAL #205482</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="john nephilim john">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/16/464445.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>John</h3>
+    <p class="manhwa">Nephilim John</p>
+    <p class="meta">AniList #65719 · matched John · <a href="https://myanimelist.net/character/65719" target="_blank" rel="noreferrer">MAL #65719</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="michael nephilim john">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/4/464446.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Michael</h3>
+    <p class="manhwa">Nephilim John</p>
+    <p class="meta">AniList #65721 · matched Michael · <a href="https://myanimelist.net/character/65721" target="_blank" rel="noreferrer">MAL #65721</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="hana ma parallel city">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/8/528584.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Hana Ma</h3>
+    <p class="manhwa">Parallel City</p>
+    <p class="meta">AniList #336198 · matched Ma, Hana · <a href="https://myanimelist.net/character/237770" target="_blank" rel="noreferrer">MAL #237770</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="jung kim parallel city">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/8/528585.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Jung Kim</h3>
+    <p class="manhwa">Parallel City</p>
+    <p class="meta">AniList #336197 · matched Kim, Jung · <a href="https://myanimelist.net/character/237771" target="_blank" rel="noreferrer">MAL #237771</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="ekina philia rosé: the prophecy of the crown of thorns">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/4/597844.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Ekina</h3>
+    <p class="manhwa">Philia Rosé: The Prophecy of the Crown of Thorns</p>
+    <p class="meta">AniList #382661 · matched Ekina · <a href="https://myanimelist.net/character/274291" target="_blank" rel="noreferrer">MAL #274291</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="eulogia philia rosé: the prophecy of the crown of thorns">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/14/597847.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Eulogia</h3>
+    <p class="manhwa">Philia Rosé: The Prophecy of the Crown of Thorns</p>
+    <p class="meta">AniList #382662 · matched Eulogia · <a href="https://myanimelist.net/character/274294" target="_blank" rel="noreferrer">MAL #274294</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="viaz philia rosé: the prophecy of the crown of thorns">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/10/597845.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Viaz</h3>
+    <p class="manhwa">Philia Rosé: The Prophecy of the Crown of Thorns</p>
+    <p class="meta">AniList #382663 · matched Viaz · <a href="https://myanimelist.net/character/274292" target="_blank" rel="noreferrer">MAL #274292</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="reina ragnarök">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/13/562261.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Reina</h3>
+    <p class="manhwa">Ragnarök</p>
+    <p class="meta">AniList #23405 · matched Reina · <a href="https://myanimelist.net/character/23405" target="_blank" rel="noreferrer">MAL #23405</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="sara irine ragnarök">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/15/562257.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Sara Irine</h3>
+    <p class="manhwa">Ragnarök</p>
+    <p class="meta">AniList #23406 · matched Irine, Sara · <a href="https://myanimelist.net/character/23406" target="_blank" rel="noreferrer">MAL #23406</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="merilda the academy&#x27;s undercover professor">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/6/561998.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Merilda</h3>
+    <p class="manhwa">The Academy&#x27;s Undercover Professor</p>
+    <p class="meta">AniList #339737 · matched Merida · <a href="https://myanimelist.net/character/255721" target="_blank" rel="noreferrer">MAL #255721</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="sara lopez the blood of the butterfly">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/3/539277.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Sara Lopez</h3>
+    <p class="manhwa">The Blood of the Butterfly</p>
+    <p class="meta">AniList #282680 · matched Lopez, Sara · <a href="https://myanimelist.net/character/243573" target="_blank" rel="noreferrer">MAL #243573</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="evelyn winter the hand that once fed">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/12/530699.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Evelyn Winter</h3>
+    <p class="manhwa">The Hand That Once Fed</p>
+    <p class="meta">AniList #343598 · matched Winter, Evelyn · <a href="https://myanimelist.net/character/238836" target="_blank" rel="noreferrer">MAL #238836</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="jae-rim ki the ki sisters">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/14/570618.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Jae-Rim Ki</h3>
+    <p class="manhwa">The Ki Sisters</p>
+    <p class="meta">AniList #368025 · matched Ki, Jaerim · <a href="https://myanimelist.net/character/259553" target="_blank" rel="noreferrer">MAL #259553</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="elpam the last adventurer">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/15/585093.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Elpam</h3>
+    <p class="manhwa">The Last Adventurer</p>
+    <p class="meta">AniList #372211 · matched Elpam · <a href="https://myanimelist.net/character/267650" target="_blank" rel="noreferrer">MAL #267650</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="yona runcandel the swordmaster&#x27;s son">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/5/623448.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Yona Runcandel</h3>
+    <p class="manhwa">The Swordmaster&#x27;s Son</p>
+    <p class="meta">AniList #386283 · matched Runcandel, Yona · <a href="https://myanimelist.net/character/246218" target="_blank" rel="noreferrer">MAL #246218</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="aileen pritani the top dungeon farmer">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/15/558245.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Aileen Pritani</h3>
+    <p class="manhwa">The Top Dungeon Farmer</p>
+    <p class="meta">AniList #337661 · matched Pritani, Aileen · <a href="https://myanimelist.net/character/253814" target="_blank" rel="noreferrer">MAL #253814</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="beh the top dungeon farmer">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/12/558263.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Beh</h3>
+    <p class="manhwa">The Top Dungeon Farmer</p>
+    <p class="meta">AniList #337660 · matched Beh · <a href="https://myanimelist.net/character/253828" target="_blank" rel="noreferrer">MAL #253828</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="jupiter tyrant of the tower defense game">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/6/618214.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Jupiter</h3>
+    <p class="manhwa">Tyrant of the Tower Defense Game</p>
+    <p class="meta">AniList #319503 · matched Jupiter · <a href="https://myanimelist.net/character/254102" target="_blank" rel="noreferrer">MAL #254102</a></p>
+  </div>
+</article>
+
+<article class="card ok" data-search="ji-min kim your letter">
+  <div class="thumbs">
+    <figure>
+      <figcaption>Before</figcaption>
+      <img src="https://s4.anilist.co/file/anilistcdn/character/large/default.jpg" alt="before" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+    <figure>
+      <figcaption>After (MAL)</figcaption>
+      <img src="https://cdn.myanimelist.net/images/characters/15/416660.jpg" alt="after" loading="lazy" referrerpolicy="no-referrer" />
+    </figure>
+  </div>
+  <div class="body">
+    <h3>Ji-Min Kim</h3>
+    <p class="manhwa">Your Letter</p>
+    <p class="meta">AniList #258204 · matched Kim, Ji-min · <a href="https://myanimelist.net/character/185622" target="_blank" rel="noreferrer">MAL #185622</a></p>
+  </div>
+</article>
+      </div>
+    </section>
+    <section id="remaining">
+      <div class="toolbar">
+        <input type="search" id="search-remaining" placeholder="Filter by manhwa or character..." />
+      </div>
+      <div class="grid" id="grid-remaining">
+        <p class="empty">No other placeholders left.</p>
+      </div>
+    </section>
+  </main>
+  <script type="application/json" id="report-data">{&quot;generatedAt&quot;: &quot;2026-07-15T10:32:12Z&quot;, &quot;counts&quot;: {&quot;changed&quot;: 40, &quot;manual&quot;: 0, &quot;remainingPlaceholders&quot;: 0, &quot;checkpointFilled&quot;: 40, &quot;checkpointUnmatched&quot;: 0}, &quot;changed&quot;: [{&quot;characterId&quot;: 392568, &quot;characterName&quot;: &quot;Seol Baek&quot;, &quot;manhwaId&quot;: 202349, &quot;manhwaTitle&quot;: &quot;#MyFirstLove&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 202349, &quot;title&quot;: &quot;#MyFirstLove&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Baek, Seol&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/5/633329.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/5/633329.jpg&quot;, &quot;idMal&quot;: 191530, &quot;malId&quot;: 296716}, {&quot;characterId&quot;: 337417, &quot;characterName&quot;: &quot;Kang-Jin Lee&quot;, &quot;manhwaId&quot;: 168147, &quot;manhwaTitle&quot;: &quot;Afterlife Diner&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 168147, &quot;title&quot;: &quot;Afterlife Diner&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Lee, Kang-Jin&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/3/585537.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/3/585537.jpg&quot;, &quot;idMal&quot;: 157284, &quot;malId&quot;: 250165}, {&quot;characterId&quot;: 139638, &quot;characterName&quot;: &quot;Yoojin Kim&quot;, &quot;manhwaId&quot;: 82425, &quot;manhwaTitle&quot;: &quot;Aideur-Ui Kwon Seonsaengnim&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 82425, &quot;title&quot;: &quot;Aideur-Ui Kwon Seonsaengnim&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Kim, Yoojin&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/224447.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/224447.jpg&quot;, &quot;idMal&quot;: 52425, &quot;malId&quot;: 94267}, {&quot;characterId&quot;: 370400, &quot;characterName&quot;: &quot;Nova&quot;, &quot;manhwaId&quot;: 186959, &quot;manhwaTitle&quot;: &quot;Ancient Animal Tales&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 186959, &quot;title&quot;: &quot;Ancient Animal Tales&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Nova&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/10/602646.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/10/602646.jpg&quot;, &quot;idMal&quot;: 184209, &quot;malId&quot;: 276985}, {&quot;characterId&quot;: 370401, &quot;characterName&quot;: &quot;Zeke&quot;, &quot;manhwaId&quot;: 186959, &quot;manhwaTitle&quot;: &quot;Ancient Animal Tales&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 186959, &quot;title&quot;: &quot;Ancient Animal Tales&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Zeke&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/12/602645.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/12/602645.jpg&quot;, &quot;idMal&quot;: 184209, &quot;malId&quot;: 276984}, {&quot;characterId&quot;: 41874, &quot;characterName&quot;: &quot;Kirus&quot;, &quot;manhwaId&quot;: 31076, &quot;manhwaTitle&quot;: &quot;Ares&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 31076, &quot;title&quot;: &quot;Ares&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Kirus&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/13/431773.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/13/431773.jpg&quot;, &quot;idMal&quot;: 1076, &quot;malId&quot;: 41874}, {&quot;characterId&quot;: 372213, &quot;characterName&quot;: &quot;Ketal&quot;, &quot;manhwaId&quot;: 196874, &quot;manhwaTitle&quot;: &quot;Barbarian&#x27;s Adventure in a Fantasy World&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 196874, &quot;title&quot;: &quot;Barbarian&#x27;s Adventure in a Fantasy World&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Ketal&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/12/617738.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/12/617738.jpg&quot;, &quot;idMal&quot;: 184657, &quot;malId&quot;: 287126}, {&quot;characterId&quot;: 56925, &quot;characterName&quot;: &quot;Mok-rang&quot;, &quot;manhwaId&quot;: 31268, &quot;manhwaTitle&quot;: &quot;Bride of the Water God&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 31268, &quot;title&quot;: &quot;Bride of the Water God&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Mok-rang&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/11/220275.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/11/220275.jpg&quot;, &quot;idMal&quot;: 1268, &quot;malId&quot;: 56925}, {&quot;characterId&quot;: 56927, &quot;characterName&quot;: &quot;Tae-eul-jin-in&quot;, &quot;manhwaId&quot;: 31268, &quot;manhwaTitle&quot;: &quot;Bride of the Water God&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 31268, &quot;title&quot;: &quot;Bride of the Water God&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Tae-eul-jin-in&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/2/220463.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/2/220463.jpg&quot;, &quot;idMal&quot;: 1268, &quot;malId&quot;: 56927}, {&quot;characterId&quot;: 42675, &quot;characterName&quot;: &quot;Siana&quot;, &quot;manhwaId&quot;: 40376, &quot;manhwaTitle&quot;: &quot;Cavalier of the Abyss&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 40376, &quot;title&quot;: &quot;Cavalier of the Abyss&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Siana&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/7/280979.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/7/280979.jpg&quot;, &quot;idMal&quot;: 10376, &quot;malId&quot;: 42675}, {&quot;characterId&quot;: 372661, &quot;characterName&quot;: &quot;Jugeum&quot;, &quot;manhwaId&quot;: 113340, &quot;manhwaTitle&quot;: &quot;Death&#x27;s Game&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 113340, &quot;title&quot;: &quot;Death&#x27;s Game&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Death&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/14/535111.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/14/535111.jpg&quot;, &quot;idMal&quot;: 148401, &quot;malId&quot;: 241169}, {&quot;characterId&quot;: 372218, &quot;characterName&quot;: &quot;Si-Eun Kang&quot;, &quot;manhwaId&quot;: 187459, &quot;manhwaTitle&quot;: &quot;Ghost Dating Simulation&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 187459, &quot;title&quot;: &quot;Ghost Dating Simulation&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Kang, Si-eun&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/3/626638.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/3/626638.jpg&quot;, &quot;idMal&quot;: 181148, &quot;malId&quot;: 292861}, {&quot;characterId&quot;: 400579, &quot;characterName&quot;: &quot;Braun&quot;, &quot;manhwaId&quot;: 212562, &quot;manhwaTitle&quot;: &quot;Goedame Tteoreojyeodo Chulgeuneul Haeya Haneunguna&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 212562, &quot;title&quot;: &quot;Goedame Tteoreojyeodo Chulgeuneul Haeya Haneunguna&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Braun&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/2/635838.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/2/635838.jpg&quot;, &quot;idMal&quot;: 193929, &quot;malId&quot;: 298304}, {&quot;characterId&quot;: 256433, &quot;characterName&quot;: &quot;Ga-On Yu&quot;, &quot;manhwaId&quot;: 85432, &quot;manhwaTitle&quot;: &quot;Gyeoulhana&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 85432, &quot;title&quot;: &quot;Gyeoulhana&quot;, &quot;role&quot;: &quot;MAIN&quot;}, {&quot;id&quot;: 85431, &quot;title&quot;: &quot;Pinocchio&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Yu, Ga On&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/14/256931.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/14/256931.jpg&quot;, &quot;idMal&quot;: 58145, &quot;malId&quot;: 112111}, {&quot;characterId&quot;: 88335, &quot;characterName&quot;: &quot;Ha-Ram Choi&quot;, &quot;manhwaId&quot;: 85432, &quot;manhwaTitle&quot;: &quot;Gyeoulhana&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 85432, &quot;title&quot;: &quot;Gyeoulhana&quot;, &quot;role&quot;: &quot;MAIN&quot;}, {&quot;id&quot;: 85431, &quot;title&quot;: &quot;Pinocchio&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Choi, Ha Ram&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/256943.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/256943.jpg&quot;, &quot;idMal&quot;: 58145, &quot;malId&quot;: 91955}, {&quot;characterId&quot;: 58429, &quot;characterName&quot;: &quot;Laillo Sidgar&quot;, &quot;manhwaId&quot;: 30595, &quot;manhwaTitle&quot;: &quot;Id&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 30595, &quot;title&quot;: &quot;Id&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Sidgar, Laillo&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/13/224475.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/13/224475.jpg&quot;, &quot;idMal&quot;: 595, &quot;malId&quot;: 58429}, {&quot;characterId&quot;: 137250, &quot;characterName&quot;: &quot;Heimdall&quot;, &quot;manhwaId&quot;: 71723, &quot;manhwaTitle&quot;: &quot;Mawangeul Wihan Donghwa&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 71723, &quot;title&quot;: &quot;Mawangeul Wihan Donghwa&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Heimdall&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/3/416550.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/3/416550.jpg&quot;, &quot;idMal&quot;: 41723, &quot;malId&quot;: 155836}, {&quot;characterId&quot;: 137251, &quot;characterName&quot;: &quot;Thor&quot;, &quot;manhwaId&quot;: 71723, &quot;manhwaTitle&quot;: &quot;Mawangeul Wihan Donghwa&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 71723, &quot;title&quot;: &quot;Mawangeul Wihan Donghwa&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Thor&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/5/453878.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/5/453878.jpg&quot;, &quot;idMal&quot;: 41723, &quot;malId&quot;: 155838}, {&quot;characterId&quot;: 267873, &quot;characterName&quot;: &quot;Kim Baksa&quot;, &quot;manhwaId&quot;: 102896, &quot;manhwaTitle&quot;: &quot;Mosquito Wars&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 102896, &quot;title&quot;: &quot;Mosquito Wars&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Dr. Kim&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/8/451963.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/8/451963.jpg&quot;, &quot;idMal&quot;: 130639, &quot;malId&quot;: 201071}, {&quot;characterId&quot;: 317847, &quot;characterName&quot;: &quot;Bong-Seok Kim&quot;, &quot;manhwaId&quot;: 170403, &quot;manhwaTitle&quot;: &quot;Moving&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 170403, &quot;title&quot;: &quot;Moving&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Kim, Bong Seok&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/14/522520.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/14/522520.jpg&quot;, &quot;idMal&quot;: 149726, &quot;malId&quot;: 234872}, {&quot;characterId&quot;: 285634, &quot;characterName&quot;: &quot;Lucy Herive&quot;, &quot;manhwaId&quot;: 127868, &quot;manhwaTitle&quot;: &quot;My Gently Raised Beast&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 127868, &quot;title&quot;: &quot;My Gently Raised Beast&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Herive, Lucy&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/6/463306.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/6/463306.jpg&quot;, &quot;idMal&quot;: 143627, &quot;malId&quot;: 205482}, {&quot;characterId&quot;: 65719, &quot;characterName&quot;: &quot;John&quot;, &quot;manhwaId&quot;: 41628, &quot;manhwaTitle&quot;: &quot;Nephilim John&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 41628, &quot;title&quot;: &quot;Nephilim John&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;John&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/16/464445.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/16/464445.jpg&quot;, &quot;idMal&quot;: 11628, &quot;malId&quot;: 65719}, {&quot;characterId&quot;: 65721, &quot;characterName&quot;: &quot;Michael&quot;, &quot;manhwaId&quot;: 41628, &quot;manhwaTitle&quot;: &quot;Nephilim John&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 41628, &quot;title&quot;: &quot;Nephilim John&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Michael&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/4/464446.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/4/464446.jpg&quot;, &quot;idMal&quot;: 11628, &quot;malId&quot;: 65721}, {&quot;characterId&quot;: 336198, &quot;characterName&quot;: &quot;Hana Ma&quot;, &quot;manhwaId&quot;: 120585, &quot;manhwaTitle&quot;: &quot;Parallel City&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 120585, &quot;title&quot;: &quot;Parallel City&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Ma, Hana&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/8/528584.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/8/528584.jpg&quot;, &quot;idMal&quot;: 147271, &quot;malId&quot;: 237770}, {&quot;characterId&quot;: 336197, &quot;characterName&quot;: &quot;Jung Kim&quot;, &quot;manhwaId&quot;: 120585, &quot;manhwaTitle&quot;: &quot;Parallel City&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 120585, &quot;title&quot;: &quot;Parallel City&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Kim, Jung&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/8/528585.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/8/528585.jpg&quot;, &quot;idMal&quot;: 147271, &quot;malId&quot;: 237771}, {&quot;characterId&quot;: 382661, &quot;characterName&quot;: &quot;Ekina&quot;, &quot;manhwaId&quot;: 145120, &quot;manhwaTitle&quot;: &quot;Philia Rosé: The Prophecy of the Crown of Thorns&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 145120, &quot;title&quot;: &quot;Philia Rosé: The Prophecy of the Crown of Thorns&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Ekina&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/4/597844.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/4/597844.jpg&quot;, &quot;idMal&quot;: 147780, &quot;malId&quot;: 274291}, {&quot;characterId&quot;: 382662, &quot;characterName&quot;: &quot;Eulogia&quot;, &quot;manhwaId&quot;: 145120, &quot;manhwaTitle&quot;: &quot;Philia Rosé: The Prophecy of the Crown of Thorns&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 145120, &quot;title&quot;: &quot;Philia Rosé: The Prophecy of the Crown of Thorns&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Eulogia&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/14/597847.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/14/597847.jpg&quot;, &quot;idMal&quot;: 147780, &quot;malId&quot;: 274294}, {&quot;characterId&quot;: 382663, &quot;characterName&quot;: &quot;Viaz&quot;, &quot;manhwaId&quot;: 145120, &quot;manhwaTitle&quot;: &quot;Philia Rosé: The Prophecy of the Crown of Thorns&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 145120, &quot;title&quot;: &quot;Philia Rosé: The Prophecy of the Crown of Thorns&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Viaz&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/10/597845.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/10/597845.jpg&quot;, &quot;idMal&quot;: 147780, &quot;malId&quot;: 274292}, {&quot;characterId&quot;: 23405, &quot;characterName&quot;: &quot;Reina&quot;, &quot;manhwaId&quot;: 30700, &quot;manhwaTitle&quot;: &quot;Ragnarök&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 30700, &quot;title&quot;: &quot;Ragnarök&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Reina&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/13/562261.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/13/562261.jpg&quot;, &quot;idMal&quot;: 700, &quot;malId&quot;: 23405}, {&quot;characterId&quot;: 23406, &quot;characterName&quot;: &quot;Sara Irine&quot;, &quot;manhwaId&quot;: 30700, &quot;manhwaTitle&quot;: &quot;Ragnarök&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 30700, &quot;title&quot;: &quot;Ragnarök&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Irine, Sara&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/562257.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/562257.jpg&quot;, &quot;idMal&quot;: 700, &quot;malId&quot;: 23406}, {&quot;characterId&quot;: 339737, &quot;characterName&quot;: &quot;Merilda&quot;, &quot;manhwaId&quot;: 150836, &quot;manhwaTitle&quot;: &quot;The Academy&#x27;s Undercover Professor&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 150836, &quot;title&quot;: &quot;The Academy&#x27;s Undercover Professor&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Merida&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/6/561998.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/6/561998.jpg&quot;, &quot;idMal&quot;: 149801, &quot;malId&quot;: 255721}, {&quot;characterId&quot;: 282680, &quot;characterName&quot;: &quot;Sara Lopez&quot;, &quot;manhwaId&quot;: 132119, &quot;manhwaTitle&quot;: &quot;The Blood of the Butterfly&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 132119, &quot;title&quot;: &quot;The Blood of the Butterfly&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Lopez, Sara&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/3/539277.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/3/539277.jpg&quot;, &quot;idMal&quot;: 148223, &quot;malId&quot;: 243573}, {&quot;characterId&quot;: 343598, &quot;characterName&quot;: &quot;Evelyn Winter&quot;, &quot;manhwaId&quot;: 180578, &quot;manhwaTitle&quot;: &quot;The Hand That Once Fed&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 180578, &quot;title&quot;: &quot;The Hand That Once Fed&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Winter, Evelyn&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/12/530699.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/12/530699.jpg&quot;, &quot;idMal&quot;: 164860, &quot;malId&quot;: 238836}, {&quot;characterId&quot;: 368025, &quot;characterName&quot;: &quot;Jae-Rim Ki&quot;, &quot;manhwaId&quot;: 180396, &quot;manhwaTitle&quot;: &quot;The Ki Sisters&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 180396, &quot;title&quot;: &quot;The Ki Sisters&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Ki, Jaerim&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/14/570618.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/14/570618.jpg&quot;, &quot;idMal&quot;: 173447, &quot;malId&quot;: 259553}, {&quot;characterId&quot;: 372211, &quot;characterName&quot;: &quot;Elpam&quot;, &quot;manhwaId&quot;: 177982, &quot;manhwaTitle&quot;: &quot;The Last Adventurer&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 177982, &quot;title&quot;: &quot;The Last Adventurer&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Elpam&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/585093.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/585093.jpg&quot;, &quot;idMal&quot;: 168907, &quot;malId&quot;: 267650}, {&quot;characterId&quot;: 386283, &quot;characterName&quot;: &quot;Yona Runcandel&quot;, &quot;manhwaId&quot;: 149332, &quot;manhwaTitle&quot;: &quot;The Swordmaster&#x27;s Son&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 149332, &quot;title&quot;: &quot;The Swordmaster&#x27;s Son&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Runcandel, Yona&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/5/623448.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/5/623448.jpg&quot;, &quot;idMal&quot;: 146949, &quot;malId&quot;: 246218}, {&quot;characterId&quot;: 337661, &quot;characterName&quot;: &quot;Aileen Pritani&quot;, &quot;manhwaId&quot;: 166658, &quot;manhwaTitle&quot;: &quot;The Top Dungeon Farmer&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 166658, &quot;title&quot;: &quot;The Top Dungeon Farmer&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Pritani, Aileen&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/558245.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/558245.jpg&quot;, &quot;idMal&quot;: 158560, &quot;malId&quot;: 253814}, {&quot;characterId&quot;: 337660, &quot;characterName&quot;: &quot;Beh&quot;, &quot;manhwaId&quot;: 166658, &quot;manhwaTitle&quot;: &quot;The Top Dungeon Farmer&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 166658, &quot;title&quot;: &quot;The Top Dungeon Farmer&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Beh&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/12/558263.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/12/558263.jpg&quot;, &quot;idMal&quot;: 158560, &quot;malId&quot;: 253828}, {&quot;characterId&quot;: 319503, &quot;characterName&quot;: &quot;Jupiter&quot;, &quot;manhwaId&quot;: 153513, &quot;manhwaTitle&quot;: &quot;Tyrant of the Tower Defense Game&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 153513, &quot;title&quot;: &quot;Tyrant of the Tower Defense Game&quot;, &quot;role&quot;: &quot;MAIN&quot;}], &quot;malName&quot;: &quot;Jupiter&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/6/618214.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/6/618214.jpg&quot;, &quot;idMal&quot;: 153518, &quot;malId&quot;: 254102}, {&quot;characterId&quot;: 258204, &quot;characterName&quot;: &quot;Ji-Min Kim&quot;, &quot;manhwaId&quot;: 109398, &quot;manhwaTitle&quot;: &quot;Your Letter&quot;, &quot;manhwaList&quot;: [{&quot;id&quot;: 109398, &quot;title&quot;: &quot;Your Letter&quot;, &quot;role&quot;: &quot;SUPPORTING&quot;}], &quot;malName&quot;: &quot;Kim, Ji-min&quot;, &quot;imageBefore&quot;: &quot;https://s4.anilist.co/file/anilistcdn/character/large/default.jpg&quot;, &quot;imageAfter&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/416660.jpg&quot;, &quot;image&quot;: &quot;https://cdn.myanimelist.net/images/characters/15/416660.jpg&quot;, &quot;idMal&quot;: 120875, &quot;malId&quot;: 185622}], &quot;manual&quot;: [], &quot;remaining&quot;: []}</script>
+  <script>
+    const buttons = document.querySelectorAll('nav button');
+    const sections = document.querySelectorAll('main section');
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        buttons.forEach((b) => b.classList.remove('active'));
+        sections.forEach((s) => s.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+    function wireSearch(inputId, gridId) {
+      const input = document.getElementById(inputId);
+      const grid = document.getElementById(gridId);
+      if (!input || !grid) return;
+      input.addEventListener('input', () => {
+        const q = input.value.trim().toLowerCase();
+        grid.querySelectorAll('.card').forEach((card) => {
+          const text = (card.dataset.search || card.textContent).toLowerCase();
+          card.classList.toggle('hidden', q && !text.includes(q));
+        });
+      });
+    }
+    wireSearch('search-changed', 'grid-changed');
+    wireSearch('search-remaining', 'grid-remaining');
+    wireSearch('search-manual', 'grid-manual');
+
+    function setPreview(card, url) {
+      const box = card.querySelector('.preview');
+      if (!box) return;
+      if (url) {
+        box.innerHTML = '<img src="' + url.replace(/"/g, '&quot;') + '" alt="preview" loading="lazy" referrerpolicy="no-referrer" />';
+      } else {
+        box.innerHTML = '<div class="missing">no image</div>';
+      }
+    }
+
+    async function saveCharacter(card) {
+      const status = card.querySelector('.status');
+      const input = card.querySelector('.image-url');
+      const characterId = Number(card.dataset.characterId);
+      const imageUrl = (input.value || '').trim();
+      status.className = 'status';
+      status.textContent = 'Saving…';
+      try {
+        const res = await fetch('/__character-images/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ characterId, imageUrl }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || 'Save failed');
+        status.className = 'status ok';
+        status.textContent = 'Saved';
+        setPreview(card, imageUrl || null);
+      } catch (err) {
+        status.className = 'status err';
+        status.textContent = (err && err.message) ? err.message : 'Save failed — run npm run dev';
+      }
+    }
+
+    document.querySelectorAll('.card.manual').forEach((card) => {
+      const input = card.querySelector('.image-url');
+      input.addEventListener('input', () => setPreview(card, input.value.trim() || null));
+      card.querySelector('.save-one').addEventListener('click', () => saveCharacter(card));
+    });
+
+    document.getElementById('save-all-manual')?.addEventListener('click', async () => {
+      const cards = [...document.querySelectorAll('.card.manual')].filter((c) => {
+        const v = c.querySelector('.image-url')?.value?.trim();
+        return Boolean(v);
+      });
+      for (const card of cards) {
+        await saveCharacter(card);
+      }
+    });
+  </script>
+</body>
+</html>

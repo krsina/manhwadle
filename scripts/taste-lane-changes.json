@@ -1,0 +1,517 @@
+{
+  "changedAt": "2026-07-15T16:44:09.879Z",
+  "changes": [
+    {
+      "rank": 4,
+      "id": 86964,
+      "title": "Bastard",
+      "from": "both",
+      "to": "action",
+      "source": "assumed"
+    },
+    {
+      "rank": 8,
+      "id": 126297,
+      "title": "Teenage Mercenary",
+      "from": "both",
+      "to": "action",
+      "source": "you"
+    },
+    {
+      "rank": 45,
+      "id": 104973,
+      "title": "The Reason Why Raeliana Ended Up at the Duke's Mansion",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 86,
+      "id": 129210,
+      "title": "Roxana",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 224,
+      "id": 153207,
+      "title": "Designated Bully",
+      "from": "both",
+      "to": "action",
+      "source": "you"
+    },
+    {
+      "rank": 237,
+      "id": 133797,
+      "title": "Secret Lady",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 299,
+      "id": 113524,
+      "title": "I Was Tricked into this Fake Marriage!",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 316,
+      "id": 111108,
+      "title": "A Tender Heart: The Story of How I Became a Duke's Maid",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 327,
+      "id": 104596,
+      "title": "Devil Number 4",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 346,
+      "id": 113258,
+      "title": "Charlotte and Her 5 Disciples",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 391,
+      "id": 130540,
+      "title": "The Villainess is Retiring",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 396,
+      "id": 156413,
+      "title": "The Tyrant Wants to Be Good",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 402,
+      "id": 140159,
+      "title": "The World's Strongest Are Obsessed With Me",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 412,
+      "id": 130897,
+      "title": "The Lady Needs a Break",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 419,
+      "id": 137836,
+      "title": "Becoming the Dark Hero's Daughter",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 428,
+      "id": 118601,
+      "title": "It's Mine",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 444,
+      "id": 142254,
+      "title": "Another Typical Fantasy Romance",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 461,
+      "id": 122050,
+      "title": "The Lady I Served Became a Master",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 487,
+      "id": 113910,
+      "title": "False Confession",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 490,
+      "id": 135574,
+      "title": "The Red Knight Seeks No Reward",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 512,
+      "id": 134671,
+      "title": "I'm the Tyrant's Secretary",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 519,
+      "id": 155246,
+      "title": "My Daughter Is a Dragon!",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 527,
+      "id": 87294,
+      "title": "Reawakened Man",
+      "from": "both",
+      "to": "action",
+      "source": "you"
+    },
+    {
+      "rank": 563,
+      "id": 102354,
+      "title": "Ghost Teller",
+      "from": "both",
+      "to": "action",
+      "source": "assumed"
+    },
+    {
+      "rank": 564,
+      "id": 162919,
+      "title": "Baby Tyrant",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 603,
+      "id": 148369,
+      "title": "Cassmire: The Loyal Sword",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 626,
+      "id": 170151,
+      "title": "Fortune-Telling Lady",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 643,
+      "id": 136350,
+      "title": "Crazy Like a Fox",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 672,
+      "id": 121238,
+      "title": "I'm the Soldier's Ex-Girlfriend",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 683,
+      "id": 172287,
+      "title": "I Will Become the Villain's Poison Taster",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 694,
+      "id": 123680,
+      "title": "My Sister Picked Up The Male Lead",
+      "from": "both",
+      "to": "romance",
+      "source": "you"
+    },
+    {
+      "rank": 702,
+      "id": 145177,
+      "title": "The Archvillain's Daughter-In-Law",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 716,
+      "id": 133648,
+      "title": "Igeosi Beobida",
+      "from": "both",
+      "to": "action",
+      "source": "assumed"
+    },
+    {
+      "rank": 755,
+      "id": 139322,
+      "title": "Taming the Marquess",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 758,
+      "id": 119545,
+      "title": "Read to Level Up",
+      "from": "both",
+      "to": "action",
+      "source": "assumed"
+    },
+    {
+      "rank": 762,
+      "id": 136229,
+      "title": "I've been Proposed to by a Villain",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 782,
+      "id": 110166,
+      "title": "The World is Money and Power",
+      "from": "both",
+      "to": "action",
+      "source": "assumed"
+    },
+    {
+      "rank": 803,
+      "id": 135109,
+      "title": "The Evil Princess Dreams of a Gingerbread House",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 815,
+      "id": 70253,
+      "title": "The Pale Horse",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 817,
+      "id": 172316,
+      "title": "I Became the Mother of the Evil Male Lead",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 819,
+      "id": 123306,
+      "title": "The Lady's Law of Survival",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 828,
+      "id": 128783,
+      "title": "The Build Up",
+      "from": "both",
+      "to": "action",
+      "source": "assumed"
+    },
+    {
+      "rank": 839,
+      "id": 131366,
+      "title": "The Return of Elena the Knight",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 842,
+      "id": 173937,
+      "title": "Raising My Fiancé with Money",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 851,
+      "id": 129407,
+      "title": "Park Hanhoo's Manager",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 856,
+      "id": 170887,
+      "title": "The Archduke's Adopted Saint",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 865,
+      "id": 162852,
+      "title": "The Beloved Bashful Villainess",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 867,
+      "id": 133936,
+      "title": "My BFF is a Tyrant in Training",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 876,
+      "id": 99051,
+      "title": "Peach Love",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 885,
+      "id": 199496,
+      "title": "FOG LAND",
+      "from": "both",
+      "to": "action",
+      "source": "assumed"
+    },
+    {
+      "rank": 887,
+      "id": 121320,
+      "title": "I'll Save This Damned Family!",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 889,
+      "id": 136766,
+      "title": "The Tyrant's Tranquilizer",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 897,
+      "id": 117923,
+      "title": "Empress? Empress!",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 899,
+      "id": 187452,
+      "title": "Dungeons and Crayons",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 905,
+      "id": 128591,
+      "title": "Observing Elena Evoy",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 920,
+      "id": 136969,
+      "title": "Nappeun Saram",
+      "from": "both",
+      "to": "action",
+      "source": "assumed"
+    },
+    {
+      "rank": 921,
+      "id": 160178,
+      "title": "Reporting for Duty, Duchess!",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 944,
+      "id": 188071,
+      "title": "Cheonjae, Sesangeul Ikda",
+      "from": "both",
+      "to": "action",
+      "source": "assumed"
+    },
+    {
+      "rank": 958,
+      "id": 186610,
+      "title": "Trapped at Home With the Male Leads",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 964,
+      "id": 87182,
+      "title": "Dokgo",
+      "from": "both",
+      "to": "action",
+      "source": "assumed"
+    },
+    {
+      "rank": 970,
+      "id": 145537,
+      "title": "I Can See Your Death",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 984,
+      "id": 129716,
+      "title": "The Tyrant's Tutor",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 987,
+      "id": 160804,
+      "title": "Surviving as the Devil's Child",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    },
+    {
+      "rank": 1000,
+      "id": 155957,
+      "title": "The Baby Divine Beast",
+      "from": "both",
+      "to": "romance",
+      "source": "assumed"
+    }
+  ]
+}

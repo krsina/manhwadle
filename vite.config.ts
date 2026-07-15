@@ -216,6 +216,7 @@ export default defineConfig({
       input: {
         main: path.resolve(rootDir, 'index.html'),
         library: path.resolve(rootDir, 'library.html'),
+        characterImages: path.resolve(rootDir, 'character-images.html'),
       },
     },
   },
