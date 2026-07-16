@@ -369,6 +369,67 @@ input {
   line-height: 1.45;
 }
 
+.auth-oauth-list {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1.15rem;
+}
+
+.auth-oauth-btn {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.7rem;
+  padding: 0.75rem 0.95rem;
+  background: var(--panel-muted);
+  color: var(--ink);
+  border-color: var(--line);
+  font-weight: 650;
+}
+
+.auth-oauth-btn:hover {
+  border-color: var(--accent);
+  background: var(--panel);
+}
+
+.auth-oauth-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+  transform: none;
+}
+
+.auth-oauth-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
+}
+
+.auth-oauth-discord {
+  color: var(--ink);
+}
+
+.auth-oauth-discord .auth-oauth-icon {
+  color: #5865f2;
+}
+
+.auth-divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.1rem 0 0.15rem;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  height: 1px;
+  background: var(--line);
+}
+
 .auth-email-highlight {
   color: var(--ink);
   font-weight: 650;
@@ -378,7 +439,7 @@ input {
 .auth-modal-form {
   display: grid;
   gap: 0.45rem;
-  margin-top: 1.15rem;
+  margin-top: 0.85rem;
 }
 
 .auth-field-label {

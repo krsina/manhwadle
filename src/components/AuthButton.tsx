@@ -1,10 +1,20 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { useAuth } from './AuthProvider'
+import { useAuth, type AuthOAuthProvider } from './AuthProvider'
 
-/** Compact optional sign-in (magic link). Hidden when Supabase env is missing. */
+const OAUTH_PROVIDERS: {
+  id: AuthOAuthProvider
+  label: string
+  icon: 'google' | 'discord'
+}[] = [
+  { id: 'google', label: 'Continue with Google', icon: 'google' },
+  { id: 'discord', label: 'Continue with Discord', icon: 'discord' },
+]
+
+/** Compact optional sign-in. Hidden when Supabase env is missing. */
 export function AuthButton() {
-  const { user, configured, loading, signInWithMagicLink, signOut } = useAuth()
+  const { user, configured, loading, signInWithMagicLink, signInWithOAuth, signOut } =
+    useAuth()
   const [open, setOpen] = useState(false)
 
   if (!configured) return null
@@ -60,6 +70,7 @@ export function AuthButton() {
         <SignInModal
           onClose={() => setOpen(false)}
           onSignIn={signInWithMagicLink}
+          onOAuth={signInWithOAuth}
         />
       )}
     </>
@@ -69,20 +80,24 @@ export function AuthButton() {
 function SignInModal({
   onClose,
   onSignIn,
+  onOAuth,
 }: {
   onClose: () => void
   onSignIn: (email: string) => Promise<{ error: string | null }>
+  onOAuth: (provider: AuthOAuthProvider) => Promise<{ error: string | null }>
 }) {
   const titleId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
   const [email, setEmail] = useState('')
   const [busy, setBusy] = useState(false)
+  const [oauthBusy, setOauthBusy] = useState<AuthOAuthProvider | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [sentTo, setSentTo] = useState<string | null>(null)
 
+  const anyBusy = busy || oauthBusy !== null
+
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null
-    inputRef.current?.focus()
 
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') onClose()
@@ -108,6 +123,17 @@ function SignInModal({
       return
     }
     setSentTo(trimmed)
+  }
+
+  async function handleOAuth(provider: AuthOAuthProvider) {
+    setOauthBusy(provider)
+    setError(null)
+    const { error: nextError } = await onOAuth(provider)
+    // On success the browser redirects away; only clear busy on failure.
+    if (nextError) {
+      setOauthBusy(null)
+      setError(nextError)
+    }
   }
 
   return createPortal(
@@ -156,9 +182,30 @@ function SignInModal({
               Sign in
             </h2>
             <p className="auth-modal-intro">
-              Enter your email and we&apos;ll send a one-time link — no password.
-              Signing in syncs your streaks and progress across devices.
+              Sync streaks and progress across devices. Sign in with a provider, or get a
+              one-time email link — no password.
             </p>
+
+            <div className="auth-oauth-list">
+              {OAUTH_PROVIDERS.map((provider) => (
+                <button
+                  key={provider.id}
+                  type="button"
+                  className={`btn auth-oauth-btn auth-oauth-${provider.icon}`}
+                  disabled={anyBusy}
+                  onClick={() => void handleOAuth(provider.id)}
+                >
+                  <OAuthIcon name={provider.icon} />
+                  <span>
+                    {oauthBusy === provider.id ? 'Redirecting…' : provider.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="auth-divider" role="separator">
+              <span>or continue with email</span>
+            </div>
 
             <form className="auth-modal-form" onSubmit={(e) => void handleSubmit(e)}>
               <label className="auth-field-label" htmlFor="auth-email">
@@ -175,7 +222,7 @@ function SignInModal({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="auth-modal-input"
-                disabled={busy}
+                disabled={anyBusy}
               />
 
               {error && (
@@ -185,13 +232,13 @@ function SignInModal({
               )}
 
               <div className="modal-actions auth-modal-actions">
-                <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
+                <button type="button" className="btn btn-ghost" onClick={onClose} disabled={anyBusy}>
                   Cancel
                 </button>
                 <button
                   type="submit"
                   className="btn btn-primary"
-                  disabled={busy || !email.trim()}
+                  disabled={anyBusy || !email.trim()}
                 >
                   {busy ? 'Sending…' : 'Email me a link'}
                 </button>
@@ -271,5 +318,39 @@ function AccountModal({
       </div>
     </div>,
     document.body,
+  )
+}
+
+function OAuthIcon({ name }: { name: 'google' | 'discord' }) {
+  if (name === 'google') {
+    return (
+      <svg className="auth-oauth-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          fill="#EA4335"
+          d="M12 10.2v3.6h5.1c-.2 1.2-.9 2.2-1.9 2.9l3.1 2.4c1.8-1.7 2.9-4.1 2.9-7 0-.7-.1-1.3-.2-1.9H12z"
+        />
+        <path
+          fill="#34A853"
+          d="M6.6 14.3l-.8.6-2.5 1.9C5 19.4 8.2 21.4 12 21.4c2.4 0 4.4-.8 5.9-2.1l-3.1-2.4c-.8.6-1.9.9-2.8.9-2.2 0-4-1.5-4.7-3.5z"
+        />
+        <path
+          fill="#4A90E2"
+          d="M3.3 7.2C2.5 8.7 2 10.3 2 12s.5 3.3 1.3 4.8l3.3-2.5c-.2-.6-.3-1.2-.3-1.9s.1-1.3.3-1.9L3.3 7.2z"
+        />
+        <path
+          fill="#FBBC05"
+          d="M12 5.6c1.3 0 2.5.5 3.4 1.3l2.6-2.6C16.4 2.7 14.4 2 12 2 8.2 2 5 4 3.3 7.2l3.3 2.5C7.9 7.1 9.8 5.6 12 5.6z"
+        />
+      </svg>
+    )
+  }
+
+  return (
+    <svg className="auth-oauth-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M20.3 4.4A19 19 0 0 0 15.6 3l-.2.4a17.5 17.5 0 0 1 4 1.9 15.8 15.8 0 0 0-14.8 0A17.5 17.5 0 0 1 8.6 3.4L8.4 3a19 19 0 0 0-4.7 1.4C.8 8.3.1 12.1.4 15.9A19.2 19.2 0 0 0 6 18.7l.7-1a12.3 12.3 0 0 1-1.1-.5l.3-.2c2.2 1 4.6 1.5 7 1.5s4.8-.5 7-1.5l.3.2c-.3.2-.7.4-1.1.5l.7 1a19.2 19.2 0 0 0 5.6-2.8c.4-4.3-.7-8-2.4-11.5ZM8.3 14.2c-.9 0-1.6-.8-1.6-1.8s.7-1.8 1.6-1.8 1.7.8 1.6 1.8-.7 1.8-1.6 1.8Zm7.4 0c-.9 0-1.6-.8-1.6-1.8s.7-1.8 1.6-1.8 1.7.8 1.6 1.8-.7 1.8-1.6 1.8Z"
+      />
+    </svg>
   )
 }

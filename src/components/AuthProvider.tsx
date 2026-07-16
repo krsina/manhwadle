@@ -6,10 +6,12 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { Session, User } from '@supabase/supabase-js'
+import type { Provider, Session, User } from '@supabase/supabase-js'
 import type { ReaderTaste } from '../lib/readerTaste'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { mergeLocalAndRemoteOnSignIn } from '../lib/sync'
+
+export type AuthOAuthProvider = Extract<Provider, 'google' | 'discord'>
 
 interface AuthContextValue {
   user: User | null
@@ -17,10 +19,15 @@ interface AuthContextValue {
   loading: boolean
   configured: boolean
   signInWithMagicLink: (email: string) => Promise<{ error: string | null }>
+  signInWithOAuth: (provider: AuthOAuthProvider) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+
+function authRedirectTo(): string {
+  return window.location.origin
+}
 
 export function AuthProvider({
   children,
@@ -101,7 +108,18 @@ export function AuthProvider({
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: authRedirectTo(),
+      },
+    })
+    return { error: error?.message ?? null }
+  }
+
+  async function signInWithOAuth(provider: AuthOAuthProvider) {
+    if (!supabase) return { error: 'Supabase is not configured' }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: authRedirectTo(),
       },
     })
     return { error: error?.message ?? null }
@@ -121,6 +139,7 @@ export function AuthProvider({
         loading,
         configured,
         signInWithMagicLink,
+        signInWithOAuth,
         signOut,
       }}
     >
