@@ -1,23 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AuthButton } from '../../components/AuthButton'
 import { useAuth } from '../../components/AuthProvider'
 import { CoverClue } from '../../components/CoverClue'
 import { FeedbackGrid } from '../../components/FeedbackGrid'
 import { GuessInput } from '../../components/GuessInput'
-import { HowToPlay } from '../../components/howto/HowToPlay'
 import { KnownInfoPanel } from '../../components/KnownInfoPanel'
 import { ResultModal } from '../../components/ResultModal'
-import { StatsButton } from '../../components/StatsButton'
-import { ThemeToggle } from '../../components/ThemeToggle'
 import { APP_NAME } from '../../brand'
-import type { DayState, GuessFeedback, Manhwa } from '../../lib/anilist-types'
+import {
+  type DayState,
+  type GuessFeedback,
+  type Manhwa,
+} from '../../lib/anilist-types'
+import { pickMainCharacter } from '../../lib/protagonist'
 import {
   buildShareText,
   compareGuess,
   feedbackToShareLine,
 } from '../../lib/compare'
 import { manhwaHasCover } from '../../lib/cover'
-import { displayTitle, getTodayKey } from '../../lib/daily'
+import { isArchiveDate } from '../../lib/archive'
+import { displayTitle } from '../../lib/daily'
 import { hasSeenHowTo } from '../../lib/howto'
 import { buildKnownInfo } from '../../lib/knowledge'
 import { randomPlayableIndex } from '../../lib/random'
@@ -25,26 +27,34 @@ import { findById } from '../../lib/search'
 import { applyGuess } from '../../lib/guessLoop'
 import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
 import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
-import { recordDailyResult } from '../../lib/stats'
+import { recordBonusResult, recordDailyResult } from '../../lib/stats'
 import { syncAfterLocalChange } from '../../lib/sync'
 import { useDailyPuzzleAnswer } from '../../lib/useDailyPuzzleAnswer'
 import type { GameModeProps } from '../types'
 import { coverModeMeta } from './config'
 
 function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): GuessFeedback[] {
-  return state.guessIds
-    .map((id) => findById(pool, id))
-    .filter((m): m is Manhwa => Boolean(m))
-    .map((guess) => compareGuess(guess, answer))
+  const labels = state.guessLabels ?? []
+  return state.guessIds.flatMap((id, index) => {
+    const guess = findById(pool, id)
+    if (!guess) return []
+    const label = labels[index]?.trim()
+    return [
+      {
+        ...compareGuess(guess, answer),
+        displayLabel: label || undefined,
+      },
+    ]
+  })
 }
 
 /** Cover mode: progressive zoom-out on the daily title's cover art. */
-export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
-  const { id, name, seedPrefix, storagePrefix, maxGuesses, tagline, howTo } =
+export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
+  const { id, name, seedPrefix, storagePrefix, maxGuesses, tagline } =
     coverModeMeta
   const { user } = useAuth()
   const sync = syncAfterLocalChange(user?.id)
-  const dateKey = getTodayKey()
+  const isArchive = isArchiveDate(dateKey)
   const tasteSeed = withTastePrefix(seedPrefix, taste)
   const tasteStorage = withTastePrefix(storagePrefix, taste)
 
@@ -61,6 +71,7 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
     playablePool,
     pool,
     tasteSeed,
+    dateKey,
   )
 
   const [practiceIndex, setPracticeIndex] = useState<number | null>(null)
@@ -118,8 +129,22 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
       ? Math.max(0, dayState.guessIds.length - 1)
       : dayState.guessIds.length
 
+  const bonusCharacter = useMemo(
+    () => (dayState.status === 'won' ? pickMainCharacter(answer) : null),
+    [dayState.status, answer],
+  )
+
+  const firstTryWin =
+    dayState.status === 'won' && dayState.guessIds.length === 1
+  const doubleSolve =
+    firstTryWin && dayState.bonusNameCorrect === true
+
+  const shareLines = useMemo(
+    () => feedbackRows.map(feedbackToShareLine),
+    [feedbackRows],
+  )
+
   const shareText = useMemo(() => {
-    const lines = feedbackRows.map(feedbackToShareLine)
     return buildShareText({
       appName: APP_NAME,
       modeLabel: name,
@@ -128,18 +153,28 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
       guessCount: dayState.guessIds.length,
       maxGuesses,
       won: dayState.status === 'won',
-      lines,
+      lines: shareLines,
+      bonusCorrect:
+        dayState.bonusNameGuess != null ? Boolean(dayState.bonusNameCorrect) : null,
+      doubleSolve,
+      archive: isArchive,
     })
-  }, [feedbackRows, dateKey, dayState, maxGuesses, name, taste])
+  }, [shareLines, dateKey, dayState, maxGuesses, name, taste, doubleSolve, isArchive])
 
-  function handleGuess(manhwa: Manhwa) {
+  function handleGuess(manhwa: Manhwa, matchedLabel?: string) {
     if (!hasCovers) return
     const transition = applyGuess(dayState, manhwa.id, answer.id, maxGuesses)
     if (!transition) return
+    const priorLabels = dayState.guessLabels ?? []
+    const guessLabels = [
+      ...dayState.guessIds.map((_, i) => priorLabels[i] || ''),
+      matchedLabel?.trim() || displayTitle(manhwa),
+    ]
     const next: DayState = {
       ...dayState,
       answerId: answer.id,
       guessIds: transition.guessIds,
+      guessLabels,
       status: transition.status,
     }
     const won = transition.status === 'won'
@@ -148,17 +183,19 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
     setDayState(next)
     if (!isPractice) {
       saveDayState(next, tasteStorage)
-      sync.progress('cover', taste, next)
-      if (won || lost) {
-        recordDailyResult({
-          modeId: 'cover',
-          taste,
-          dateKey,
-          maxGuesses,
-          won,
-          guessCount: transition.guessIds.length,
-        })
-        sync.stats('cover', taste)
+      if (!isArchive) {
+        sync.progress('cover', taste, next)
+        if (won || lost) {
+          recordDailyResult({
+            modeId: 'cover',
+            taste,
+            dateKey,
+            maxGuesses,
+            won,
+            guessCount: transition.guessIds.length,
+          })
+          sync.stats('cover', taste)
+        }
       }
     }
     if (won || lost) setShowResult(true)
@@ -173,25 +210,45 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
     setShowResult(false)
   }
 
+  function handleBonusNameAnswer(result: { guess: string; correct: boolean }) {
+    if (dayState.bonusNameGuess != null) return
+
+    const firstTry = dayState.status === 'won' && dayState.guessIds.length === 1
+    const isDoubleSolve = result.correct && firstTry
+    const next: DayState = {
+      ...dayState,
+      bonusNameGuess: result.guess,
+      bonusNameCorrect: result.correct,
+    }
+
+    setDayState(next)
+    if (!isPractice) {
+      saveDayState(next, tasteStorage)
+      if (!isArchive) {
+        sync.progress('cover', taste, next)
+        recordBonusResult({
+          modeId: 'cover',
+          taste,
+          dateKey,
+          maxGuesses,
+          correct: result.correct,
+          doubleSolve: isDoubleSolve,
+        })
+        sync.stats('cover', taste)
+      }
+    }
+  }
+
   return (
     <>
       <header className="hero">
         <div className="hero-copy">
-          <p className="brand">{APP_NAME}</p>
-          <p className="tagline">{tagline}</p>
+          <p className="mode-kicker">
+            {isArchive ? `Archive · ${name}` : `Today’s ${name} puzzle`}
+          </p>
+          <h1 className="mode-title">{tagline}</h1>
         </div>
         <div className="hero-aside">
-          <div className="hero-controls">
-            <HowToPlay modeId={id} guide={howTo} />
-            <StatsButton
-              modeId="cover"
-              modeLabel={name}
-              taste={taste}
-              maxGuesses={maxGuesses}
-            />
-            <AuthButton />
-            <ThemeToggle />
-          </div>
           <p className="day-meta">
             <span>{dateKey}</span>
             <span aria-hidden="true">·</span>
@@ -203,7 +260,9 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
                   : finished
                     ? dayState.status === 'won'
                       ? `Solved in ${dayState.guessIds.length}`
-                      : 'Better luck tomorrow'
+                      : isArchive
+                        ? 'Out of guesses'
+                        : 'Better luck tomorrow'
                     : `${remaining} guess${remaining === 1 ? '' : 'es'} left`}
             </span>
           </p>
@@ -229,20 +288,30 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
               finished={finished}
               maxGuesses={maxGuesses}
             />
-            <div className="character-test-bar">
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={tryAnotherCover}
-              >
-                Guess another cover
-              </button>
-              {isPractice && (
-                <p className="character-test-note">
-                  Practice round — does not overwrite today’s daily save.
-                </p>
-              )}
-            </div>
+            {(import.meta.env.DEV || (isArchive && !isPractice)) && (
+              <div className="character-test-bar">
+                {import.meta.env.DEV && (
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={tryAnotherCover}
+                  >
+                    Guess another cover
+                  </button>
+                )}
+                {isArchive && !isPractice && (
+                  <p className="character-test-note">
+                    Archive puzzle — saved on this device; doesn’t count toward stats.
+                  </p>
+                )}
+                {import.meta.env.DEV && isPractice && (
+                  <p className="character-test-note">
+                    Practice round — does not overwrite{' '}
+                    {isArchive ? 'this archive' : 'today’s daily'} save.
+                  </p>
+                )}
+              </div>
+            )}
             <GuessInput
               pool={guessPool}
               disabled={finished}
@@ -256,12 +325,10 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
             {finished && (
               <button
                 type="button"
-                className="btn btn-primary reveal-btn"
+                className="btn btn-primary btn-cta"
                 onClick={() => setShowResult(true)}
               >
-                {showResult
-                  ? 'Show result again'
-                  : `Show answer — ${displayTitle(answer)}`}
+                Show answer
               </button>
             )}
           </aside>
@@ -280,7 +347,23 @@ export function CoverGame({ pool, guessPool, taste }: GameModeProps) {
           guessCount={dayState.guessIds.length}
           maxGuesses={maxGuesses}
           shareText={shareText}
+          shareLines={shareLines}
+          modeId="cover"
+          taste={taste}
           onClose={() => setShowResult(false)}
+          bonusCharacter={bonusCharacter}
+          bonusPrompt="Who is the main character?"
+          characterGuessPool={guessPool}
+          bonusNameResult={
+            dayState.bonusNameGuess != null
+              ? {
+                  guess: dayState.bonusNameGuess,
+                  correct: Boolean(dayState.bonusNameCorrect),
+                }
+              : null
+          }
+          onBonusNameAnswer={handleBonusNameAnswer}
+          isArchive={isArchive}
         />
       )}
     </>

@@ -143,7 +143,9 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
                     loading="lazy"
                   />
                 )}
-                <span className="feedback-title-text">{displayTitle(row.manhwa)}</span>
+                <span className="feedback-title-text">
+                  {row.displayLabel?.trim() || displayTitle(row.manhwa)}
+                </span>
               </FlipCell>
               <FlipCell
                 animate={animate}

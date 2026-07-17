@@ -4,13 +4,20 @@ interface SummaryClueProps {
   /** Total blurbs for today (for progress label) */
   totalBlurbs: number
   finished: boolean
+  /** t0 only — no progressive unlock */
+  hardMode?: boolean
 }
 
-export function SummaryClue({ blurbs, totalBlurbs, finished }: SummaryClueProps) {
+export function SummaryClue({
+  blurbs,
+  totalBlurbs,
+  finished,
+  hardMode = false,
+}: SummaryClueProps) {
   const unlocked = blurbs.length
-  const label = finished
-    ? 'Full summary'
-    : unlocked >= totalBlurbs
+  const label = hardMode
+    ? 'Hard summary'
+    : finished || unlocked >= totalBlurbs
       ? 'Full summary'
       : `Summary clue ${unlocked}/${totalBlurbs}`
 
@@ -18,8 +25,13 @@ export function SummaryClue({ blurbs, totalBlurbs, finished }: SummaryClueProps)
     <section className="clue" aria-label="Today's summary clue">
       <div className="clue-header">
         <p className="clue-label">{label}</p>
-        {!finished && unlocked < totalBlurbs && (
-          <p className="clue-hint">Wrong guesses unlock the next blurb</p>
+        {hardMode ? (
+          <p className="clue-hint">Opening clue only — nothing else unlocks</p>
+        ) : (
+          !finished &&
+          unlocked < totalBlurbs && (
+            <p className="clue-hint">Wrong guesses unlock the next blurb</p>
+          )
         )}
       </div>
       <div className="clue-blurbs">

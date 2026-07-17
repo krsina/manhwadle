@@ -6,6 +6,8 @@
  *   Start → t0
  *   After wrong guess(es) → t1
  *   Late / finished → full description
+ *
+ * Hard mode: t0 only for the whole run (no t1, no publisher description).
  */
 
 export interface StoryDescriptionBlurbTiers {
@@ -39,9 +41,7 @@ export function indexStoryBlurbs(
   doc: StoryDescriptionBlurbFile,
 ): Map<number, string[]> {
   const map = new Map<number, string[]>()
-  const tierKeys = doc.meta?.tiers?.length
-    ? doc.meta.tiers
-    : ['t0', 't1']
+  const tierKeys = doc.meta?.tiers?.length ? doc.meta.tiers : ['t0', 't1']
 
   for (const entry of doc.entries || []) {
     const blob = entry.storyDescriptionBlurb
@@ -72,6 +72,16 @@ export function buildRevealLadder(
   // Avoid duplicating if an authored tier somehow equals the full text
   if (tiers.some((t) => t === full)) return tiers
   return [...tiers, full]
+}
+
+/**
+ * Hard mode: only the opening t0 blurb. Never unlocks t1 or the publisher description.
+ */
+export function buildHardRevealLadder(
+  authoredTiers: string[] | undefined,
+): string[] {
+  const t0 = authoredTiers?.[0]?.trim()
+  return t0 ? [t0] : ['No summary available for today’s manhwa.']
 }
 
 /** How many ladder steps are unlocked (starts at 1; finished reveals all). */

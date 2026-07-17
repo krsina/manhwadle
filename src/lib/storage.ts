@@ -30,11 +30,16 @@ export function saveDayState(state: DayState, storagePrefix: string): void {
   }
 }
 
-export function createInitialState(dateKey: string, answerId: number): DayState {
+export function createInitialState(
+  dateKey: string,
+  answerId: number,
+  options?: { hardMode?: boolean },
+): DayState {
   return {
     dateKey,
     answerId,
     guessIds: [],
     status: 'playing',
+    ...(options?.hardMode != null ? { hardMode: options.hardMode } : {}),
   }
 }

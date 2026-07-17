@@ -161,6 +161,10 @@ export interface ShareTextOptions {
   /** When bonus was answered: true/false; omit if unanswered */
   bonusCorrect?: boolean | null
   doubleSolve?: boolean
+  /** Prefix header with Archive when sharing a historical puzzle */
+  archive?: boolean
+  /** Append * to the score (Wordle-style hard mode) */
+  hardMode?: boolean
   siteUrl?: string
 }
 
@@ -176,11 +180,15 @@ export function buildShareText(options: ShareTextOptions): string {
     lines,
     bonusCorrect = null,
     doubleSolve = false,
+    archive = false,
+    hardMode = false,
     siteUrl,
   } = options
 
-  const score = won ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`
-  const header = `${appName} ${modeLabel} · ${tasteLabel}  ${dateKey}  ${score}`
+  const scoreBase = won ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`
+  const score = hardMode ? `${scoreBase}*` : scoreBase
+  const archivePrefix = archive ? 'Archive · ' : ''
+  const header = `${archivePrefix}${appName} ${modeLabel} · ${tasteLabel}  ${dateKey}  ${score}`
   const parts = [header, '', ...lines]
 
   if (bonusCorrect === true) parts.push('', 'Bonus ✓')

@@ -1,6 +1,10 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import type { ManhwaCharacter } from '../lib/anilist-types'
-import { searchCharacters, type CharacterSearchHit } from '../lib/search'
+import {
+  CHARACTER_SEARCH_LIMIT,
+  searchCharacters,
+  type CharacterSearchHit,
+} from '../lib/search'
 
 interface CharacterGuessInputProps {
   characters: ManhwaCharacter[]
@@ -33,7 +37,7 @@ export function CharacterGuessInput({
     }
 
     const handle = window.setTimeout(() => {
-      const next = searchCharacters(characters, query, 10)
+      const next = searchCharacters(characters, query, CHARACTER_SEARCH_LIMIT)
       setHits(next)
       setOpen(next.length > 0)
       setActiveIndex(0)
@@ -117,7 +121,7 @@ export function CharacterGuessInput({
       {open && (
         <ul id={listId} className="guess-list" role="listbox" ref={listRef}>
           {hits.map((hit, index) => (
-            <li key={`${hit.label.toLowerCase()}-${index}`} role="presentation">
+            <li key={`${hit.character.id}-${index}`} role="presentation">
               <button
                 type="button"
                 id={`${listId}-opt-${index}`}

@@ -24,13 +24,13 @@ export function CharacterClue({
 
   return (
     <section className="crop-clue" aria-label="Today's character clue">
-      <div className="crop-clue-header">
-        <p className="clue-label">
-          {finished ? 'Full reveal' : `Character clue ${step}/${maxGuesses}`}
-        </p>
-        {!finished && <p className="clue-hint">Wrong guesses zoom out</p>}
-      </div>
-      <div className="crop-frame-slot">
+      <div className="crop-clue-column">
+        <div className="crop-clue-header">
+          <p className="clue-label">
+            {finished ? 'Full reveal' : `Character clue ${step}/${maxGuesses}`}
+          </p>
+          {!finished && <p className="clue-hint">Wrong guesses zoom out</p>}
+        </div>
         <div className="crop-frame crop-frame-portrait">
           <div
             className="crop-zoom"

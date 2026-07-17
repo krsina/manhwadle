@@ -21,7 +21,8 @@ export function AuthButton() {
 
   if (loading) {
     return (
-      <div className="auth-chip" aria-busy="true">
+      <div className="auth-chip auth-chip-loading" aria-busy="true">
+        <span className="auth-avatar" aria-hidden="true" />
         <span className="auth-chip-label">…</span>
       </div>
     )
@@ -39,7 +40,11 @@ export function AuthButton() {
           aria-expanded={open}
           title={user.email ?? 'Account'}
         >
+          <span className="auth-avatar" aria-hidden="true">
+            {label.charAt(0).toUpperCase()}
+          </span>
           <span className="auth-chip-label">{label}</span>
+          <ChevronIcon />
         </button>
         {open && (
           <AccountModal
@@ -64,6 +69,7 @@ export function AuthButton() {
         aria-haspopup="dialog"
         aria-expanded={open}
       >
+        <AccountIcon />
         Sign in
       </button>
       {open && (
@@ -74,6 +80,36 @@ export function AuthButton() {
         />
       )}
     </>
+  )
+}
+
+function AccountIcon() {
+  return (
+    <svg className="auth-account-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.25" fill="none" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M5.5 19c.7-3.2 3-5 6.5-5s5.8 1.8 6.5 5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function ChevronIcon() {
+  return (
+    <svg className="auth-chevron" viewBox="0 0 16 16" aria-hidden="true">
+      <path
+        d="m4.5 6 3.5 3.5L11.5 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   )
 }
 

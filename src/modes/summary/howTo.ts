@@ -10,6 +10,10 @@ export const summaryHowTo: HowToPlayGuide = {
       body: 'You start with a short blurb. Each wrong guess unlocks more of the summary.',
     },
     {
+      title: 'Hard mode (optional)',
+      body: 'Turn on Hard Mode for the opening blurb only — nothing else unlocks. It locks after your first guess.',
+    },
+    {
       title: 'Type a title',
       body: 'Search the list and submit a guess. Feedback appears for genres, year, status, publisher, and tags.',
     },

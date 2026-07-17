@@ -6,7 +6,7 @@ interface GuessInputProps {
   pool: Manhwa[]
   disabled: boolean
   excludedIds: Set<number>
-  onGuess: (manhwa: Manhwa) => void
+  onGuess: (manhwa: Manhwa, matchedLabel?: string) => void
 }
 
 export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputProps) {
@@ -53,7 +53,7 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
   }, [activeIndex, open, hits])
 
   function selectHit(hit: SearchHit) {
-    onGuess(hit.manhwa)
+    onGuess(hit.manhwa, hit.label)
     setQuery('')
     setHits([])
     setOpen(false)
