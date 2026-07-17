@@ -3,25 +3,31 @@ import { createPortal } from 'react-dom'
 import type { ReaderTaste } from '../lib/readerTaste'
 import { readerTasteLabel } from '../lib/readerTaste'
 import {
+  getCombinedStats,
   getModeStats,
   winPercent,
   type StatsModeId,
 } from '../lib/stats'
 
-interface StatsModalProps {
+type StatsViewId = StatsModeId | 'all'
+
+const STATS_VIEWS: { id: StatsViewId; label: string }[] = [
+  { id: 'summary', label: 'Summary' },
+  { id: 'character', label: 'Character' },
+  { id: 'cover', label: 'Cover' },
+  { id: 'heardle', label: 'Heardle' },
+  { id: 'all', label: 'All' },
+]
+
+interface StatsButtonProps {
+  /** Mode the player opened stats from — used as the default tab. */
   modeId: StatsModeId
-  modeLabel: string
   taste: ReaderTaste
   maxGuesses: number
 }
 
-/** Local streak / distribution panel for the active mode + taste lane. */
-export function StatsButton({
-  modeId,
-  modeLabel,
-  taste,
-  maxGuesses,
-}: StatsModalProps) {
+/** Local streak / distribution panel with per-mode and combined views. */
+export function StatsButton({ modeId, taste, maxGuesses }: StatsButtonProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -37,8 +43,7 @@ export function StatsButton({
       </button>
       {open && (
         <StatsModal
-          modeId={modeId}
-          modeLabel={modeLabel}
+          initialView={modeId}
           taste={taste}
           maxGuesses={maxGuesses}
           onClose={() => setOpen(false)}
@@ -49,22 +54,28 @@ export function StatsButton({
 }
 
 function StatsModal({
-  modeId,
-  modeLabel,
+  initialView,
   taste,
   maxGuesses,
   onClose,
-}: StatsModalProps & { onClose: () => void }) {
-  const stats = useMemo(
-    () => getModeStats(modeId, taste, maxGuesses),
-    [modeId, taste, maxGuesses],
-  )
+}: {
+  initialView: StatsModeId
+  taste: ReaderTaste
+  maxGuesses: number
+  onClose: () => void
+}) {
+  const [view, setView] = useState<StatsViewId>(initialView)
+
+  const stats = useMemo(() => {
+    if (view === 'all') return getCombinedStats(taste, maxGuesses)
+    return getModeStats(view, taste, maxGuesses)
+  }, [view, taste, maxGuesses])
 
   const maxBucket = Math.max(1, ...stats.guessDistribution)
-  const showBonus = modeId === 'character'
   const bonusAttempts = stats.bonusAttempts ?? 0
   const bonusCorrect = stats.bonusCorrect ?? 0
   const doubleSolves = stats.doubleSolves ?? 0
+  const firstTrySolves = stats.guessDistribution[0] ?? 0
 
   return createPortal(
     <div
@@ -87,11 +98,32 @@ function StatsModal({
         >
           ×
         </button>
-        <p className="modal-kicker">Statistics</p>
         <h2 id="stats-title" className="modal-title">
-          {modeLabel}
+          Statistics
         </h2>
         <p className="stats-taste">{readerTasteLabel(taste)}</p>
+
+        <div
+          className="stats-view-switcher"
+          role="tablist"
+          aria-label="Stats mode"
+        >
+          {STATS_VIEWS.map((option) => {
+            const selected = view === option.id
+            return (
+              <button
+                key={option.id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                className={`stats-view-btn${selected ? ' is-active' : ''}`}
+                onClick={() => setView(option.id)}
+              >
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
 
         <div className="stats-grid" role="list">
           <div className="stats-cell" role="listitem">
@@ -131,30 +163,24 @@ function StatsModal({
           ))}
         </ul>
 
-        {showBonus && (
-          <>
-            <p className="stats-heading">Character bonus</p>
-            <div className="stats-grid stats-grid-bonus" role="list">
-              <div className="stats-cell" role="listitem">
-                <span className="stats-value">
-                  {bonusAttempts > 0
-                    ? Math.round((bonusCorrect / bonusAttempts) * 100)
-                    : 0}
-                </span>
-                <span className="stats-label">Bonus %</span>
-              </div>
-              <div className="stats-cell" role="listitem">
-                <span className="stats-value">{doubleSolves}</span>
-                <span className="stats-label">Double solves</span>
-              </div>
-            </div>
-          </>
-        )}
-
-        <div className="modal-actions">
-          <button type="button" className="btn btn-primary" onClick={onClose}>
-            Close
-          </button>
+        <p className="stats-heading">Bonus</p>
+        <div className="stats-grid stats-grid-bonus" role="list">
+          <div className="stats-cell" role="listitem">
+            <span className="stats-value">{firstTrySolves}</span>
+            <span className="stats-label">First try solves</span>
+          </div>
+          <div className="stats-cell" role="listitem">
+            <span className="stats-value">
+              {bonusAttempts > 0
+                ? Math.round((bonusCorrect / bonusAttempts) * 100)
+                : 0}
+            </span>
+            <span className="stats-label">Bonus %</span>
+          </div>
+          <div className="stats-cell" role="listitem">
+            <span className="stats-value">{doubleSolves}</span>
+            <span className="stats-label">Double solves</span>
+          </div>
         </div>
       </div>
     </div>,

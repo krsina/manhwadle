@@ -1,7 +1,8 @@
 import type { ReaderTaste } from './readerTaste'
 import { getTodayKey } from './daily'
+import { getTastePlayStreak } from './streak'
 
-export type StatsModeId = 'summary' | 'character' | 'cover'
+export type StatsModeId = 'summary' | 'character' | 'cover' | 'heardle'
 
 export interface ModeStats {
   played: number
@@ -98,6 +99,75 @@ export function getModeStats(
   }
 }
 
+export const STATS_MODE_IDS: StatsModeId[] = [
+  'summary',
+  'character',
+  'cover',
+  'heardle',
+]
+
+/** Aggregate played/wins/distribution across modes for the same taste. */
+export function combineModeStats(
+  parts: ModeStats[],
+  maxGuesses = 6,
+): ModeStats {
+  const combined = emptyModeStats(maxGuesses)
+
+  for (const stats of parts) {
+    combined.played += stats.played
+    combined.wins += stats.wins
+    combined.currentStreak = Math.max(combined.currentStreak, stats.currentStreak)
+    combined.maxStreak = Math.max(combined.maxStreak, stats.maxStreak)
+    combined.bonusAttempts =
+      (combined.bonusAttempts ?? 0) + (stats.bonusAttempts ?? 0)
+    combined.bonusCorrect =
+      (combined.bonusCorrect ?? 0) + (stats.bonusCorrect ?? 0)
+    combined.doubleSolves =
+      (combined.doubleSolves ?? 0) + (stats.doubleSolves ?? 0)
+
+    for (let i = 0; i < maxGuesses; i++) {
+      combined.guessDistribution[i] += stats.guessDistribution[i] ?? 0
+    }
+
+    const lastPlayed = stats.lastPlayedDateKey
+    if (
+      lastPlayed &&
+      (!combined.lastPlayedDateKey || lastPlayed > combined.lastPlayedDateKey)
+    ) {
+      combined.lastPlayedDateKey = lastPlayed
+    }
+
+    const lastBonus = stats.lastBonusDateKey
+    if (
+      lastBonus &&
+      (!combined.lastBonusDateKey || lastBonus > combined.lastBonusDateKey)
+    ) {
+      combined.lastBonusDateKey = lastBonus
+    }
+  }
+
+  return combined
+}
+
+/**
+ * Sum stats for every mode under the active taste lane.
+ * Streak uses any-mode play days (finish ≥1 mode), not per-mode win streaks.
+ */
+export function getCombinedStats(taste: ReaderTaste, maxGuesses = 6): ModeStats {
+  const combined = combineModeStats(
+    STATS_MODE_IDS.map((modeId) => getModeStats(modeId, taste, maxGuesses)),
+    maxGuesses,
+  )
+  const playStreak = getTastePlayStreak(taste)
+  return {
+    ...combined,
+    currentStreak: playStreak.currentStreak,
+    maxStreak: playStreak.maxStreak,
+    lastPlayedDateKey:
+      playStreak.lastPlayedDateKey ?? combined.lastPlayedDateKey,
+  }
+}
+
 export interface DailyResultInput {
   modeId: StatsModeId
   taste: ReaderTaste
@@ -156,7 +226,7 @@ export interface BonusStatsInput {
   doubleSolve: boolean
 }
 
-/** Record a one-shot bonus name answer (Character mode). Idempotent per dateKey. */
+/** Record a one-shot bonus name answer. Idempotent per dateKey. */
 export function recordBonusResult(input: BonusStatsInput): ModeStats {
   const store = loadStatsStore()
   const key = statsLaneKey(input.modeId, input.taste)

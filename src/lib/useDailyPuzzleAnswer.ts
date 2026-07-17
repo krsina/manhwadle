@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Manhwa } from './anilist-types'
 import type { ReaderTaste } from './readerTaste'
 import type { StatsModeId } from './stats'
-import { getDailyAnswer, getTodayKey } from './daily'
+import { getDailyAnswer } from './daily'
 import { getTodaysPuzzle } from './dailyPuzzle'
 
 /**
@@ -14,8 +14,8 @@ export function useDailyPuzzleAnswer(
   playablePool: Manhwa[],
   fallbackPool: Manhwa[],
   seedPrefix: string,
+  dateKey: string,
 ): { answer: Manhwa; source: 'remote' | 'local'; characterId: number | null } {
-  const dateKey = getTodayKey()
   const pool = playablePool.length > 0 ? playablePool : fallbackPool
   const localAnswer = useMemo(
     () => getDailyAnswer(pool, dateKey, seedPrefix),

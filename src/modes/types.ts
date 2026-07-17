@@ -10,6 +10,8 @@ export interface GameModeProps {
   guessPool: Manhwa[]
   /** Active reader preference — folded into daily seeds and day storage */
   taste: ReaderTaste
+  /** UTC puzzle day (today or an archive date from `?date=`) */
+  dateKey: string
 }
 
 /**

@@ -64,3 +64,29 @@ export async function getTodaysPuzzle(
 
   return { answer: localAnswer, characterId: null, source: 'local' }
 }
+
+/**
+ * Distinct past/today date_keys that have any puzzle for this taste
+ * (across Summary / Character / Cover). Empty when Supabase is unset or the query fails.
+ */
+export async function fetchArchiveDateKeys(taste: ReaderTaste): Promise<string[]> {
+  if (!isSupabaseConfigured() || !supabase) return []
+  try {
+    const today = getTodayKey()
+    const { data, error } = await supabase
+      .from('daily_puzzles')
+      .select('date_key')
+      .eq('taste', taste)
+      .lte('date_key', today)
+      .order('date_key', { ascending: true })
+    if (error || !data) return []
+    const keys = new Set<string>()
+    for (const row of data) {
+      const key = (row as { date_key?: string }).date_key
+      if (typeof key === 'string' && key) keys.add(key)
+    }
+    return [...keys]
+  } catch {
+    return []
+  }
+}
