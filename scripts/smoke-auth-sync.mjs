@@ -128,10 +128,10 @@ async function main() {
       max_streak: 1,
       last_played_date_key: '2026-07-15',
       guess_distribution: [0, 1, 0, 0, 0, 0],
-      bonus_attempts: 0,
-      bonus_correct: 0,
-      double_solves: 0,
-      last_bonus_date_key: null,
+      bonus_attempts: 1,
+      bonus_correct: 1,
+      double_solves: 1,
+      last_bonus_date_key: '2026-07-15',
     },
     { onConflict: 'user_id,mode,taste' },
   )
@@ -145,6 +145,7 @@ async function main() {
       taste: 'action',
       date_key: '2026-07-15',
       guess_ids: [101, 202],
+      guess_labels: ['Title A', 'Title B'],
       status: 'won',
       answer_id: 202,
       bonus_name_guess: null,
@@ -157,15 +158,22 @@ async function main() {
 
   const { data: statsRead, error: statsReadErr } = await userClient
     .from('player_stats')
-    .select('played, wins, last_played_date_key')
+    .select('played, wins, last_played_date_key, bonus_attempts, bonus_correct, double_solves')
     .eq('user_id', userId)
     .eq('mode', 'summary')
     .eq('taste', 'action')
     .maybeSingle()
   if (statsReadErr) fail(`player_stats read: ${statsReadErr.message}`)
-  else if (!statsRead || statsRead.played !== 2 || statsRead.wins !== 1) {
+  else if (
+    !statsRead ||
+    statsRead.played !== 2 ||
+    statsRead.wins !== 1 ||
+    statsRead.bonus_attempts !== 1 ||
+    statsRead.bonus_correct !== 1 ||
+    statsRead.double_solves !== 1
+  ) {
     fail(`player_stats read unexpected: ${JSON.stringify(statsRead)}`)
-  } else console.log('[ok] player_stats read back under RLS')
+  } else console.log('[ok] player_stats read back under RLS (incl. double_solves)')
 
   // Anon (no session) must not see rows
   const anon = createClient(url, anonKey, {

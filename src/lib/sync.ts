@@ -18,6 +18,7 @@ import { getTodayKey } from './daily'
 import { supabase, isSupabaseConfigured } from './supabase'
 import { characterModeMeta } from '../modes/character/config'
 import { coverModeMeta } from '../modes/cover/config'
+import { heardleModeMeta } from '../modes/heardle/config'
 import { summaryModeMeta } from '../modes/summary/config'
 
 const MODE_META: Record<
@@ -36,10 +37,14 @@ const MODE_META: Record<
     storagePrefix: coverModeMeta.storagePrefix,
     maxGuesses: coverModeMeta.maxGuesses,
   },
+  heardle: {
+    storagePrefix: heardleModeMeta.storagePrefix,
+    maxGuesses: heardleModeMeta.maxGuesses,
+  },
 }
 
 const TASTES: ReaderTaste[] = ['action', 'romance', 'both']
-const MODES: StatsModeId[] = ['summary', 'character', 'cover']
+const MODES: StatsModeId[] = ['summary', 'character', 'cover', 'heardle']
 
 function tasteStoragePrefix(mode: StatsModeId, taste: ReaderTaste): string {
   return `${MODE_META[mode].storagePrefix}:${taste}`
@@ -69,25 +74,27 @@ export function mergeModeStats(local: ModeStats, remote: ModeStats): ModeStats {
     return Math.max(local.guessDistribution[i] ?? 0, remote.guessDistribution[i] ?? 0)
   })
 
-  const pickCounter = (l: number, r: number) => {
+  const pickStreak = (l: number, r: number) => {
     if (preferLocalCounters) return l
     if (preferRemoteCounters) return r
     return Math.max(l, r)
   }
 
   return {
+    // Cumulative lifetime counters — always keep the higher total.
     played: Math.max(local.played, remote.played),
     wins: Math.max(local.wins, remote.wins),
     maxStreak: Math.max(local.maxStreak, remote.maxStreak),
-    currentStreak: pickCounter(local.currentStreak, remote.currentStreak),
+    bonusAttempts: Math.max(local.bonusAttempts ?? 0, remote.bonusAttempts ?? 0),
+    bonusCorrect: Math.max(local.bonusCorrect ?? 0, remote.bonusCorrect ?? 0),
+    doubleSolves: Math.max(local.doubleSolves ?? 0, remote.doubleSolves ?? 0),
+    // Snapshot-like fields follow the newer play day.
+    currentStreak: pickStreak(local.currentStreak, remote.currentStreak),
     lastPlayedDateKey:
       dateKeyNewer(local.lastPlayedDateKey, remote.lastPlayedDateKey) >= 0
         ? local.lastPlayedDateKey
         : remote.lastPlayedDateKey,
     guessDistribution: dist,
-    bonusAttempts: pickCounter(local.bonusAttempts ?? 0, remote.bonusAttempts ?? 0),
-    bonusCorrect: pickCounter(local.bonusCorrect ?? 0, remote.bonusCorrect ?? 0),
-    doubleSolves: pickCounter(local.doubleSolves ?? 0, remote.doubleSolves ?? 0),
     lastBonusDateKey:
       dateKeyNewer(local.lastBonusDateKey, remote.lastBonusDateKey) >= 0
         ? local.lastBonusDateKey ?? null
@@ -205,6 +212,7 @@ export async function pushDayProgress(
     bonus_name_guess: state.bonusNameGuess ?? null,
     bonus_name_correct: state.bonusNameCorrect ?? null,
     answer_id: state.answerId,
+    guess_labels: state.guessLabels ?? [],
   }
   await withOneRetry(`day_progress ${mode}/${taste}/${state.dateKey}`, async () =>
     supabase!
@@ -320,6 +328,9 @@ export async function mergeLocalAndRemoteOnSignIn(
             guessIds: Array.isArray(remoteRow.guess_ids)
               ? (remoteRow.guess_ids as number[])
               : [],
+            guessLabels: Array.isArray(remoteRow.guess_labels)
+              ? (remoteRow.guess_labels as string[])
+              : undefined,
             status: remoteRow.status as DayState['status'],
             bonusNameGuess: remoteRow.bonus_name_guess ?? undefined,
             bonusNameCorrect:

@@ -74,12 +74,38 @@ describe('mergeModeStats', () => {
     expect(merged.lastBonusDateKey).toBe('2026-07-14')
   })
 
+  it('keeps max double solves even when the other side has a newer play day', () => {
+    const local = emptyStats({
+      lastPlayedDateKey: '2026-07-10',
+      lastBonusDateKey: '2026-07-10',
+      bonusAttempts: 2,
+      bonusCorrect: 2,
+      doubleSolves: 2,
+    })
+    const remote = emptyStats({
+      lastPlayedDateKey: '2026-07-16',
+      lastBonusDateKey: null,
+      bonusAttempts: 0,
+      bonusCorrect: 0,
+      doubleSolves: 0,
+      currentStreak: 1,
+      guessDistribution: [0, 1, 0, 0, 0, 0],
+    })
+    const merged = mergeModeStats(local, remote)
+    expect(merged.doubleSolves).toBe(2)
+    expect(merged.bonusAttempts).toBe(2)
+    expect(merged.bonusCorrect).toBe(2)
+    expect(merged.lastBonusDateKey).toBe('2026-07-10')
+    expect(merged.currentStreak).toBe(1)
+  })
+
   it('when dates tie, takes max of streak-like counters and distribution buckets', () => {
     const local = emptyStats({
       lastPlayedDateKey: '2026-07-15',
       currentStreak: 2,
       guessDistribution: [3, 0, 1, 0, 0, 0],
       bonusAttempts: 2,
+      doubleSolves: 1,
       lastBonusDateKey: '2026-07-15',
     })
     const remote = emptyStats({
@@ -87,12 +113,14 @@ describe('mergeModeStats', () => {
       currentStreak: 4,
       guessDistribution: [1, 2, 0, 0, 0, 0],
       bonusAttempts: 1,
+      doubleSolves: 0,
       lastBonusDateKey: '2026-07-14',
     })
     const merged = mergeModeStats(local, remote)
     expect(merged.currentStreak).toBe(4)
     expect(merged.guessDistribution).toEqual([3, 2, 1, 0, 0, 0])
     expect(merged.bonusAttempts).toBe(2)
+    expect(merged.doubleSolves).toBe(1)
     expect(merged.lastBonusDateKey).toBe('2026-07-15')
   })
 
