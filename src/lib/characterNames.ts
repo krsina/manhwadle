@@ -6,6 +6,8 @@
  * into nicknames/epithets ("World's Weakest Hunter").
  */
 
+import { nameOrderVariants, normalizeSearchKey } from './nameMatch'
+
 /** Role titles / epithets that should not become the primary display name. */
 const EPITHET =
   /\b(bastard|dancer|hunter|emperor|poisoner|slaughterer|crew|mobster|sunfish|mad cow|king|queen|prince|princess|duke|duchess|marquis|count|baron|lady|lord|captain|boss|god|spirit|intermediate|saintess|emperor|empress|woman with|man with|gongjak|hujak)\b/i
@@ -93,6 +95,34 @@ export interface CharacterNameFields {
   alternative: string[]
 }
 
+/** Add reversed given/family order for two-token Latin names (Seol Kang ↔ Kang Seol). */
+export function withNameOrderAliases(name: CharacterNameFields): CharacterNameFields {
+  const full = name.full?.trim().replace(/\s+/g, ' ') || null
+  const alternatives = (name.alternative || []).map((a) => a.trim()).filter(Boolean)
+  if (!full) {
+    return { full, native: name.native?.trim() || null, alternative: alternatives }
+  }
+
+  const variants = nameOrderVariants(full)
+  const swapped = variants.find(
+    (variant) => normalizeSearchKey(variant) !== normalizeSearchKey(full),
+  )
+  if (!swapped) {
+    return { full, native: name.native?.trim() || null, alternative: alternatives }
+  }
+
+  const swappedKey = normalizeSearchKey(swapped)
+  if (alternatives.some((alt) => normalizeSearchKey(alt) === swappedKey)) {
+    return { full, native: name.native?.trim() || null, alternative: alternatives }
+  }
+
+  return {
+    full,
+    native: name.native?.trim() || null,
+    alternative: [...alternatives, swapped],
+  }
+}
+
 /** Rewrite name fields so `full` is readable; keep the AniList full as an alias. */
 export function normalizeCharacterNameFields(
   name: CharacterNameFields,
@@ -102,11 +132,11 @@ export function normalizeCharacterNameFields(
   const preferred = pickPreferredCharacterFull(originalFull, alternatives)
 
   if (!preferred || preferred === originalFull) {
-    return {
+    return withNameOrderAliases({
       full: originalFull,
       native: name.native?.trim() || null,
       alternative: alternatives,
-    }
+    })
   }
 
   const nextAlts = [...alternatives]
@@ -114,11 +144,11 @@ export function normalizeCharacterNameFields(
     nextAlts.push(originalFull)
   }
 
-  return {
+  return withNameOrderAliases({
     full: preferred,
     native: name.native?.trim() || null,
     alternative: nextAlts.filter((a) => a.toLowerCase() !== preferred.toLowerCase()),
-  }
+  })
 }
 
 export function characterDisplayName(character: {

@@ -33,6 +33,7 @@ scripts/characters-shard-*.json
 scripts/characters-shard-*.checkpoint.json
 scripts/characters-shard-*.json.tmp
 scripts/characters-shard-*.checkpoint.json.tmp
+scripts/character-alias-anilist-checkpoint.json
 *.enrich-images.checkpoint.json
 manhwadle-etl/output/*.enrich-images.checkpoint.json
 

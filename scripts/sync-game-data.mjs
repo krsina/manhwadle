@@ -152,26 +152,60 @@ function pickPreferredCharacterFull(full, alternatives) {
   return bestAlt || trimmedFull
 }
 
+function normalizeNameKey(value) {
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]+/gi, '')
+}
+
+/** Seol Kang ↔ Kang Seol for two-token Latin names. */
+function withNameOrderAliases(name) {
+  const full = name.full?.trim().replace(/\s+/g, ' ') || null
+  const alternatives = (name.alternative || []).map((a) => String(a).trim()).filter(Boolean)
+  if (!full) {
+    return { full, native: name.native?.trim() || null, alternative: alternatives }
+  }
+  const parts = full.split(/\s+/)
+  if (parts.length !== 2 || !parts.every((p) => /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ.'’\-]*$/.test(p))) {
+    return { full, native: name.native?.trim() || null, alternative: alternatives }
+  }
+  const swapped = `${parts[1]} ${parts[0]}`
+  const swappedKey = normalizeNameKey(swapped)
+  if (!swappedKey || swappedKey === normalizeNameKey(full)) {
+    return { full, native: name.native?.trim() || null, alternative: alternatives }
+  }
+  if (alternatives.some((alt) => normalizeNameKey(alt) === swappedKey)) {
+    return { full, native: name.native?.trim() || null, alternative: alternatives }
+  }
+  return {
+    full,
+    native: name.native?.trim() || null,
+    alternative: [...alternatives, swapped],
+  }
+}
+
 function normalizeCharacterNameFields(name) {
   const originalFull = name.full?.trim() || null
   const alternatives = (name.alternative || []).map((a) => String(a).trim()).filter(Boolean)
   const preferred = pickPreferredCharacterFull(originalFull, alternatives)
   if (!preferred || preferred === originalFull) {
-    return {
+    return withNameOrderAliases({
       full: originalFull,
       native: name.native?.trim() || null,
       alternative: alternatives,
-    }
+    })
   }
   const nextAlts = [...alternatives]
   if (originalFull && !nextAlts.some((a) => a.toLowerCase() === originalFull.toLowerCase())) {
     nextAlts.push(originalFull)
   }
-  return {
+  return withNameOrderAliases({
     full: preferred,
     native: name.native?.trim() || null,
     alternative: nextAlts.filter((a) => a.toLowerCase() !== preferred.toLowerCase()),
-  }
+  })
 }
 
 function toGameCharacter(char, role) {
@@ -227,7 +261,9 @@ function attachCharacters(entry, characterById, appearancesByManhwa) {
   characters.sort((a, b) => {
     const roleDiff = (ROLE_ORDER[a.role] ?? 9) - (ROLE_ORDER[b.role] ?? 9)
     if (roleDiff !== 0) return roleDiff
-    return (b.favourites ?? 0) - (a.favourites ?? 0) || a.id - b.id
+    // Keep AniList RELEVANCE order from appearances (insertion order).
+    // Favourites ranking often elevates popular co-leads over the POV lead.
+    return 0
   })
 
   return characters
@@ -253,6 +289,7 @@ function toGameManhwa(entry, characterById, appearancesByManhwa) {
 
   return {
     id: entry.id,
+    idMal: entry.idMal ?? null,
     title: {
       english: titles.english ?? (typeof entry.title === 'string' ? entry.title : null),
       romaji: titles.romaji ?? null,
@@ -288,6 +325,16 @@ async function loadTitleAliases() {
   }
 }
 
+async function loadCharacterAliases() {
+  try {
+    const raw = await readFile(join(DATA_DIR, 'character-aliases.json'), 'utf8')
+    const doc = JSON.parse(raw)
+    return doc.aliases && typeof doc.aliases === 'object' ? doc.aliases : {}
+  } catch {
+    return {}
+  }
+}
+
 function mergeTitleAliases(pool, aliasMap) {
   let touched = 0
   for (const m of pool) {
@@ -301,6 +348,36 @@ function mergeTitleAliases(pool, aliasMap) {
     if (syn.size > before) {
       m.synonyms = [...syn]
       touched += 1
+    }
+  }
+  return touched
+}
+
+/** Merge curated extras into each character's alternative list (case-insensitive dedupe). */
+function mergeCharacterAliases(pool, aliasMap) {
+  let touched = 0
+  for (const m of pool) {
+    for (const character of m.characters || []) {
+      const extra = aliasMap[String(character.id)]
+      if (!Array.isArray(extra) || extra.length === 0) continue
+      const fullKey = (character.name?.full || '').trim().toLowerCase()
+      const alts = [...(character.name?.alternative || [])]
+      const seen = new Set(alts.map((a) => a.trim().toLowerCase()).filter(Boolean))
+      if (fullKey) seen.add(fullKey)
+      let added = 0
+      for (const raw of extra) {
+        const a = String(raw || '').trim()
+        if (!a) continue
+        const key = a.toLowerCase()
+        if (seen.has(key)) continue
+        seen.add(key)
+        alts.push(a)
+        added += 1
+      }
+      if (added > 0) {
+        character.name.alternative = alts
+        touched += 1
+      }
     }
   }
   return touched
@@ -342,6 +419,8 @@ const sample = pool[0]
 await mkdir(DATA_DIR, { recursive: true })
 const aliasMap = await loadTitleAliases()
 const aliasTouched = mergeTitleAliases(pool, aliasMap)
+const characterAliasMap = await loadCharacterAliases()
+const characterAliasTouched = mergeCharacterAliases(pool, characterAliasMap)
 await writeFile(join(DATA_DIR, 'manhwa.json'), JSON.stringify(pool, null, 2) + '\n', 'utf8')
 const blurbsOut = { ...blurbsDoc, entries: blurbEntries }
 await writeFile(
@@ -356,6 +435,7 @@ console.log(
     `  manhwa.json: ${pool.length} titles (${withChars} with characters, ${totalChars} attached, ${withBlurbs} with blurbs)\n` +
     `  skipped characters with default/missing image: ${skippedNoImage}\n` +
     `  title-aliases merged into ${aliasTouched} titles\n` +
+    `  character-aliases merged into ${characterAliasTouched} characters\n` +
     `  storyDescriptionBlurb.json: ${blurbEntries.length} entries` +
     (excludeIds.length ? ` (dropped ${excludeIds.length} excluded)` : '') +
     `\n` +

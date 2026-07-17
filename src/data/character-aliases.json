@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "version": 1,
+    "updatedAt": "2026-07-17T21:00:00.000Z",
+    "notes": [
+      "Extra character name alternatives keyed by AniList character id.",
+      "Merged into character.name.alternative by sync-game-data.mjs and apply-character-aliases.mjs.",
+      "Use for fan/official romanizations AniList does not list (e.g. Isel → Iselle)."
+    ]
+  },
+  "aliases": {
+    "305585": ["Iselle", "Yselle"],
+    "298546": ["Islat Han", "Israt Han", "Han Islat"],
+    "305418": ["Tell"],
+    "305582": ["Lydigion", "Ridgion"],
+    "305576": ["Siris"],
+    "305578": ["Guestfel", "Gestfeld"]
+  }
+}

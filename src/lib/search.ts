@@ -1,10 +1,16 @@
 import type { Manhwa, ManhwaCharacter } from './anilist-types'
 import { displayTitle } from './daily'
-import { namesMatch, normalizeSearchKey, scoreSearchKey } from './nameMatch'
+import {
+  nameOrderVariants,
+  namesMatch,
+  normalizeSearchKey,
+  scoreSearchKey,
+  scoreStrongSearchKey,
+} from './nameMatch'
 
 export interface SearchHit {
   manhwa: Manhwa
-  /** Always the English (or primary) title — never an alias */
+  /** Best-matching title form for the query (English or alias) */
   label: string
   /** True when the query matched via an alias rather than the display title */
   matchedAlias: boolean
@@ -14,6 +20,49 @@ export interface CharacterSearchHit {
   character: ManhwaCharacter
   /** Name that matched the query (primary or alias) — shown in the list */
   label: string
+}
+
+/** Minimum normalized query length before character autocomplete shows results. */
+export const CHARACTER_SEARCH_MIN_QUERY_LENGTH = 2
+
+/** Max rows shown in the character autocomplete dropdown. */
+export const CHARACTER_SEARCH_LIMIT = 25
+
+/**
+ * Apply leftover-length ranking only once the query is this long.
+ * Shorter queries stay alphabetical so early prefixes stay less spoilery.
+ */
+export const CHARACTER_SEARCH_LEFTOVER_RANK_MIN_LENGTH = 4
+
+/** Hangul syllables — AniList often packs these into Latin aliases in parentheses. */
+const HANGUL = /[\uac00-\ud7af]/
+
+/** True when the typed query is Latin-script (no Hangul). */
+function isLatinScriptQuery(query: string): boolean {
+  const t = query.trim()
+  if (!t) return false
+  return !HANGUL.test(t)
+}
+
+/**
+ * Dropdown labels should mirror what the player typed. When the query is Latin,
+ * strip Hangul (and empty parentheses) from AniList's mixed aliases like
+ * `Seo-Jin Han (한서진)` → `Seo-Jin Han`. Matching still uses the raw name.
+ */
+export function latinFriendlyDisplayLabel(label: string, query: string): string {
+  const trimmed = label.trim().replace(/\s+/g, ' ')
+  if (!trimmed || !isLatinScriptQuery(query)) return trimmed
+  if (!HANGUL.test(trimmed)) return trimmed
+
+  const cleaned = trimmed
+    .replace(/\(\s*[\uac00-\ud7af\s]+\s*\)/g, '')
+    .replace(HANGUL, '')
+    .replace(/\(\s*\)/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.;:])/g, '$1')
+    .trim()
+
+  return cleaned || trimmed
 }
 
 function allNames(manhwa: Manhwa): string[] {
@@ -29,12 +78,28 @@ function englishLabel(manhwa: Manhwa): string {
   return manhwa.title.english?.trim() || displayTitle(manhwa)
 }
 
+/**
+ * Searchable display forms for a character: primary, native, alternatives,
+ * plus given/family order flips. Deduped by compact key.
+ */
 function characterNames(character: ManhwaCharacter): string[] {
-  return [
+  const base = [
     character.name.full,
     character.name.native,
     ...(character.name.alternative || []),
   ].filter((n): n is string => Boolean(n?.trim()))
+
+  const seen = new Set<string>()
+  const names: string[] = []
+  for (const name of base) {
+    for (const variant of nameOrderVariants(name)) {
+      const key = normalizeSearchKey(variant)
+      if (!key || seen.has(key)) continue
+      seen.add(key)
+      names.push(variant)
+    }
+  }
+  return names
 }
 
 /** Unique cast members across a manhwa pool (by AniList character id). */
@@ -48,30 +113,48 @@ export function collectCharacters(pool: Manhwa[]): ManhwaCharacter[] {
   return [...byId.values()]
 }
 
+/** Minimum normalized query length before title search allows mid-string hits. */
+export const MANHWA_SEARCH_SUBSTRING_MIN_LENGTH = 4
+
 /**
  * Ranked autocomplete against English titles and all aliases.
- * Results always show the English name, even when an alias matched.
+ * Dropdown label mirrors the best-matching form (alias when that scored best).
+ *
+ * Short queries (under {@link MANHWA_SEARCH_SUBSTRING_MIN_LENGTH}) match exact /
+ * prefix only so single letters don't flood the list with mid-title hits.
+ * Longer queries also allow substring matches for mid-word recall.
  */
 export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHit[] {
   const q = normalizeSearchKey(query)
   if (!q) return []
 
+  const allowSubstring = q.length >= MANHWA_SEARCH_SUBSTRING_MIN_LENGTH
   const scored: Array<SearchHit & { score: number }> = []
 
   for (const manhwa of pool) {
-    const label = englishLabel(manhwa)
+    const primary = englishLabel(manhwa)
     let bestScore = Infinity
+    let bestLabel = primary
     let matchedAlias = false
 
     for (const name of allNames(manhwa)) {
-      const score = scoreSearchKey(name, q)
+      const score = scoreSearchKey(name, q, { allowSubstring })
       if (score < bestScore) {
         bestScore = score
-        matchedAlias = !namesMatch(name, label)
+        bestLabel = name.trim() || primary
+        matchedAlias = !namesMatch(name, primary)
       } else if (score === bestScore && score < Infinity) {
-        // Prefer treating it as a primary-title match when scores tie
-        if (namesMatch(name, label)) {
+        // Prefer primary-title label when scores tie
+        if (namesMatch(name, primary)) {
+          bestLabel = primary
           matchedAlias = false
+        } else if (
+          HANGUL.test(bestLabel) &&
+          !HANGUL.test(name) &&
+          !namesMatch(bestLabel, primary)
+        ) {
+          // Prefer a Latin-only alias over a mixed Hangul form at the same score
+          bestLabel = name.trim() || bestLabel
         }
       }
     }
@@ -79,7 +162,7 @@ export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHi
     if (bestScore < Infinity) {
       scored.push({
         manhwa,
-        label,
+        label: latinFriendlyDisplayLabel(bestLabel, query),
         matchedAlias,
         score: bestScore,
       })
@@ -99,52 +182,99 @@ export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHi
 }
 
 /**
+ * Pick the display label that best mirrors what the user typed among strong hits.
+ * Prefers exact key match, then the form whose compact key prefixes the query.
+ */
+function pickTypedMirrorLabel(
+  names: string[],
+  queryKey: string,
+): { label: string; score: number } | null {
+  let bestScore = Infinity
+  let bestLabel = ''
+
+  for (const name of names) {
+    const score = scoreStrongSearchKey(name, queryKey)
+    if (score > bestScore) continue
+
+    if (score < bestScore) {
+      bestScore = score
+      bestLabel = name.trim()
+      continue
+    }
+
+    // Tie-break: prefer Hangul-free, then shorter label, then stable alpha order.
+    const cur = name.trim()
+    if (!bestLabel) {
+      bestLabel = cur
+      continue
+    }
+    const bestHangul = HANGUL.test(bestLabel)
+    const curHangul = HANGUL.test(cur)
+    if (bestHangul !== curHangul) {
+      if (!curHangul) bestLabel = cur
+      continue
+    }
+    if (cur.length !== bestLabel.length) {
+      if (cur.length < bestLabel.length) bestLabel = cur
+      continue
+    }
+    if (cur.localeCompare(bestLabel) < 0) bestLabel = cur
+  }
+
+  if (bestScore === Infinity || !bestLabel) return null
+  return { label: bestLabel, score: bestScore }
+}
+
+/**
  * Ranked autocomplete against character names / aliases from a cast list.
- * List label is the specific name that matched the query (alias only when typed).
- * Duplicate labels are collapsed — bonus matching is by name, not AniList id.
+ *
+ * - One row per character (never one row per alias).
+ * - Label mirrors the typed form on strong matches ("Kang" → "Kang Seol").
+ * - Strong match only: exact or prefix, min query length 2. Substring hits are hidden.
+ * - Cap defaults to 25. Queries under 4 chars sort alphabetically; 4+ prefer
+ *   shorter leftover length so `jinu` ranks nearer Jin-U Seong without boosting `ji`.
  */
 export function searchCharacters(
   characters: ManhwaCharacter[],
   query: string,
-  limit = 10,
+  limit = CHARACTER_SEARCH_LIMIT,
 ): CharacterSearchHit[] {
   const q = normalizeSearchKey(query)
-  if (!q) return []
+  if (!q || q.length < CHARACTER_SEARCH_MIN_QUERY_LENGTH) return []
 
-  const scored: Array<CharacterSearchHit & { score: number }> = []
+  const useLeftoverRank = q.length >= CHARACTER_SEARCH_LEFTOVER_RANK_MIN_LENGTH
+  const scored: Array<CharacterSearchHit & { score: number; key: string }> = []
 
   for (const character of characters) {
-    let bestScore = Infinity
-    let matchedName = ''
-
-    for (const name of characterNames(character)) {
-      const score = scoreSearchKey(name, q)
-      if (score < bestScore) {
-        bestScore = score
-        matchedName = name.trim()
-      }
-    }
-
-    if (bestScore < Infinity && matchedName) {
-      scored.push({
-        character,
-        label: matchedName,
-        score: bestScore,
-      })
-    }
+    const picked = pickTypedMirrorLabel(characterNames(character), q)
+    if (!picked) continue
+    const label = latinFriendlyDisplayLabel(picked.label, query)
+    scored.push({
+      character,
+      label,
+      score: picked.score,
+      key: normalizeSearchKey(label),
+    })
   }
 
   scored.sort((a, b) => {
     if (a.score !== b.score) return a.score - b.score
+    if (useLeftoverRank) {
+      const leftoverA = Math.max(0, a.key.length - q.length)
+      const leftoverB = Math.max(0, b.key.length - q.length)
+      if (leftoverA !== leftoverB) return leftoverA - leftoverB
+      const wordsA = a.label.trim().split(/\s+/).length
+      const wordsB = b.label.trim().split(/\s+/).length
+      if (wordsA !== wordsB) return wordsA - wordsB
+    }
     return a.label.localeCompare(b.label)
   })
 
-  const seenLabels = new Set<string>()
+  const seenIds = new Set<number>()
   const unique: CharacterSearchHit[] = []
   for (const hit of scored) {
-    const key = normalizeSearchKey(hit.label)
-    if (!key || seenLabels.has(key)) continue
-    seenLabels.add(key)
+    if (seenIds.has(hit.character.id)) continue
+    seenIds.add(hit.character.id)
     unique.push({ character: hit.character, label: hit.label })
     if (unique.length >= limit) break
   }

@@ -62,6 +62,8 @@ export function characterImageUrl(character: ManhwaCharacter): string | null {
 
 export interface Manhwa {
   id: number
+  /** MyAnimeList manga id when known (from ETL; optional on older syncs) */
+  idMal?: number | null
   title: ManhwaTitle
   synonyms: string[]
   description: string
@@ -75,6 +77,11 @@ export interface Manhwa {
   siteUrl: string
   /** Characters attached from catalog ETL (MAIN first) */
   characters: ManhwaCharacter[]
+}
+
+/** Cast members AniList marks as MAIN (often more than one co-lead). */
+export function mainCharacters(manhwa: Manhwa): ManhwaCharacter[] {
+  return (manhwa.characters || []).filter((character) => character.role === 'MAIN')
 }
 
 export type FeedbackTone = 'correct' | 'close' | 'incorrect'
@@ -111,6 +118,8 @@ export interface TagFeedback {
 export interface GuessFeedback {
   manhwa: Manhwa
   isCorrect: boolean
+  /** Title form the player selected (alias or primary); falls back to displayTitle in UI */
+  displayLabel?: string
   genres: GenreFeedback
   year: YearFeedback
   status: StatusFeedback
@@ -122,7 +131,11 @@ export interface DayState {
   dateKey: string
   answerId: number
   guessIds: number[]
+  /** Parallel to guessIds — form the player selected (title or alias) */
+  guessLabels?: string[]
   status: 'playing' | 'won' | 'lost'
+  /** Summary hard mode: t0 only (locked once guesses start) */
+  hardMode?: boolean
   /** Character-mode bonus: one-shot name guess after a win */
   bonusNameGuess?: string
   bonusNameCorrect?: boolean
