@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from './AuthProvider'
 import { deleteMyAccount, exportMyAccountData } from '../lib/profileApi'
 import {
@@ -22,13 +22,12 @@ import {
   TERMS_PATH,
 } from '../lib/routes'
 
-/** Account-only controls (no reading preference). */
+/** Account-only controls (no reading preference). Requires a signed-in user. */
 export function AccountSettingsPanel() {
   const {
     user,
     account,
     accountLoading,
-    configured,
     changeUsername,
     signOut,
     refreshAccount,
@@ -62,17 +61,7 @@ export function AccountSettingsPanel() {
     if (user) void refreshAccountRef.current()
   }, [user])
 
-  if (!configured) {
-    return (
-      <p className="settings-muted">
-        Cloud accounts are not configured in this environment.
-      </p>
-    )
-  }
-
-  if (!user) {
-    return <Navigate to="/" replace />
-  }
+  if (!user) return null
 
   const nextChangeLabel = formatNextChangeAt(account?.nextChangeAt)
   const canChange = Boolean(account?.canChangeUsername)
