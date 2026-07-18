@@ -4,6 +4,7 @@ import {
   nameOrderVariants,
   namesMatch,
   normalizeSearchKey,
+  normalizeSearchKeys,
   scoreSearchKey,
   scoreStrongSearchKey,
 } from './nameMatch'
@@ -116,6 +117,17 @@ export function collectCharacters(pool: Manhwa[]): ManhwaCharacter[] {
 /** Minimum normalized query length before title search allows mid-string hits. */
 export const MANHWA_SEARCH_SUBSTRING_MIN_LENGTH = 4
 
+/** Shortest leftover after a query prefix/exact hit among a name's compact keys. */
+function bestKeyLeftover(name: string, queryKey: string): number {
+  let best = Infinity
+  for (const key of normalizeSearchKeys(name)) {
+    if (key === queryKey || key.startsWith(queryKey)) {
+      best = Math.min(best, Math.max(0, key.length - queryKey.length))
+    }
+  }
+  return best
+}
+
 /**
  * Ranked autocomplete against English titles and all aliases.
  * Dropdown label mirrors the best-matching form (alias when that scored best).
@@ -136,26 +148,46 @@ export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHi
     let bestScore = Infinity
     let bestLabel = primary
     let matchedAlias = false
+    let bestLeftover = Infinity
 
     for (const name of allNames(manhwa)) {
       const score = scoreSearchKey(name, q, { allowSubstring })
+      if (score === Infinity) continue
+
+      const label = name.trim() || primary
+      const leftover = bestKeyLeftover(name, q)
+      const isPrimary = namesMatch(name, primary)
+
       if (score < bestScore) {
         bestScore = score
-        bestLabel = name.trim() || primary
-        matchedAlias = !namesMatch(name, primary)
-      } else if (score === bestScore && score < Infinity) {
-        // Prefer primary-title label when scores tie
-        if (namesMatch(name, primary)) {
-          bestLabel = primary
-          matchedAlias = false
-        } else if (
-          HANGUL.test(bestLabel) &&
-          !HANGUL.test(name) &&
-          !namesMatch(bestLabel, primary)
-        ) {
-          // Prefer a Latin-only alias over a mixed Hangul form at the same score
-          bestLabel = name.trim() || bestLabel
-        }
+        bestLabel = label
+        matchedAlias = !isPrimary
+        bestLeftover = leftover
+        continue
+      }
+
+      if (score !== bestScore) continue
+
+      // Same rank: prefer the form that leaves less unmatched title after the query
+      // ("doctor" → "Doctor's Rebirth" over the longer primary "Doctor, Live Again").
+      if (leftover < bestLeftover) {
+        bestLabel = label
+        matchedAlias = !isPrimary
+        bestLeftover = leftover
+        continue
+      }
+      if (leftover > bestLeftover) continue
+
+      if (isPrimary) {
+        bestLabel = primary
+        matchedAlias = false
+      } else if (
+        HANGUL.test(bestLabel) &&
+        !HANGUL.test(name) &&
+        !namesMatch(bestLabel, primary)
+      ) {
+        // Prefer a Latin-only alias over a mixed Hangul form at the same score
+        bestLabel = label
       }
     }
 

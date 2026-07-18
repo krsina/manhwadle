@@ -37,6 +37,13 @@ scripts/character-alias-anilist-checkpoint.json
 *.enrich-images.checkpoint.json
 manhwadle-etl/output/*.enrich-images.checkpoint.json
 
+# Generated audit and simulation reports
+scripts/character-alias-anilist-refresh.json
+scripts/name-order-alias-audit.csv
+scripts/name-order-alias-audit.json
+scripts/romanized-title-audit.json
+scripts/spoil-sim-*.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

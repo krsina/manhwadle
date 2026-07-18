@@ -165,7 +165,30 @@ export interface ShareTextOptions {
   archive?: boolean
   /** Append * to the score (Wordle-style hard mode) */
   hardMode?: boolean
+  /** Free hint reveals used this round */
+  hintsUsed?: number
   siteUrl?: string
+}
+
+/** Guess score line, optionally with free-hint count. */
+export function formatGuessScore(options: {
+  won: boolean
+  guessCount: number
+  maxGuesses: number
+  hardMode?: boolean
+  hintsUsed?: number
+}): string {
+  const {
+    won,
+    guessCount,
+    maxGuesses,
+    hardMode = false,
+    hintsUsed = 0,
+  } = options
+  const scoreBase = won ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`
+  const score = hardMode ? `${scoreBase}*` : scoreBase
+  if (hintsUsed <= 0) return score
+  return `${score} · ${hintsUsed} hint${hintsUsed === 1 ? '' : 's'}`
 }
 
 export function buildShareText(options: ShareTextOptions): string {
@@ -182,11 +205,17 @@ export function buildShareText(options: ShareTextOptions): string {
     doubleSolve = false,
     archive = false,
     hardMode = false,
+    hintsUsed = 0,
     siteUrl,
   } = options
 
-  const scoreBase = won ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`
-  const score = hardMode ? `${scoreBase}*` : scoreBase
+  const score = formatGuessScore({
+    won,
+    guessCount,
+    maxGuesses,
+    hardMode,
+    hintsUsed,
+  })
   const archivePrefix = archive ? 'Archive · ' : ''
   const header = `${archivePrefix}${appName} ${modeLabel} · ${tasteLabel}  ${dateKey}  ${score}`
   const parts = [header, '', ...lines]

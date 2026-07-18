@@ -111,8 +111,8 @@ async function main() {
     .eq('date_key', dateKey)
   if (dailyErr) throw dailyErr
 
-  if (!dailies || dailies.length !== 9) {
-    fail(`expected 9 daily_puzzles for ${dateKey}, got ${dailies?.length ?? 0}`)
+  if (!dailies || dailies.length !== 12) {
+    fail(`expected 12 daily_puzzles for ${dateKey}, got ${dailies?.length ?? 0}`)
   } else {
     console.log(`[ok] daily_puzzles for ${dateKey}: ${dailies.length}`)
   }

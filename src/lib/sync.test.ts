@@ -14,6 +14,7 @@ function emptyStats(overrides: Partial<ModeStats> = {}): ModeStats {
     bonusAttempts: 0,
     bonusCorrect: 0,
     doubleSolves: 0,
+    hintsUsed: 0,
     lastBonusDateKey: null,
     ...overrides,
   }
@@ -167,5 +168,24 @@ describe('mergeDayProgress', () => {
     const local = day({ status: 'won', guessIds: [1, 2] })
     const remote = day({ status: 'lost', guessIds: [3, 4] })
     expect(mergeDayProgress(local, remote)).toBe(local)
+  })
+
+  it('when guess counts match, prefers the higher clueStep', () => {
+    const local = day({ status: 'playing', guessIds: [1], clueStep: 1 })
+    const remote = day({ status: 'playing', guessIds: [1], clueStep: 3 })
+    expect(mergeDayProgress(local, remote)).toEqual(remote)
+    expect(mergeDayProgress(remote, local)).toEqual(remote)
+  })
+
+  it('keeps the max clueStep when preferring the side with more guesses', () => {
+    const few = day({ status: 'playing', guessIds: [1], clueStep: 4 })
+    const many = day({ status: 'playing', guessIds: [1, 2, 3], clueStep: 1 })
+    expect(mergeDayProgress(few, many)).toEqual({ ...many, clueStep: 4 })
+  })
+
+  it('keeps the max hintsUsed across devices', () => {
+    const few = day({ status: 'playing', guessIds: [1], hintsUsed: 3 })
+    const many = day({ status: 'playing', guessIds: [1, 2], hintsUsed: 1 })
+    expect(mergeDayProgress(few, many)).toEqual({ ...many, hintsUsed: 3 })
   })
 })

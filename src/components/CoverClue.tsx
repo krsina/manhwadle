@@ -3,6 +3,7 @@ import {
   coverFocusOrigin,
   cropZoomScale,
 } from '../lib/cover'
+import { RevealMoreButton } from './RevealMoreButton'
 
 interface CoverClueProps {
   imageUrl: string
@@ -12,6 +13,10 @@ interface CoverClueProps {
   failedGuesses: number
   finished: boolean
   maxGuesses: number
+  canRevealMore?: boolean
+  onRevealMore?: () => void
+  /** Forced grayscale (hard mode) */
+  grayscale?: boolean
 }
 
 /** Progressive zoom-out on manhwa cover art (portrait frame, like Character). */
@@ -23,6 +28,9 @@ export function CoverClue({
   failedGuesses,
   finished,
   maxGuesses,
+  canRevealMore = false,
+  onRevealMore,
+  grayscale = false,
 }: CoverClueProps) {
   const scale = cropZoomScale(failedGuesses, { finished })
   const { focusX, focusY } = coverFocusOrigin(manhwaId, dateKey, seedPrefix)
@@ -39,7 +47,17 @@ export function CoverClue({
           <p className="clue-label">
             {finished ? 'Full reveal' : `Cover clue ${step}/${maxGuesses}`}
           </p>
-          {!finished && <p className="clue-hint">Wrong guesses zoom out</p>}
+          {!finished && (
+            <div className="clue-hint-row">
+              <p className="clue-hint">Wrong guesses zoom out</p>
+              {onRevealMore && (
+                <RevealMoreButton
+                  onClick={onRevealMore}
+                  disabled={!canRevealMore}
+                />
+              )}
+            </div>
+          )}
         </div>
         <div className="crop-frame crop-frame-portrait">
           <div
@@ -50,7 +68,7 @@ export function CoverClue({
             }}
           >
             <img
-              className="crop-image"
+              className={`crop-image${grayscale ? ' is-grayscale' : ''}`}
               src={imageUrl}
               alt=""
               draggable={false}

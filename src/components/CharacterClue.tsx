@@ -1,11 +1,16 @@
 import type { CharacterCropEntry } from '../lib/crops'
 import { clampFocus, cropZoomScale } from '../lib/crops'
+import { RevealMoreButton } from './RevealMoreButton'
 
 interface CharacterClueProps {
   crop: CharacterCropEntry
   failedGuesses: number
   finished: boolean
   maxGuesses: number
+  canRevealMore?: boolean
+  onRevealMore?: () => void
+  /** Optional grayscale filter (hard-mode helper) */
+  grayscale?: boolean
 }
 
 /** Progressive zoom-out in a portrait frame (same height budget as the old 16:10 slot). */
@@ -14,6 +19,9 @@ export function CharacterClue({
   failedGuesses,
   finished,
   maxGuesses,
+  canRevealMore = false,
+  onRevealMore,
+  grayscale = false,
 }: CharacterClueProps) {
   const scale = cropZoomScale(failedGuesses, { finished })
   const focusX = clampFocus(crop.focusX)
@@ -29,7 +37,17 @@ export function CharacterClue({
           <p className="clue-label">
             {finished ? 'Full reveal' : `Character clue ${step}/${maxGuesses}`}
           </p>
-          {!finished && <p className="clue-hint">Wrong guesses zoom out</p>}
+          {!finished && (
+            <div className="clue-hint-row">
+              <p className="clue-hint">Wrong guesses zoom out</p>
+              {onRevealMore && (
+                <RevealMoreButton
+                  onClick={onRevealMore}
+                  disabled={!canRevealMore}
+                />
+              )}
+            </div>
+          )}
         </div>
         <div className="crop-frame crop-frame-portrait">
           <div
@@ -40,7 +58,7 @@ export function CharacterClue({
             }}
           >
             <img
-              className="crop-image"
+              className={`crop-image${grayscale ? ' is-grayscale' : ''}`}
               src={crop.imageUrl}
               alt=""
               draggable={false}

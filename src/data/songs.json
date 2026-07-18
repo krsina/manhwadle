@@ -1,0 +1,485 @@
+{
+  "version": 1,
+  "songs": [
+    {
+      "id": "study-group-die-die",
+      "manhwaId": 110472,
+      "songTitle": "DIE DIE (Feat. CHOILB)",
+      "artist": "Giriboy",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "1QQQNLS5fXs",
+      "startSec": 12
+    },
+    {
+      "id": "study-group-good-kid",
+      "manhwaId": 110472,
+      "songTitle": "GOOD KID",
+      "artist": "lIlBOI, PENOMECO",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "FHhhlOI31TA",
+      "startSec": 0
+    },
+    {
+      "id": "study-group-fast",
+      "manhwaId": 110472,
+      "songTitle": "Fast",
+      "artist": "Gaeko, Coogie",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "Ab_StJHZNkg",
+      "startSec": 0
+    },
+    {
+      "id": "study-group-we-go-run",
+      "manhwaId": 110472,
+      "songTitle": "We Go Run",
+      "artist": "Raon",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "zGGHuE0hIaQ",
+      "startSec": 0
+    },
+    {
+      "id": "study-group-we-go-run-inst",
+      "manhwaId": 110472,
+      "songTitle": "We Go Run (Instrumental)",
+      "artist": "Raon",
+      "kind": "bgm",
+      "source": "webtoon_ost",
+      "youtubeId": "MzApwZoELv0",
+      "startSec": 0
+    },
+    {
+      "id": "solo-leveling-level",
+      "manhwaId": 105398,
+      "songTitle": "LEveL",
+      "artist": "SawanoHiroyuki[nZk]:TOMORROW X TOGETHER",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "9KBl_UurkEc",
+      "startSec": 0
+    },
+    {
+      "id": "solo-leveling-level-cr",
+      "manhwaId": 105398,
+      "songTitle": "LEveL (TV size)",
+      "artist": "SawanoHiroyuki[nZk]:TOMORROW X TOGETHER",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "XqD0oCHLIF8",
+      "startSec": 0
+    },
+    {
+      "id": "solo-leveling-request",
+      "manhwaId": 105398,
+      "songTitle": "request",
+      "artist": "krage",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "CRZsOOOvg1I",
+      "startSec": 0
+    },
+    {
+      "id": "solo-leveling-reawaker",
+      "manhwaId": 105398,
+      "songTitle": "ReawakeR",
+      "artist": "LiSA feat. Felix of Stray Kids",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "C0zMWogztQs",
+      "startSec": 0
+    },
+    {
+      "id": "solo-leveling-un-apex",
+      "manhwaId": 105398,
+      "songTitle": "Un-Apex",
+      "artist": "TK from Ling Tosite Sigure",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "KxeHOxO3A3I",
+      "startSec": 0
+    },
+    {
+      "id": "solo-leveling-dark-aria",
+      "manhwaId": 105398,
+      "songTitle": "DARK ARIA <LV2>",
+      "artist": "SawanoHiroyuki[nZk]:XAI",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "ZGXOWPZ64DA",
+      "startSec": 15
+    },
+    {
+      "id": "solo-leveling-level-inst",
+      "manhwaId": 105398,
+      "songTitle": "LEveL (instrumental)",
+      "artist": "SawanoHiroyuki[nZk]:TOMORROW X TOGETHER",
+      "kind": "bgm",
+      "source": "anime",
+      "youtubeId": "KSSUz74JHTg",
+      "startSec": 0
+    },
+    {
+      "id": "solo-leveling-shadowborn",
+      "manhwaId": 105398,
+      "songTitle": "SHADOWBORN",
+      "artist": "Hiroyuki Sawano",
+      "kind": "bgm",
+      "source": "anime",
+      "youtubeId": "JCIoYnd5KBc",
+      "startSec": 0
+    },
+    {
+      "id": "solo-leveling-reviver-inst",
+      "manhwaId": 105398,
+      "songTitle": "REVIVER (instrumental)",
+      "artist": "Hiroyuki Sawano",
+      "kind": "bgm",
+      "source": "anime",
+      "youtubeId": "ML2B-2s7zP8",
+      "startSec": 0
+    },
+    {
+      "id": "solo-leveling-symphonic",
+      "manhwaId": 105398,
+      "songTitle": "SymphonicSuite-Lv.1",
+      "artist": "Hiroyuki Sawano",
+      "kind": "bgm",
+      "source": "anime",
+      "youtubeId": "68a2wAQK9CA",
+      "startSec": 0
+    },
+    {
+      "id": "tower-of-god-top",
+      "manhwaId": 85143,
+      "songTitle": "TOP",
+      "artist": "Stray Kids",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "Q8o_cn6UIZM",
+      "startSec": 0
+    },
+    {
+      "id": "tower-of-god-slump",
+      "manhwaId": 85143,
+      "songTitle": "SLUMP",
+      "artist": "Stray Kids",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "-hsWEvAgClk",
+      "startSec": 0
+    },
+    {
+      "id": "goh-contradiction",
+      "manhwaId": 85141,
+      "songTitle": "Contradiction",
+      "artist": "KSUKE feat. Tyler Carter",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "pkw_Hl3qXCs",
+      "startSec": 15
+    },
+    {
+      "id": "goh-contradiction-remix",
+      "manhwaId": 85141,
+      "songTitle": "Contradiction (DANGER×DEER Remix)",
+      "artist": "KSUKE feat. Tyler Carter",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "gZUa-Ycxm7U",
+      "startSec": 10
+    },
+    {
+      "id": "noblesse-breaking-dawn",
+      "manhwaId": 59983,
+      "songTitle": "BREAKING DAWN",
+      "artist": "Kim Jae-joong",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "Odst8rhgCWI",
+      "startSec": 0
+    },
+    {
+      "id": "lookism-like-that",
+      "manhwaId": 86848,
+      "songTitle": "Like That",
+      "artist": "ATEEZ",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "ZOLoVUWLMkQ",
+      "startSec": 0
+    },
+    {
+      "id": "lookism-like-that-audio",
+      "manhwaId": 86848,
+      "songTitle": "Like That (audio)",
+      "artist": "ATEEZ",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "D3JspJ8IVcg",
+      "startSec": 0
+    },
+    {
+      "id": "viral-hit-wild-boy",
+      "manhwaId": 121991,
+      "songTitle": "Wild Boy",
+      "artist": "MA55IVE THE RAMPAGE",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "38avSW77y9k",
+      "startSec": 0
+    },
+    {
+      "id": "returners-magic-get-back",
+      "manhwaId": 105393,
+      "songTitle": "GET BACK",
+      "artist": "FLOW",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "YD_2CLazNbQ",
+      "startSec": 0
+    },
+    {
+      "id": "returners-magic-get-back-mv",
+      "manhwaId": 105393,
+      "songTitle": "GET BACK (MV)",
+      "artist": "FLOW",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "Yq2br9syqgM",
+      "startSec": 20
+    },
+    {
+      "id": "doctor-elise-believer",
+      "manhwaId": 107918,
+      "songTitle": "believer",
+      "artist": "Yui Ishikawa",
+      "kind": "vocal",
+      "source": "anime",
+      "youtubeId": "Q30bO15GV4w",
+      "startSec": 0
+    },
+    {
+      "id": "business-proposal-love-maybe",
+      "manhwaId": 110095,
+      "songTitle": "Love, Maybe",
+      "artist": "MeloMance",
+      "kind": "vocal",
+      "source": "drama",
+      "youtubeId": "UoBsiQW23IY",
+      "startSec": 20
+    },
+    {
+      "id": "business-proposal-love-maybe-audio",
+      "manhwaId": 110095,
+      "songTitle": "Love, Maybe (audio)",
+      "artist": "MeloMance",
+      "kind": "vocal",
+      "source": "drama",
+      "youtubeId": "0e7uplpFJdE",
+      "startSec": 0
+    },
+    {
+      "id": "business-proposal-closer",
+      "manhwaId": 110095,
+      "songTitle": "Closer",
+      "artist": "Song Haye",
+      "kind": "vocal",
+      "source": "drama",
+      "youtubeId": "A8Izgl25RKo",
+      "startSec": 15
+    },
+    {
+      "id": "secretary-kim-love-virus",
+      "manhwaId": 103635,
+      "songTitle": "Love Virus",
+      "artist": "Kihyun & Seola",
+      "kind": "vocal",
+      "source": "drama",
+      "youtubeId": "Q9mGbEpB_sk",
+      "startSec": 25
+    },
+    {
+      "id": "true-beauty-love-so-fine",
+      "manhwaId": 103995,
+      "songTitle": "Love so Fine",
+      "artist": "Cha Eun-woo",
+      "kind": "vocal",
+      "source": "drama",
+      "youtubeId": "-PQGsN_Xx9o",
+      "startSec": 0
+    },
+    {
+      "id": "true-beauty-starlight",
+      "manhwaId": 103995,
+      "songTitle": "Starlight",
+      "artist": "CHA NI (SF9)",
+      "kind": "vocal",
+      "source": "drama",
+      "youtubeId": "-jUbPdPSqw0",
+      "startSec": 0
+    },
+    {
+      "id": "sweet-home-side-by-side",
+      "manhwaId": 100954,
+      "songTitle": "Side by Side",
+      "artist": "BewhY",
+      "kind": "vocal",
+      "source": "drama",
+      "youtubeId": "0VESPfo7tWg",
+      "startSec": 20
+    },
+    {
+      "id": "cheese-attraction",
+      "manhwaId": 67705,
+      "songTitle": "Attraction (이끌림)",
+      "artist": "Kim Go-eun",
+      "kind": "vocal",
+      "source": "drama",
+      "youtubeId": "zqr8YWqtdEU",
+      "startSec": 0
+    },
+    {
+      "id": "weak-hero-hero",
+      "manhwaId": 113488,
+      "songTitle": "Hero",
+      "artist": "Meego",
+      "kind": "vocal",
+      "source": "drama",
+      "youtubeId": "-wKs73hPhCE",
+      "startSec": 0
+    },
+    {
+      "id": "blossoming-blade-full-bloom",
+      "manhwaId": 132144,
+      "songTitle": "Full Bloom (만개화)",
+      "artist": "Ahn Ye-eun",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "-m_Kow1fDMo",
+      "startSec": 30
+    },
+    {
+      "id": "romance-101-something-between-us",
+      "manhwaId": 104533,
+      "songTitle": "something between us",
+      "artist": "george",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "pRmsP7A-DtY",
+      "startSec": 0
+    },
+    {
+      "id": "your-throne-two-faced",
+      "manhwaId": 114542,
+      "songTitle": "Two Faced",
+      "artist": "LUCY",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "wt1Q7uGajJ0",
+      "startSec": 0
+    },
+    {
+      "id": "remarried-empress-i-rise",
+      "manhwaId": 113055,
+      "songTitle": "I Rise",
+      "artist": "BELLE",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "TWZ5HjyKFig",
+      "startSec": 0
+    },
+    {
+      "id": "nano-machine-moonlit-nights",
+      "manhwaId": 120980,
+      "songTitle": "Moonlit Nights",
+      "artist": "YOARI",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "kDcRy6L7-yk",
+      "startSec": 15
+    },
+    {
+      "id": "nano-machine-under-the-moon",
+      "manhwaId": 120980,
+      "songTitle": "Under the moon",
+      "artist": "Shin Yong Jae",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "hxTN0RMiblw",
+      "startSec": 15
+    },
+    {
+      "id": "under-oak-nobody-else",
+      "manhwaId": 123739,
+      "songTitle": "Nobody Else",
+      "artist": "Ailee",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "ebPV4fYVFVk",
+      "startSec": 20
+    },
+    {
+      "id": "under-oak-dont-cry",
+      "manhwaId": 123739,
+      "songTitle": "Don't Cry, My Love",
+      "artist": "Cha Eun-woo",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "J4Goax1_kbE",
+      "startSec": 20
+    },
+    {
+      "id": "operation-true-love-love-me-back",
+      "manhwaId": 149483,
+      "songTitle": "Love Me Back",
+      "artist": "fromis_9",
+      "kind": "vocal",
+      "source": "webtoon_ost",
+      "youtubeId": "EE8655GDT9k",
+      "startSec": 0
+    },
+    {
+      "id": "hclw-opening-title",
+      "manhwaId": 101134,
+      "songTitle": "Opening Title",
+      "artist": "Hardcore Leveling Warrior",
+      "kind": "bgm",
+      "source": "anime",
+      "youtubeId": "kitRlU_Iauc",
+      "startSec": 0
+    },
+    {
+      "id": "hclw-battle",
+      "manhwaId": 101134,
+      "songTitle": "Battle / In-Game",
+      "artist": "Hardcore Leveling Warrior",
+      "kind": "bgm",
+      "source": "anime",
+      "youtubeId": "t3-YgzpkzRw",
+      "startSec": 0
+    },
+    {
+      "id": "orv-ch220-bgm",
+      "manhwaId": 119257,
+      "songTitle": "Chapter 220 BGM",
+      "artist": "Omniscient Reader",
+      "kind": "bgm",
+      "source": "webtoon_ost",
+      "youtubeId": "WHz-58enkJI",
+      "startSec": 0
+    },
+    {
+      "id": "eleceed-theme",
+      "manhwaId": 106929,
+      "songTitle": "Theme Song",
+      "artist": "Eleceed",
+      "kind": "bgm",
+      "source": "webtoon_ost",
+      "youtubeId": "suQPTWtTtnk",
+      "startSec": 0
+    }
+  ]
+}

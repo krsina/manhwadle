@@ -1,3 +1,5 @@
+import { RevealMoreButton } from './RevealMoreButton'
+
 interface SummaryClueProps {
   /** Blurbs unlocked so far, in order */
   blurbs: string[]
@@ -6,6 +8,8 @@ interface SummaryClueProps {
   finished: boolean
   /** t0 only — no progressive unlock */
   hardMode?: boolean
+  canRevealMore?: boolean
+  onRevealMore?: () => void
 }
 
 export function SummaryClue({
@@ -13,6 +17,8 @@ export function SummaryClue({
   totalBlurbs,
   finished,
   hardMode = false,
+  canRevealMore = false,
+  onRevealMore,
 }: SummaryClueProps) {
   const unlocked = blurbs.length
   const label = hardMode
@@ -26,11 +32,18 @@ export function SummaryClue({
       <div className="clue-header">
         <p className="clue-label">{label}</p>
         {hardMode ? (
-          <p className="clue-hint">Opening clue only — nothing else unlocks</p>
+          <p className="clue-hint">Opening clue only. Nothing else unlocks</p>
         ) : (
-          !finished &&
-          unlocked < totalBlurbs && (
-            <p className="clue-hint">Wrong guesses unlock the next blurb</p>
+          !finished && (
+            <div className="clue-hint-row">
+              <p className="clue-hint">Wrong guesses unlock the next blurb</p>
+              {onRevealMore && (
+                <RevealMoreButton
+                  onClick={onRevealMore}
+                  disabled={!canRevealMore}
+                />
+              )}
+            </div>
           )
         )}
       </div>

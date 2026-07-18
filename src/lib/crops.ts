@@ -116,33 +116,55 @@ export function findCharacterCrop(
 }
 
 /** Characters opted into Character mode that have an image. */
-export function guessableCharacters(manhwa: Manhwa): ManhwaCharacter[] {
-  return (manhwa.characters || []).filter(
-    (character) =>
-      isCharacterEnabledForGuess(character) && Boolean(characterImageUrl(character)),
-  )
+export function guessableCharacters(
+  manhwa: Manhwa,
+  { mainOnly = false }: { mainOnly?: boolean } = {},
+): ManhwaCharacter[] {
+  return (manhwa.characters || []).filter((character) => {
+    if (!isCharacterEnabledForGuess(character)) return false
+    if (!characterImageUrl(character)) return false
+    if (mainOnly && character.role !== 'MAIN') return false
+    return true
+  })
 }
 
-export function manhwaHasGuessableCharacter(manhwa: Manhwa): boolean {
-  return guessableCharacters(manhwa).length > 0
+export function manhwaHasGuessableCharacter(
+  manhwa: Manhwa,
+  options?: { mainOnly?: boolean },
+): boolean {
+  return guessableCharacters(manhwa, options).length > 0
 }
 
 /**
  * Pick today's character still for a manhwa from enabled cast members.
  * Prefers a saved per-character crop when present.
+ *
+ * `mainOnly` limits the pool to AniList MAIN roles (normal mode).
+ * `preferredCharacterId` (e.g. remote daily) wins when that cast member is eligible.
  */
 export function resolveDailyCharacterCrop(
   manhwa: Manhwa,
   dateKey: string,
   seedPrefix: string,
   cropsForManhwa: CharacterCropEntry[] = [],
+  {
+    mainOnly = false,
+    preferredCharacterId = null,
+  }: {
+    mainOnly?: boolean
+    preferredCharacterId?: number | null
+  } = {},
 ): CharacterCropEntry | null {
-  const eligible = guessableCharacters(manhwa)
+  const eligible = guessableCharacters(manhwa, { mainOnly })
 
   if (eligible.length > 0) {
+    const preferred =
+      preferredCharacterId != null
+        ? eligible.find((character) => character.id === preferredCharacterId)
+        : undefined
     const index =
       hashString(`${seedPrefix}-char-${dateKey}-${manhwa.id}`) % eligible.length
-    const character = eligible[index]!
+    const character = preferred ?? eligible[index]!
     const saved =
       findCharacterCrop(cropsForManhwa, character.id) ||
       cropsForManhwa.find((c) => !c.characterId) ||
@@ -161,6 +183,9 @@ export function resolveDailyCharacterCrop(
       focusY: saved ? clampFocus(saved.focusY, 28) : 28,
     }
   }
+
+  // Normal mode (main-only) should not fall back to a supporting-only crop file.
+  if (mainOnly) return null
 
   const fallback = cropsForManhwa.find((c) => c.imageUrl?.trim())
   return fallback || null

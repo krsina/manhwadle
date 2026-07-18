@@ -15,6 +15,8 @@ export interface ModeStats {
   bonusAttempts?: number
   bonusCorrect?: number
   doubleSolves?: number
+  /** Lifetime free hint reveals (Reveal more). */
+  hintsUsed?: number
   /** UTC day the bonus was last recorded for this lane (idempotency) */
   lastBonusDateKey?: string | null
 }
@@ -42,6 +44,7 @@ function emptyModeStats(maxGuesses: number): ModeStats {
     bonusAttempts: 0,
     bonusCorrect: 0,
     doubleSolves: 0,
+    hintsUsed: 0,
     lastBonusDateKey: null,
   }
 }
@@ -124,6 +127,7 @@ export function combineModeStats(
       (combined.bonusCorrect ?? 0) + (stats.bonusCorrect ?? 0)
     combined.doubleSolves =
       (combined.doubleSolves ?? 0) + (stats.doubleSolves ?? 0)
+    combined.hintsUsed = (combined.hintsUsed ?? 0) + (stats.hintsUsed ?? 0)
 
     for (let i = 0; i < maxGuesses; i++) {
       combined.guessDistribution[i] += stats.guessDistribution[i] ?? 0
@@ -175,6 +179,8 @@ export interface DailyResultInput {
   maxGuesses: number
   won: boolean
   guessCount: number
+  /** Free hint reveals used in the finished round */
+  hintsUsed?: number
 }
 
 /** Record a finished daily round. Idempotent per dateKey (won/lost once). */
@@ -189,6 +195,7 @@ export function recordDailyResult(input: DailyResultInput): ModeStats {
   }
 
   stats.played += 1
+  stats.hintsUsed = (stats.hintsUsed ?? 0) + Math.max(0, input.hintsUsed ?? 0)
 
   if (input.won) {
     stats.wins += 1

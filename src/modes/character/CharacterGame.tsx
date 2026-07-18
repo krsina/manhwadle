@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../components/AuthProvider'
 import { CharacterClue } from '../../components/CharacterClue'
 import { FeedbackGrid } from '../../components/FeedbackGrid'
+import { FilterToggle } from '../../components/FilterToggle'
 import { GuessInput } from '../../components/GuessInput'
+import { HardModeToggle } from '../../components/HardModeToggle'
 import { KnownInfoPanel } from '../../components/KnownInfoPanel'
 import { ResultModal } from '../../components/ResultModal'
+import { SurrenderModal } from '../../components/SurrenderModal'
 import { APP_NAME } from '../../brand'
 import characterCropData from '../../data/characterCrop.json'
 import type { DayState, GuessFeedback, Manhwa } from '../../lib/anilist-types'
@@ -25,6 +28,11 @@ import { hasSeenHowTo } from '../../lib/howto'
 import { buildKnownInfo } from '../../lib/knowledge'
 import { randomPlayableIndex } from '../../lib/random'
 import { findById } from '../../lib/search'
+import {
+  advanceClue,
+  canAdvanceClue,
+  clueProgress,
+} from '../../lib/clueProgress'
 import { applyGuess } from '../../lib/guessLoop'
 import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
 import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
@@ -36,6 +44,26 @@ import type { GameModeProps } from '../types'
 import { characterModeMeta } from './config'
 
 const cropsByManhwa = groupCropsByManhwa(characterCropData as CharacterCropFile)
+
+const HARD_MODE_STORAGE_KEY = 'manhwadle:character:hard-mode'
+
+function loadHardModePreference(): boolean {
+  if (typeof localStorage === 'undefined') return false
+  try {
+    return localStorage.getItem(HARD_MODE_STORAGE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function saveHardModePreference(enabled: boolean) {
+  if (typeof localStorage === 'undefined') return
+  try {
+    localStorage.setItem(HARD_MODE_STORAGE_KEY, enabled ? '1' : '0')
+  } catch {
+    /* ignore */
+  }
+}
 
 function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): GuessFeedback[] {
   const labels = state.guessLabels ?? []
@@ -62,24 +90,34 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
   const tasteSeed = withTastePrefix(seedPrefix, taste)
   const tasteStorage = withTastePrefix(storagePrefix, taste)
 
+  const [hardMode, setHardMode] = useState(() => {
+    const saved = loadDayState(dateKey, tasteStorage)
+    if (saved?.hardMode != null) return saved.hardMode
+    if (saved && saved.guessIds.length > 0) return false
+    return loadHardModePreference()
+  })
+
+  /** Hard mode is forced B&W; color can be unlocked on the last guess. */
+  const [colorEnabled, setColorEnabled] = useState(false)
+
   const playablePool = useMemo(
-    () =>
-      pool.filter(
-        (m) => manhwaHasGuessableCharacter(m) || cropsByManhwa.has(m.id),
-      ),
+    () => pool.filter((m) => manhwaHasGuessableCharacter(m, { mainOnly: true })),
     [pool],
   )
 
   const hasCrops = playablePool.length > 0
+  /** Same daily title for normal/hard; hard only changes which cast member is shown. */
+  const charSeed = hardMode ? `${tasteSeed}:hard` : tasteSeed
 
-  const { answer: dailyAnswer } = useDailyPuzzleAnswer(
-    'character',
-    taste,
-    playablePool,
-    pool,
-    tasteSeed,
-    dateKey,
-  )
+  const { answer: dailyAnswer, characterId: remoteCharacterId } =
+    useDailyPuzzleAnswer(
+      'character',
+      taste,
+      playablePool,
+      pool,
+      tasteSeed,
+      dateKey,
+    )
 
   /** When set, play a random practice title instead of today's answer (not persisted). */
   const [practiceIndex, setPracticeIndex] = useState<number | null>(null)
@@ -92,23 +130,28 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
       resolveDailyCharacterCrop(
         answer,
         isPractice ? `${dateKey}:practice:${answer.id}` : dateKey,
-        tasteSeed,
+        charSeed,
         cropsByManhwa.get(answer.id) ?? [],
+        {
+          mainOnly: !hardMode,
+          preferredCharacterId: isPractice ? null : remoteCharacterId,
+        },
       ),
-    [answer, dateKey, tasteSeed, isPractice],
+    [answer, dateKey, charSeed, isPractice, hardMode, remoteCharacterId],
   )
 
   const revealCharacter = useMemo(() => {
     if (!crop?.characterId) return null
     const found =
-      (answer.characters || []).find((character) => character.id === crop.characterId) || null
+      (answer.characters || []).find((character) => character.id === crop.characterId) ||
+      null
     if (!found) return null
     const cropName = crop.characterName?.trim()
     if (!cropName) return found
     const known = new Set(
       [found.name.full, found.name.native, ...(found.name.alternative || [])]
         .filter(Boolean)
-        .map((name) => name!.trim().toLowerCase()),
+        .map((n) => n!.trim().toLowerCase()),
     )
     if (known.has(cropName.toLowerCase())) return found
     return {
@@ -122,26 +165,16 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
 
   const [dayState, setDayState] = useState<DayState>(() => {
     if (!hasCrops) {
-      return createInitialState(dateKey, dailyAnswer.id)
+      return createInitialState(dateKey, dailyAnswer.id, {
+        hardMode: loadHardModePreference(),
+      })
     }
     const saved = loadDayState(dateKey, tasteStorage)
     if (saved && saved.answerId === dailyAnswer.id) return saved
-    return createInitialState(dateKey, dailyAnswer.id)
-  })
-
-  useEffect(() => {
-    if (!hasCrops || isPractice) return
-    const saved = loadDayState(dateKey, tasteStorage)
-    if (saved && saved.answerId === dailyAnswer.id) {
-      setDayState(saved)
-      return
-    }
-    setDayState((prev) => {
-      if (prev.answerId === dailyAnswer.id) return prev
-      if (prev.guessIds.length > 0) return prev
-      return createInitialState(dateKey, dailyAnswer.id)
+    return createInitialState(dateKey, dailyAnswer.id, {
+      hardMode: loadHardModePreference(),
     })
-  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasCrops])
+  })
 
   const [showResult, setShowResult] = useState(
     () =>
@@ -149,6 +182,48 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
       (dayState.status === 'won' || dayState.status === 'lost') &&
       hasSeenHowTo(id),
   )
+  const [showSurrender, setShowSurrender] = useState(false)
+
+  useEffect(() => {
+    if (!hasCrops || isPractice) return
+    const saved = loadDayState(dateKey, tasteStorage)
+    if (saved && saved.answerId === dailyAnswer.id) {
+      setDayState(saved)
+      if (saved.hardMode != null) setHardMode(saved.hardMode)
+      else if (saved.guessIds.length > 0) setHardMode(false)
+      else setHardMode(loadHardModePreference())
+      setShowResult(
+        (saved.status === 'won' || saved.status === 'lost') && hasSeenHowTo(id),
+      )
+      return
+    }
+    const preferredHard = loadHardModePreference()
+    setHardMode(preferredHard)
+    setDayState(
+      createInitialState(dateKey, dailyAnswer.id, { hardMode: preferredHard }),
+    )
+    setShowResult(false)
+    setShowSurrender(false)
+  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasCrops, id])
+
+  const hardModeLocked = dayState.guessIds.length > 0
+
+  function handleHardModeChange(next: boolean) {
+    if (hardModeLocked) return
+    saveHardModePreference(next)
+    setHardMode(next)
+    setColorEnabled(false)
+    setPracticeIndex(null)
+    setDayState((prev) => {
+      const updated = {
+        ...prev,
+        answerId: dailyAnswer.id,
+        hardMode: next,
+      }
+      if (!isPractice) saveDayState(updated, tasteStorage)
+      return updated
+    })
+  }
 
   const feedbackRows = useMemo(
     () => (hasCrops ? buildFeedbackRows(dayState, answer, guessPool) : []),
@@ -159,11 +234,15 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
   const excludedIds = useMemo(() => new Set(dayState.guessIds), [dayState.guessIds])
   const remaining = maxGuesses - dayState.guessIds.length
   const finished = dayState.status !== 'playing'
+  const surrendered =
+    dayState.status === 'lost' && dayState.guessIds.length < maxGuesses
+  const canUnlockColor = hardMode && !finished && remaining === 1
+  const colorToggleLocked = hardMode && !canUnlockColor
+  const grayscale = hardMode && !colorEnabled
 
-  const failedGuesses =
-    dayState.status === 'won'
-      ? Math.max(0, dayState.guessIds.length - 1)
-      : dayState.guessIds.length
+  const progress = clueProgress(dayState)
+  const maxClueStep = Math.max(0, maxGuesses - 1)
+  const canRevealMore = canAdvanceClue(dayState, maxClueStep)
 
   const firstTryWin =
     dayState.status === 'won' && dayState.guessIds.length === 1
@@ -189,8 +268,59 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
         dayState.bonusNameGuess != null ? Boolean(dayState.bonusNameCorrect) : null,
       doubleSolve,
       archive: isArchive,
+      hintsUsed: dayState.hintsUsed ?? 0,
+      hardMode,
     })
-  }, [shareLines, dateKey, dayState, maxGuesses, name, taste, doubleSolve, isArchive])
+  }, [
+    shareLines,
+    dateKey,
+    dayState,
+    maxGuesses,
+    name,
+    taste,
+    doubleSolve,
+    isArchive,
+    hardMode,
+  ])
+
+  function persistDay(next: DayState) {
+    setDayState(next)
+    if (!isPractice) {
+      saveDayState(next, tasteStorage)
+      if (!isArchive) sync.progress('character', taste, next)
+    }
+  }
+
+  function handleRevealMore() {
+    const next = advanceClue(dayState, maxClueStep)
+    if (!next) return
+    persistDay(next)
+  }
+
+  function handleSurrender() {
+    if (!hasCrops || dayState.status !== 'playing') return
+    setShowSurrender(false)
+    const next: DayState = {
+      ...dayState,
+      answerId: answer.id,
+      status: 'lost',
+      hardMode,
+    }
+    persistDay(next)
+    if (!isPractice && !isArchive) {
+      recordDailyResult({
+        modeId: 'character',
+        taste,
+        dateKey,
+        maxGuesses,
+        won: false,
+        guessCount: dayState.guessIds.length,
+        hintsUsed: next.hintsUsed ?? 0,
+      })
+      sync.stats('character', taste)
+    }
+    setShowResult(true)
+  }
 
   function handleGuess(manhwa: Manhwa, matchedLabel?: string) {
     if (!hasCrops) return
@@ -207,28 +337,23 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
       guessIds: transition.guessIds,
       guessLabels,
       status: transition.status,
+      hardMode,
     }
     const won = transition.status === 'won'
     const lost = transition.status === 'lost'
 
-    setDayState(next)
-    // Practice rounds stay in-memory so today's daily progress is preserved.
-    if (!isPractice) {
-      saveDayState(next, tasteStorage)
-      if (!isArchive) {
-        sync.progress('character', taste, next)
-        if (won || lost) {
-          recordDailyResult({
-            modeId: 'character',
-            taste,
-            dateKey,
-            maxGuesses,
-            won,
-            guessCount: transition.guessIds.length,
-          })
-          sync.stats('character', taste)
-        }
-      }
+    persistDay(next)
+    if (!isPractice && !isArchive && (won || lost)) {
+      recordDailyResult({
+        modeId: 'character',
+        taste,
+        dateKey,
+        maxGuesses,
+        won,
+        guessCount: transition.guessIds.length,
+        hintsUsed: next.hintsUsed ?? 0,
+      })
+      sync.stats('character', taste)
     }
     if (won || lost) setShowResult(true)
   }
@@ -238,15 +363,17 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
     const nextIndex = randomPlayableIndex(playablePool, answer.id)
     const nextAnswer = playablePool[nextIndex]!
     setPracticeIndex(nextIndex)
-    setDayState(createInitialState(dateKey, nextAnswer.id))
+    setDayState(createInitialState(dateKey, nextAnswer.id, { hardMode }))
+    setColorEnabled(false)
     setShowResult(false)
+    setShowSurrender(false)
   }
 
   function handleBonusNameAnswer(result: { guess: string; correct: boolean }) {
     if (dayState.bonusNameGuess != null) return
 
-    const firstTryWin = dayState.status === 'won' && dayState.guessIds.length === 1
-    const isDoubleSolve = result.correct && firstTryWin
+    const firstTry = dayState.status === 'won' && dayState.guessIds.length === 1
+    const isDoubleSolve = result.correct && firstTry
     const next: DayState = {
       ...dayState,
       bonusNameGuess: result.guess,
@@ -313,12 +440,48 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
       ) : (
         <div className="shell">
           <section className="play-top">
-            <CharacterClue
-              crop={crop}
-              failedGuesses={failedGuesses}
-              finished={finished}
-              maxGuesses={maxGuesses}
-            />
+            <div className="clue-stack clue-stack-overlap">
+              <div className="clue-toolbar">
+                <button
+                  type="button"
+                  className="surrender-toggle"
+                  disabled={finished}
+                  onClick={() => {
+                    if (finished) return
+                    setShowSurrender(true)
+                  }}
+                >
+                  I give up
+                </button>
+                {hardMode && (
+                  <FilterToggle
+                    enabled={colorEnabled}
+                    disabled={colorToggleLocked}
+                    onChange={setColorEnabled}
+                    label="Color"
+                    titleOn="Color on"
+                    titleOff="Show color"
+                    titleLocked="Unlocks on the last guess"
+                  />
+                )}
+                <HardModeToggle
+                  enabled={hardMode}
+                  disabled={hardModeLocked}
+                  onChange={handleHardModeChange}
+                  titleOn="Black and white"
+                  titleOff="Black and white"
+                />
+              </div>
+              <CharacterClue
+                crop={crop}
+                failedGuesses={progress}
+                finished={finished}
+                maxGuesses={maxGuesses}
+                canRevealMore={canRevealMore}
+                onRevealMore={handleRevealMore}
+                grayscale={grayscale}
+              />
+            </div>
             {(import.meta.env.DEV || (isArchive && !isPractice)) && (
               <div className="character-test-bar">
                 {import.meta.env.DEV && (
@@ -371,32 +534,40 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
       )}
 
       {hasCrops && crop && (
-        <ResultModal
-          open={showResult}
-          won={dayState.status === 'won'}
-          answer={answer}
-          guessCount={dayState.guessIds.length}
-          maxGuesses={maxGuesses}
-          shareText={shareText}
-          shareLines={shareLines}
-          modeId="character"
-          taste={taste}
-          onClose={() => setShowResult(false)}
-          revealCharacter={revealCharacter}
-          characterImageUrlOverride={crop.imageUrl}
-          bonusCharacter={dayState.status === 'won' ? revealCharacter : null}
-          characterGuessPool={guessPool}
-          bonusNameResult={
-            dayState.bonusNameGuess != null
-              ? {
-                  guess: dayState.bonusNameGuess,
-                  correct: Boolean(dayState.bonusNameCorrect),
-                }
-              : null
-          }
-          onBonusNameAnswer={handleBonusNameAnswer}
-          isArchive={isArchive}
-        />
+        <>
+          <SurrenderModal
+            open={showSurrender}
+            onCancel={() => setShowSurrender(false)}
+            onConfirm={handleSurrender}
+          />
+          <ResultModal
+            open={showResult}
+            won={dayState.status === 'won'}
+            answer={answer}
+            guessCount={dayState.guessIds.length}
+            maxGuesses={maxGuesses}
+            hintsUsed={dayState.hintsUsed ?? 0}
+            hardMode={hardMode}
+            shareText={shareText}
+            shareLines={shareLines}
+            onClose={() => setShowResult(false)}
+            revealCharacter={revealCharacter}
+            characterImageUrlOverride={crop.imageUrl}
+            bonusCharacter={dayState.status === 'won' ? revealCharacter : null}
+            characterGuessPool={guessPool}
+            bonusNameResult={
+              dayState.bonusNameGuess != null
+                ? {
+                    guess: dayState.bonusNameGuess,
+                    correct: Boolean(dayState.bonusNameCorrect),
+                  }
+                : null
+            }
+            onBonusNameAnswer={handleBonusNameAnswer}
+            isArchive={isArchive}
+            surrendered={surrendered}
+          />
+        </>
       )}
     </>
   )

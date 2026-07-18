@@ -12,6 +12,7 @@ function makeStats(partial: Partial<ModeStats>): ModeStats {
     bonusAttempts: 0,
     bonusCorrect: 0,
     doubleSolves: 0,
+    hintsUsed: 0,
     lastBonusDateKey: null,
     ...partial,
   }
@@ -26,6 +27,7 @@ describe('combineModeStats', () => {
         currentStreak: 2,
         maxStreak: 3,
         guessDistribution: [1, 0, 2, 0, 0, 0],
+        hintsUsed: 3,
       }),
       makeStats({
         played: 2,
@@ -36,6 +38,7 @@ describe('combineModeStats', () => {
         bonusAttempts: 2,
         bonusCorrect: 1,
         doubleSolves: 1,
+        hintsUsed: 1,
       }),
       makeStats({
         played: 1,
@@ -54,5 +57,6 @@ describe('combineModeStats', () => {
     expect(combined.bonusAttempts).toBe(2)
     expect(combined.bonusCorrect).toBe(1)
     expect(combined.doubleSolves).toBe(1)
+    expect(combined.hintsUsed).toBe(4)
   })
 })

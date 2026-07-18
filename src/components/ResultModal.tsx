@@ -3,19 +3,13 @@ import type { Manhwa, ManhwaCharacter } from '../lib/anilist-types'
 import { characterImageUrl } from '../lib/anilist-types'
 import { characterDisplayName } from '../lib/characterNames'
 import { displayTitle, formatCountdown, msUntilNextUtcMidnight } from '../lib/daily'
-import type { ReaderTaste } from '../lib/readerTaste'
-import {
-  loadResultModalDemoFlags,
-  subscribeResultModalDemoFlags,
-} from '../lib/resultModalDemo'
+import { formatGuessScore } from '../lib/compare'
 import { collectCharacters } from '../lib/search'
 import { nameOrderVariants, namesMatch } from '../lib/nameMatch'
-import { getModeStats, winPercent, type StatsModeId } from '../lib/stats'
 import { BonusCelebrate } from './BonusCelebrate'
 import { CharacterGuessInput } from './CharacterGuessInput'
 import { ConfettiBurst } from './ConfettiBurst'
 import { ElectricBorder } from './ElectricBorder'
-import { ResultModalDevPanel } from './ResultModalDevPanel'
 
 interface BonusNameResult {
   guess: string
@@ -30,13 +24,13 @@ interface ResultModalProps {
   answer: Manhwa
   guessCount: number
   maxGuesses: number
+  /** Free hint reveals used this round */
+  hintsUsed?: number
+  hardMode?: boolean
   shareText: string
   onClose: () => void
-  /** Emoji rows for the share grid (DEV demo toggle) */
+  /** Emoji rows for the share mini-grid */
   shareLines?: string[]
-  /** Mode + taste for streak strip (DEV demo toggle) */
-  modeId?: StatsModeId
-  taste?: ReaderTaste
   /** Character-mode: depicted cast member to reveal (win or loss) */
   revealCharacter?: ManhwaCharacter | null
   /** Prefer crop still over AniList portrait when set */
@@ -57,6 +51,8 @@ interface ResultModalProps {
   onBonusNameAnswer?: (result: BonusNameResult) => void
   /** Historical puzzle — hide next-daily countdown */
   isArchive?: boolean
+  /** Lost by surrender rather than using all guesses */
+  surrendered?: boolean
 }
 
 function characterNameList(character: ManhwaCharacter): string[] {
@@ -94,11 +90,11 @@ export function ResultModal({
   answer,
   guessCount,
   maxGuesses,
+  hintsUsed = 0,
+  hardMode = false,
   shareText,
   onClose,
   shareLines = [],
-  modeId,
-  taste,
   revealCharacter = null,
   characterImageUrlOverride = null,
   bonusCharacter = null,
@@ -108,12 +104,19 @@ export function ResultModal({
   bonusNameResult = null,
   onBonusNameAnswer,
   isArchive = false,
+  surrendered = false,
 }: ResultModalProps) {
   const [localBonus, setLocalBonus] = useState<BonusNameResult | null>(null)
   const [countdownMs, setCountdownMs] = useState(() => msUntilNextUtcMidnight())
-  const [demoFlags, setDemoFlags] = useState(loadResultModalDemoFlags)
   const [shareFeedback, setShareFeedback] = useState<ShareFeedback>('idle')
-  const isDev = import.meta.env.DEV
+
+  const scoreLabel = formatGuessScore({
+    won,
+    guessCount,
+    maxGuesses,
+    hardMode,
+    hintsUsed,
+  })
 
   const acceptedBonusCharacters = useMemo(() => {
     if (bonusAcceptCharacters && bonusAcceptCharacters.length > 0) {
@@ -166,11 +169,6 @@ export function ResultModal({
   }, [open])
 
   useEffect(() => {
-    if (!isDev) return
-    return subscribeResultModalDemoFlags(() => setDemoFlags(loadResultModalDemoFlags()))
-  }, [isDev])
-
-  useEffect(() => {
     if (!open || isArchive) return
     setCountdownMs(msUntilNextUtcMidnight())
     const id = window.setInterval(() => {
@@ -185,48 +183,54 @@ export function ResultModal({
     return () => window.clearTimeout(id)
   }, [shareFeedback])
 
-  const showEmojiGrid = isDev && demoFlags.emojiGrid && shareLines.length > 0
-  const showStreakStrip =
-    isDev && demoFlags.streakStrip && !isArchive && Boolean(modeId) && Boolean(taste)
-  const showSharePolish = isDev && demoFlags.sharePolish
-  const showShareCluster = showSharePolish && demoFlags.shareCluster
-
-  const streakStats = useMemo(() => {
-    if (!showStreakStrip || !modeId || !taste) return null
-    return getModeStats(modeId, taste, maxGuesses)
-  }, [showStreakStrip, modeId, taste, maxGuesses])
-
   if (!open) return null
 
   async function handleShare() {
-    const usePolish = showSharePolish
-    try {
-      if (navigator.share) {
-        await navigator.share({ text: shareText })
-        if (usePolish) setShareFeedback('shared')
-        return
-      }
-      await navigator.clipboard.writeText(shareText)
-      if (usePolish) setShareFeedback('copied')
-      else alert('Result copied to clipboard')
-    } catch {
+    async function copyToClipboard(): Promise<boolean> {
       try {
         await navigator.clipboard.writeText(shareText)
-        if (usePolish) setShareFeedback('copied')
-        else alert('Result copied to clipboard')
+        return true
       } catch {
-        if (usePolish) setShareFeedback('copied')
-        else alert(shareText)
+        try {
+          const ta = document.createElement('textarea')
+          ta.value = shareText
+          ta.setAttribute('readonly', '')
+          ta.style.position = 'fixed'
+          ta.style.left = '-9999px'
+          document.body.appendChild(ta)
+          ta.select()
+          const ok = document.execCommand('copy')
+          document.body.removeChild(ta)
+          return ok
+        } catch {
+          return false
+        }
       }
     }
+
+    // Wordle-style: always copy. Don't prefer navigator.share — on desktop it
+    // opens the OS sheet and often never puts text on the clipboard.
+    const copied = await copyToClipboard()
+    if (copied) {
+      setShareFeedback('copied')
+      return
+    }
+
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ text: shareText })
+        setShareFeedback('shared')
+        return
+      } catch {
+        /* user cancelled or share failed */
+      }
+    }
+
+    setShareFeedback('copied')
   }
 
   const toastLabel =
     shareFeedback === 'shared' ? 'Shared' : 'Copied results to clipboard'
-
-  /** Wordle-style footer: countdown + compact share live together */
-  const useWordleShareFooter = showSharePolish
-  const showStandaloneCountdown = !useWordleShareFooter
 
   function handleBonusCharacter(character: ManhwaCharacter, matchedLabel?: string) {
     if (!bonusCharacter || bonusResult || acceptedBonusCharacters.length === 0) return
@@ -245,10 +249,7 @@ export function ResultModal({
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       {won && <ConfettiBurst active firstTry={firstTry} />}
       {doubleSolve && <BonusCelebrate active />}
-      <div
-        className={`result-shell${isDev ? ' has-dev-panel' : ''}`}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="result-shell" onClick={(e) => e.stopPropagation()}>
         <div
           className={`modal${firstTry ? ' is-first-try' : ''}${showBonus ? ' has-bonus' : ''}${doubleSolve ? ' is-double-solve' : ''}${showCharacter ? ' is-character-reveal' : ''}`}
           role="dialog"
@@ -268,9 +269,13 @@ export function ResultModal({
               ? 'First try!'
               : won
                 ? 'Solved'
-                : isArchive
-                  ? 'Out of guesses'
-                  : 'Out of guesses, try again tomorrow!'}
+                : surrendered
+                  ? isArchive
+                    ? 'Gave up'
+                    : 'Gave up — try again tomorrow!'
+                  : isArchive
+                    ? 'Out of guesses'
+                    : 'Out of guesses, try again tomorrow!'}
           </p>
           <h2 id="result-title" className="modal-title">
             {titleHref ? (
@@ -291,48 +296,9 @@ export function ResultModal({
               titleText
             )}
           </h2>
-          {(firstTry || !useWordleShareFooter) && (
+          {firstTry && (
             <p className="modal-score">
-              {!useWordleShareFooter &&
-                (won ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`)}
-              {firstTry && (
-                <span className="modal-first-try-note">Nailed it on the opening guess</span>
-              )}
-            </p>
-          )}
-
-          {showEmojiGrid && (
-            <pre className="modal-share-grid" aria-label="Guess grid">
-              {shareLines.join('\n')}
-            </pre>
-          )}
-
-          {showStreakStrip && streakStats && (
-            <div className="modal-stats-strip" role="list" aria-label="Statistics">
-              <div className="modal-stats-cell" role="listitem">
-                <span className="modal-stats-value">{streakStats.played}</span>
-                <span className="modal-stats-label">Played</span>
-              </div>
-              <div className="modal-stats-cell" role="listitem">
-                <span className="modal-stats-value">{winPercent(streakStats)}</span>
-                <span className="modal-stats-label">Win %</span>
-              </div>
-              <div className="modal-stats-cell" role="listitem">
-                <span className="modal-stats-value">{streakStats.currentStreak}</span>
-                <span className="modal-stats-label">Streak</span>
-              </div>
-              <div className="modal-stats-cell" role="listitem">
-                <span className="modal-stats-value">{streakStats.maxStreak}</span>
-                <span className="modal-stats-label">Max</span>
-              </div>
-            </div>
-          )}
-
-          {showStandaloneCountdown && (
-            <p className="modal-countdown" aria-live="polite">
-              {isArchive
-                ? 'Historical puzzle · stats don’t count'
-                : `Next puzzle in ${formatCountdown(countdownMs)}`}
+              <span className="modal-first-try-note">Nailed it on the opening guess</span>
             </p>
           )}
 
@@ -423,65 +389,38 @@ export function ResultModal({
             </section>
           )}
 
-          {useWordleShareFooter ? (
-            <div className="modal-share-footer">
-              <div className="modal-share-countdown">
-                <span className="modal-share-countdown-label">
-                  {isArchive ? 'Archive' : 'Next puzzle'}
+          <div className="modal-share-footer">
+            <div className="modal-share-countdown">
+              <span className="modal-share-countdown-label">
+                {isArchive ? 'Archive' : 'Next puzzle'}
+              </span>
+              <span className="modal-share-countdown-value" aria-live="polite">
+                {isArchive ? 'Stats don’t count' : formatCountdown(countdownMs)}
+              </span>
+            </div>
+            <div className="modal-share-aside is-cluster">
+              <div className="modal-share-result">
+                <span
+                  className={`modal-share-score is-${won ? 'win' : 'loss'}`}
+                  aria-label="Score"
+                >
+                  {scoreLabel}
                 </span>
-                <span className="modal-share-countdown-value" aria-live="polite">
-                  {isArchive
-                    ? 'Stats don’t count'
-                    : formatCountdown(countdownMs)}
-                </span>
-              </div>
-              <div
-                className={`modal-share-aside${showShareCluster ? ' is-cluster' : ''}`}
-              >
-                {showShareCluster ? (
-                  <div className="modal-share-result">
-                    <span
-                      className={`modal-share-score is-${won ? 'win' : 'loss'}`}
-                      aria-label="Score"
-                    >
-                      {won ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`}
-                    </span>
-                    {shareLines.length > 0 && (
-                      <button
-                        type="button"
-                        className="modal-share-mini-grid is-button"
-                        style={{ ['--rows' as string]: shareLines.length }}
-                        aria-label="Copy result"
-                        title="Copy result"
-                        onClick={handleShare}
-                      >
-                        {shareLines.map((line, i) => (
-                          <span key={i} className="modal-share-mini-row">
-                            {line}
-                          </span>
-                        ))}
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <span className="modal-share-score" aria-label="Score">
-                      {won ? `${guessCount}/${maxGuesses}` : `X/${maxGuesses}`}
-                    </span>
-                    {shareLines.length > 0 && (
-                      <div
-                        className="modal-share-mini-grid"
-                        style={{ ['--rows' as string]: shareLines.length }}
-                        aria-label="Guess grid"
-                      >
-                        {shareLines.map((line, i) => (
-                          <span key={i} className="modal-share-mini-row">
-                            {line}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </>
+                {shareLines.length > 0 && (
+                  <button
+                    type="button"
+                    className="modal-share-mini-grid is-button"
+                    style={{ ['--rows' as string]: shareLines.length }}
+                    aria-label="Copy result"
+                    title="Copy result"
+                    onClick={handleShare}
+                  >
+                    {shareLines.map((line, i) => (
+                      <span key={i} className="modal-share-mini-row">
+                        {line}
+                      </span>
+                    ))}
+                  </button>
                 )}
                 {doubleSolve && (
                   <span
@@ -492,35 +431,23 @@ export function ResultModal({
                     ✦
                   </span>
                 )}
-                <button
-                  type="button"
-                  className="btn modal-share-btn"
-                  onClick={handleShare}
-                >
-                  Share
-                </button>
               </div>
-            </div>
-          ) : (
-            <div className="modal-actions">
               <button
                 type="button"
-                className="btn btn-primary btn-cta"
+                className="btn modal-share-btn"
                 onClick={handleShare}
               >
                 Share
               </button>
             </div>
-          )}
+          </div>
 
-          {showSharePolish && shareFeedback !== 'idle' && (
+          {shareFeedback !== 'idle' && (
             <p className="modal-share-toast" role="status" aria-live="polite">
               {toastLabel}
             </p>
           )}
         </div>
-
-        {isDev && <ResultModalDevPanel />}
       </div>
     </div>
   )

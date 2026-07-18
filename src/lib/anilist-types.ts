@@ -134,6 +134,14 @@ export interface DayState {
   /** Parallel to guessIds — form the player selected (title or alias) */
   guessLabels?: string[]
   status: 'playing' | 'won' | 'lost'
+  /**
+   * Absolute clue ladder index (0 = opening hint).
+   * Effective progress is max(wrong guesses, clueStep) so players can
+   * extend hints without spending a guess.
+   */
+  clueStep?: number
+  /** Free “reveal more” taps this round (does not include wrong-guess unlocks). */
+  hintsUsed?: number
   /** Summary hard mode: t0 only (locked once guesses start) */
   hardMode?: boolean
   /** Character-mode bonus: one-shot name guess after a win */

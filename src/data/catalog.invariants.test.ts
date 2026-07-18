@@ -126,22 +126,22 @@ describe('catalog invariants', () => {
     }
   })
 
-  it('rebuilds 9 non-empty puzzle pool lanes with eligible character titles only', () => {
+  it('rebuilds 12 non-empty puzzle pool lanes with eligible character titles only', () => {
     const blurbIds = new Set((blurbs.entries || []).map((e) => e.manhwaId))
     const cropIds = new Set((crops.entries || []).map((e) => e.manhwaId))
     const rows = buildRows(manhwa, blurbIds, cropIds)
 
-    expect(MODES).toHaveLength(3)
+    expect(MODES).toHaveLength(4)
     expect(TASTES).toHaveLength(3)
 
     for (const mode of MODES) {
       for (const taste of TASTES) {
-        const lane = rows.filter((r) => r.mode === mode && r.taste === taste)
+        const lane = rows.filter((r: { mode: string; taste: string }) => r.mode === mode && r.taste === taste)
         expect(lane.length, `${mode}/${taste}`).toBeGreaterThan(0)
       }
     }
 
-    const characterRows = rows.filter((r) => r.mode === 'character')
+    const characterRows = rows.filter((r: { mode: string }) => r.mode === 'character')
     for (const row of characterRows) {
       const title = manhwa.find((m) => m.id === row.manhwa_id)
       expect(title).toBeTruthy()
@@ -155,5 +155,8 @@ describe('catalog invariants', () => {
         }
       }
     }
+
+    const heardleRows = rows.filter((r: { mode: string }) => r.mode === 'heardle')
+    expect(heardleRows.length).toBeGreaterThan(0)
   })
 })

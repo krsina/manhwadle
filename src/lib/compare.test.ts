@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { compareGuess, comparePublisher, compareYear } from './compare'
+import {
+  buildShareText,
+  compareGuess,
+  comparePublisher,
+  compareYear,
+  formatGuessScore,
+} from './compare'
 import { makeManhwa } from './testFixtures'
 
 describe('compareGuess', () => {
@@ -55,5 +61,43 @@ describe('compareGuess', () => {
     expect(compareGuess(same, answer).publisher.tone).toBe('correct')
     expect(compareGuess(miss, answer).publisher.tone).toBe('incorrect')
     expect(compareGuess(miss, answer).publisher.publisher).toBe('Tapas')
+  })
+})
+
+describe('formatGuessScore / buildShareText', () => {
+  it('appends free hint count when used', () => {
+    expect(
+      formatGuessScore({
+        won: true,
+        guessCount: 3,
+        maxGuesses: 6,
+        hintsUsed: 2,
+      }),
+    ).toBe('3/6 · 2 hints')
+    expect(
+      formatGuessScore({
+        won: true,
+        guessCount: 1,
+        maxGuesses: 6,
+        hardMode: true,
+        hintsUsed: 1,
+      }),
+    ).toBe('1/6* · 1 hint')
+  })
+
+  it('includes hints in the share header', () => {
+    const text = buildShareText({
+      appName: 'Manhwadle',
+      modeLabel: 'Summary',
+      tasteLabel: 'Both',
+      dateKey: '2026-07-17',
+      guessCount: 4,
+      maxGuesses: 6,
+      won: true,
+      lines: ['🟩'],
+      hintsUsed: 2,
+      siteUrl: 'https://example.com',
+    })
+    expect(text.split('\n')[0]).toContain('4/6 · 2 hints')
   })
 })

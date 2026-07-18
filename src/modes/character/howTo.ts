@@ -7,7 +7,11 @@ export const characterHowTo: HowToPlayGuide = {
   steps: [
     {
       title: 'Study the crop',
-      body: 'You start extreme close-up on a character. Each wrong guess pulls the camera back.',
+      body: 'You start extreme close-up on a character. Wrong guesses pull the camera back, or tap Reveal more to zoom out without spending a guess.',
+    },
+    {
+      title: 'Hard mode (optional)',
+      body: 'Hard Mode can show any cast member, including supporting roles, and forces black and white. A Color toggle unlocks on your last guess. Hard Mode locks after your first guess.',
     },
     {
       title: 'Type a title',

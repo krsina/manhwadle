@@ -88,6 +88,7 @@ export function mergeModeStats(local: ModeStats, remote: ModeStats): ModeStats {
     bonusAttempts: Math.max(local.bonusAttempts ?? 0, remote.bonusAttempts ?? 0),
     bonusCorrect: Math.max(local.bonusCorrect ?? 0, remote.bonusCorrect ?? 0),
     doubleSolves: Math.max(local.doubleSolves ?? 0, remote.doubleSolves ?? 0),
+    hintsUsed: Math.max(local.hintsUsed ?? 0, remote.hintsUsed ?? 0),
     // Snapshot-like fields follow the newer play day.
     currentStreak: pickStreak(local.currentStreak, remote.currentStreak),
     lastPlayedDateKey:
@@ -102,7 +103,7 @@ export function mergeModeStats(local: ModeStats, remote: ModeStats): ModeStats {
   }
 }
 
-/** Prefer finished rounds; otherwise the side with more guesses. */
+/** Prefer finished rounds; otherwise the side with more guesses. Keep max clueStep. */
 export function mergeDayProgress(
   local: DayState | null,
   remote: DayState | null,
@@ -111,12 +112,45 @@ export function mergeDayProgress(
   if (!remote) return local
   const localDone = local.status === 'won' || local.status === 'lost'
   const remoteDone = remote.status === 'won' || remote.status === 'lost'
-  if (localDone && !remoteDone) return local
-  if (remoteDone && !localDone) return remote
-  if (local.guessIds.length !== remote.guessIds.length) {
-    return local.guessIds.length >= remote.guessIds.length ? local : remote
+  let preferred: DayState
+  let other: DayState
+  if (localDone && !remoteDone) {
+    preferred = local
+    other = remote
+  } else if (remoteDone && !localDone) {
+    preferred = remote
+    other = local
+  } else if (local.guessIds.length !== remote.guessIds.length) {
+    preferred =
+      local.guessIds.length >= remote.guessIds.length ? local : remote
+    other = preferred === local ? remote : local
+  } else if ((local.clueStep ?? 0) !== (remote.clueStep ?? 0)) {
+    preferred =
+      (local.clueStep ?? 0) >= (remote.clueStep ?? 0) ? local : remote
+    other = preferred === local ? remote : local
+  } else {
+    preferred = local
+    other = remote
   }
-  return local
+
+  const clueStep = Math.max(preferred.clueStep ?? 0, other.clueStep ?? 0)
+  const hintsUsed = Math.max(preferred.hintsUsed ?? 0, other.hintsUsed ?? 0)
+  const needsClue =
+    clueStep > 0 ||
+    preferred.clueStep != null ||
+    other.clueStep != null
+  const needsHints =
+    hintsUsed > 0 ||
+    preferred.hintsUsed != null ||
+    other.hintsUsed != null
+
+  if (!needsClue && !needsHints) return preferred
+
+  return {
+    ...preferred,
+    ...(needsClue ? { clueStep } : {}),
+    ...(needsHints ? { hintsUsed } : {}),
+  }
 }
 
 function rowToModeStats(row: Record<string, unknown>, maxGuesses: number): ModeStats {
@@ -134,6 +168,7 @@ function rowToModeStats(row: Record<string, unknown>, maxGuesses: number): ModeS
     bonusAttempts: Number(row.bonus_attempts) || 0,
     bonusCorrect: Number(row.bonus_correct) || 0,
     doubleSolves: Number(row.double_solves) || 0,
+    hintsUsed: Number(row.hints_used) || 0,
     lastBonusDateKey: (row.last_bonus_date_key as string) || null,
   }
 }
@@ -152,6 +187,7 @@ function modeStatsToRow(userId: string, mode: StatsModeId, taste: ReaderTaste, s
     bonus_attempts: stats.bonusAttempts ?? 0,
     bonus_correct: stats.bonusCorrect ?? 0,
     double_solves: stats.doubleSolves ?? 0,
+    hints_used: stats.hintsUsed ?? 0,
     last_bonus_date_key: stats.lastBonusDateKey ?? null,
   }
 }
@@ -213,6 +249,8 @@ export async function pushDayProgress(
     bonus_name_correct: state.bonusNameCorrect ?? null,
     answer_id: state.answerId,
     guess_labels: state.guessLabels ?? [],
+    clue_step: state.clueStep ?? 0,
+    hints_used: state.hintsUsed ?? 0,
   }
   await withOneRetry(`day_progress ${mode}/${taste}/${state.dateKey}`, async () =>
     supabase!
@@ -332,6 +370,14 @@ export async function mergeLocalAndRemoteOnSignIn(
               ? (remoteRow.guess_labels as string[])
               : undefined,
             status: remoteRow.status as DayState['status'],
+            clueStep:
+              typeof remoteRow.clue_step === 'number'
+                ? remoteRow.clue_step
+                : undefined,
+            hintsUsed:
+              typeof remoteRow.hints_used === 'number'
+                ? remoteRow.hints_used
+                : undefined,
             bonusNameGuess: remoteRow.bonus_name_guess ?? undefined,
             bonusNameCorrect:
               remoteRow.bonus_name_correct == null

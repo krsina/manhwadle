@@ -7,11 +7,11 @@ export const summaryHowTo: HowToPlayGuide = {
   steps: [
     {
       title: 'Read the summary',
-      body: 'You start with a short blurb. Each wrong guess unlocks more of the summary.',
+      body: 'You start with a short blurb. Wrong guesses unlock more of the summary, or tap Reveal more to extend the hint without spending a guess.',
     },
     {
       title: 'Hard mode (optional)',
-      body: 'Turn on Hard Mode for the opening blurb only — nothing else unlocks. It locks after your first guess.',
+      body: 'Turn on Hard Mode for the opening blurb only. Nothing else unlocks. It locks after your first guess.',
     },
     {
       title: 'Type a title',

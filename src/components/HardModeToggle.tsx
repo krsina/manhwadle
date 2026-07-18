@@ -12,8 +12,8 @@ export function HardModeToggle({
   enabled,
   disabled = false,
   onChange,
-  titleOn = 'Hard mode on — opening summary only',
-  titleOff = 'Turn on hard mode — opening summary only',
+  titleOn = 'Hard mode on',
+  titleOff = 'Turn on hard mode',
   titleLocked = 'Hard mode locks after your first guess',
 }: HardModeToggleProps) {
   return (

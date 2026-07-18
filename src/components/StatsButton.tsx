@@ -75,6 +75,7 @@ function StatsModal({
   const bonusAttempts = stats.bonusAttempts ?? 0
   const bonusCorrect = stats.bonusCorrect ?? 0
   const doubleSolves = stats.doubleSolves ?? 0
+  const hintsUsed = stats.hintsUsed ?? 0
   const firstTrySolves = stats.guessDistribution[0] ?? 0
 
   return createPortal(
@@ -180,6 +181,10 @@ function StatsModal({
           <div className="stats-cell" role="listitem">
             <span className="stats-value">{doubleSolves}</span>
             <span className="stats-label">Double solves</span>
+          </div>
+          <div className="stats-cell" role="listitem">
+            <span className="stats-value">{hintsUsed}</span>
+            <span className="stats-label">Hints used</span>
           </div>
         </div>
       </div>

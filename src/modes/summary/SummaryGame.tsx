@@ -5,6 +5,7 @@ import { GuessInput } from '../../components/GuessInput'
 import { HardModeToggle } from '../../components/HardModeToggle'
 import { KnownInfoPanel } from '../../components/KnownInfoPanel'
 import { ResultModal } from '../../components/ResultModal'
+import { SurrenderModal } from '../../components/SurrenderModal'
 import { SummaryClue } from '../../components/SummaryClue'
 import { APP_NAME } from '../../brand'
 import storyBlurbData from '../../data/storyDescriptionBlurb.json'
@@ -33,6 +34,11 @@ import { buildKnownInfo } from '../../lib/knowledge'
 import { randomPlayableIndex } from '../../lib/random'
 import { findById } from '../../lib/search'
 import { scrubSummary } from '../../lib/spoiler'
+import {
+  advanceClue,
+  canAdvanceClue,
+  clueProgress,
+} from '../../lib/clueProgress'
 import { applyGuess } from '../../lib/guessLoop'
 import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
 import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
@@ -129,10 +135,6 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
     return loadHardModePreference()
   })
 
-  const modeTagline = hardMode
-    ? 'Guess today’s manhwa from the opening summary only.'
-    : tagline
-
   const blurbs = useMemo(() => {
     const authored = storyBlurbIndex.get(answer.id)
     if (hardMode) return buildHardRevealLadder(authored)
@@ -144,6 +146,7 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
     () =>
       (dayState.status === 'won' || dayState.status === 'lost') && hasSeenHowTo(id),
   )
+  const [showSurrender, setShowSurrender] = useState(false)
 
   useEffect(() => {
     if (isPractice) return
@@ -164,6 +167,7 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       createInitialState(dateKey, dailyAnswer.id, { hardMode: preferredHard }),
     )
     setShowResult(false)
+    setShowSurrender(false)
   }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, id])
 
   const hardModeLocked = dayState.guessIds.length > 0
@@ -189,13 +193,15 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
   const excludedIds = useMemo(() => new Set(dayState.guessIds), [dayState.guessIds])
   const remaining = maxGuesses - dayState.guessIds.length
   const finished = dayState.status !== 'playing'
+  const surrendered =
+    dayState.status === 'lost' && dayState.guessIds.length < maxGuesses
 
-  const failedGuesses =
-    dayState.status === 'won'
-      ? Math.max(0, dayState.guessIds.length - 1)
-      : dayState.guessIds.length
+  const progress = clueProgress(dayState)
+  const maxClueStep = Math.max(0, blurbs.length - 1)
+  const canRevealMore =
+    !hardMode && canAdvanceClue(dayState, maxClueStep)
 
-  const unlockedCount = revealedBlurbCount(failedGuesses, blurbs.length, { finished })
+  const unlockedCount = revealedBlurbCount(progress, blurbs.length, { finished })
   const visibleBlurbs = useMemo(
     () => blurbs.slice(0, unlockedCount),
     [blurbs, unlockedCount],
@@ -231,6 +237,7 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       doubleSolve,
       archive: isArchive,
       hardMode,
+      hintsUsed: dayState.hintsUsed ?? 0,
     })
   }, [
     shareLines,
@@ -243,6 +250,45 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
     isArchive,
     hardMode,
   ])
+
+  function persistDay(next: DayState) {
+    setDayState(next)
+    if (!isPractice) {
+      saveDayState(next, tasteStorage)
+      if (!isArchive) sync.progress('summary', taste, next)
+    }
+  }
+
+  function handleRevealMore() {
+    const next = advanceClue(dayState, maxClueStep)
+    if (!next) return
+    persistDay(next)
+  }
+
+  function handleSurrender() {
+    if (dayState.status !== 'playing') return
+    setShowSurrender(false)
+    const next: DayState = {
+      ...dayState,
+      answerId: answer.id,
+      status: 'lost',
+      hardMode,
+    }
+    persistDay(next)
+    if (!isPractice && !isArchive) {
+      recordDailyResult({
+        modeId: 'summary',
+        taste,
+        dateKey,
+        maxGuesses,
+        won: false,
+        guessCount: dayState.guessIds.length,
+        hintsUsed: next.hintsUsed ?? 0,
+      })
+      sync.stats('summary', taste)
+    }
+    setShowResult(true)
+  }
 
   function handleGuess(manhwa: Manhwa, matchedLabel?: string) {
     const transition = applyGuess(dayState, manhwa.id, answer.id, maxGuesses)
@@ -263,23 +309,18 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
     const won = transition.status === 'won'
     const lost = transition.status === 'lost'
 
-    setDayState(next)
-    if (!isPractice) {
-      saveDayState(next, tasteStorage)
-      if (!isArchive) {
-        sync.progress('summary', taste, next)
-        if (won || lost) {
-          recordDailyResult({
-            modeId: 'summary',
-            taste,
-            dateKey,
-            maxGuesses,
-            won,
-            guessCount: transition.guessIds.length,
-          })
-          sync.stats('summary', taste)
-        }
-      }
+    persistDay(next)
+    if (!isPractice && !isArchive && (won || lost)) {
+      recordDailyResult({
+        modeId: 'summary',
+        taste,
+        dateKey,
+        maxGuesses,
+        won,
+        guessCount: transition.guessIds.length,
+        hintsUsed: next.hintsUsed ?? 0,
+      })
+      sync.stats('summary', taste)
     }
     if (won || lost) setShowResult(true)
   }
@@ -293,6 +334,7 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       createInitialState(dateKey, nextAnswer.id, { hardMode }),
     )
     setShowResult(false)
+    setShowSurrender(false)
   }
 
   function handleBonusNameAnswer(result: { guess: string; correct: boolean }) {
@@ -331,7 +373,7 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
           <p className="mode-kicker">
             {isArchive ? `Archive · ${name}` : `Today’s ${name} puzzle`}
           </p>
-          <h1 className="mode-title">{modeTagline}</h1>
+          <h1 className="mode-title">{tagline}</h1>
         </div>
         <div className="hero-aside">
           <p className="day-meta">
@@ -356,6 +398,17 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
         <section className="play-top">
           <div className="clue-stack clue-stack-overlap">
             <div className="clue-toolbar">
+              <button
+                type="button"
+                className="surrender-toggle"
+                disabled={finished}
+                onClick={() => {
+                  if (finished) return
+                  setShowSurrender(true)
+                }}
+              >
+                I give up
+              </button>
               <HardModeToggle
                 enabled={hardMode}
                 disabled={hardModeLocked}
@@ -367,6 +420,8 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
               totalBlurbs={blurbs.length}
               finished={finished}
               hardMode={hardMode}
+              canRevealMore={canRevealMore}
+              onRevealMore={hardMode ? undefined : handleRevealMore}
             />
           </div>
           {(import.meta.env.DEV || (isArchive && !isPractice)) && (
@@ -415,16 +470,22 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
         </section>
       </div>
 
+      <SurrenderModal
+        open={showSurrender}
+        onCancel={() => setShowSurrender(false)}
+        onConfirm={handleSurrender}
+      />
+
       <ResultModal
         open={showResult}
         won={dayState.status === 'won'}
         answer={answer}
         guessCount={dayState.guessIds.length}
         maxGuesses={maxGuesses}
+        hintsUsed={dayState.hintsUsed ?? 0}
+        hardMode={hardMode}
         shareText={shareText}
         shareLines={shareLines}
-        modeId="summary"
-        taste={taste}
         onClose={() => setShowResult(false)}
         bonusCharacter={bonusCharacter}
         bonusPrompt="Who is the main character?"
@@ -439,6 +500,7 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
         }
         onBonusNameAnswer={handleBonusNameAnswer}
         isArchive={isArchive}
+        surrendered={surrendered}
       />
     </>
   )

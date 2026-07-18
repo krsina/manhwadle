@@ -23,6 +23,14 @@ describe('normalizeSearchKey', () => {
     expect(namesMatch('Mo-Ri Jin', 'Mori Jin')).toBe(true)
     expect(namesMatch('Mo-Ri Jin', 'Mo Ri Jin')).toBe(true)
   })
+
+  it('treats English possessives as optional', () => {
+    expect(namesMatch("Doctor's Rebirth", 'Doctor Rebirth')).toBe(true)
+    expect(namesMatch('Doctor’s Rebirth', 'Doctor Rebirth')).toBe(true)
+    expect(scoreSearchKey("Doctor's Rebirth", normalizeSearchKey('doctor rebirth'))).toBe(0)
+    expect(scoreSearchKey("Doctor's Rebirth", normalizeSearchKey("doctor's rebirth"))).toBe(0)
+    expect(scoreSearchKey("Doctor's Rebirth", normalizeSearchKey('doctor'))).toBe(1)
+  })
 })
 
 describe('name order variants', () => {
@@ -252,5 +260,33 @@ describe('searchManhwa', () => {
     const primary = searchManhwa(pool, 'solo')[0]
     expect(primary?.matchedAlias).toBe(false)
     expect(primary?.label).toBe('Solo Leveling')
+  })
+
+  it('finds possessive aliases without requiring the apostrophe', () => {
+    const withPossessive = [
+      makeManhwa({
+        id: 129579,
+        title: {
+          english: 'Doctor, Live Again',
+          romaji: 'Uiwon, Dasi Salda',
+          native: null,
+        },
+        synonyms: ["Doctor's Rebirth"],
+      }),
+    ]
+
+    const withoutApostrophe = searchManhwa(withPossessive, 'doctor rebirth')[0]
+    expect(withoutApostrophe?.manhwa.id).toBe(129579)
+    expect(withoutApostrophe?.matchedAlias).toBe(true)
+    expect(withoutApostrophe?.label).toBe("Doctor's Rebirth")
+
+    const withApostrophe = searchManhwa(withPossessive, "doctor's rebirth")[0]
+    expect(withApostrophe?.manhwa.id).toBe(129579)
+    expect(withApostrophe?.label).toBe("Doctor's Rebirth")
+
+    // Short prefix: prefer the closer alias label over the longer primary title
+    const short = searchManhwa(withPossessive, 'doctor')[0]
+    expect(short?.manhwa.id).toBe(129579)
+    expect(short?.label).toBe("Doctor's Rebirth")
   })
 })

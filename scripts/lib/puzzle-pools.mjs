@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-export const MODES = ['summary', 'character', 'cover']
+export const MODES = ['summary', 'character', 'cover', 'heardle']
 export const TASTES = ['action', 'romance', 'both']
 
 const ACTION_GENRES = new Set([
@@ -179,6 +179,29 @@ export function manhwaHasCover(manhwa) {
   return Boolean(manhwa.coverImage?.trim())
 }
 
+function loadVocalSongManhwaIds() {
+  try {
+    const doc = JSON.parse(
+      readFileSync(join(__dirname, '../../src/data/songs.json'), 'utf8'),
+    )
+    const ids = new Set()
+    for (const song of doc.songs || []) {
+      if (song?.kind === 'vocal' && Number.isFinite(song.manhwaId)) {
+        ids.add(Number(song.manhwaId))
+      }
+    }
+    return ids
+  } catch {
+    return new Set()
+  }
+}
+
+const VOCAL_SONG_MANHWA_IDS = loadVocalSongManhwaIds()
+
+export function manhwaHasVocalSong(manhwa) {
+  return VOCAL_SONG_MANHWA_IDS.has(manhwa.id)
+}
+
 export function buildRows(manhwa, blurbIds, cropIds) {
   const rows = []
   for (const mode of MODES) {
@@ -192,6 +215,8 @@ export function buildRows(manhwa, blurbIds, cropIds) {
         playable = tastePool.filter(
           (m) => manhwaHasGuessableCharacter(m) || cropIds.has(m.id),
         )
+      } else if (mode === 'heardle') {
+        playable = tastePool.filter(manhwaHasVocalSong)
       } else {
         playable = tastePool.filter(manhwaHasCover)
       }

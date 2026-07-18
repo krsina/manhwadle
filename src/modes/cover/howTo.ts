@@ -7,7 +7,11 @@ export const coverHowTo: HowToPlayGuide = {
   steps: [
     {
       title: 'Study the cover',
-      body: 'You start extreme close-up on the cover art. Each wrong guess pulls the camera back.',
+      body: 'You start extreme close-up on the cover art. Wrong guesses pull the camera back, or tap Reveal more to zoom out without spending a guess.',
+    },
+    {
+      title: 'Hard mode (optional)',
+      body: 'Hard Mode forces black & white and disables Reveal more. The zoom ladder stays the same. It locks after your first guess.',
     },
     {
       title: 'Type a title',
