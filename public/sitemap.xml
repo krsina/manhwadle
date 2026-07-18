@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://manhwadle.net/</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/play/summary</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/play/character</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/play/cover</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/play/heardle</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/settings</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/privacy</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/terms</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/attribution</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/moderation</loc>
+  </url>
+</urlset>

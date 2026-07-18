@@ -3,6 +3,7 @@ import {
   coverFocusOrigin,
   cropZoomScale,
 } from '../lib/cover'
+import { MediaImage } from './MediaImage'
 import { RevealMoreButton } from './RevealMoreButton'
 
 interface CoverClueProps {
@@ -67,10 +68,11 @@ export function CoverClue({
               transformOrigin: `${originX}% ${originY}%`,
             }}
           >
-            <img
+            <MediaImage
               className={`crop-image${grayscale ? ' is-grayscale' : ''}`}
               src={imageUrl}
-              alt=""
+              alt="Today’s cover clue. Wrong guesses zoom out the crop."
+              fallbackLabel="Cover unavailable"
               draggable={false}
             />
           </div>

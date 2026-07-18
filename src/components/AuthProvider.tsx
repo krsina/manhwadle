@@ -8,8 +8,16 @@ import {
 } from 'react'
 import type { Provider, Session, User } from '@supabase/supabase-js'
 import type { ReaderTaste } from '../lib/readerTaste'
+import {
+  changeUsername as apiChangeUsername,
+  claimUsername as apiClaimUsername,
+  fetchMyAccount,
+  updateMySettings as apiUpdateMySettings,
+  type AccountSnapshot,
+} from '../lib/profileApi'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { mergeLocalAndRemoteOnSignIn } from '../lib/sync'
+import { telemetry } from '../lib/telemetry'
 
 export type AuthOAuthProvider = Extract<Provider, 'google' | 'discord'>
 
@@ -18,6 +26,15 @@ interface AuthContextValue {
   session: Session | null
   loading: boolean
   configured: boolean
+  account: AccountSnapshot | null
+  accountLoading: boolean
+  needsUsername: boolean
+  refreshAccount: () => Promise<AccountSnapshot | null>
+  claimUsername: (username: string) => Promise<{ error: string | null }>
+  changeUsername: (username: string) => Promise<{ error: string | null; nextChangeAt?: string | null }>
+  updateSettings: (input: {
+    readerTaste?: ReaderTaste | null
+  }) => Promise<{ error: string | null }>
   signInWithMagicLink: (email: string) => Promise<{ error: string | null }>
   signInWithOAuth: (provider: AuthOAuthProvider) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
@@ -39,11 +56,28 @@ export function AuthProvider({
   const configured = isSupabaseConfigured()
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(configured)
+  const [account, setAccount] = useState<AccountSnapshot | null>(null)
+  const [accountLoading, setAccountLoading] = useState(false)
   const onSyncedTasteRef = useRef(onSyncedTaste)
   onSyncedTasteRef.current = onSyncedTaste
   /** Avoid double merge from getSession + SIGNED_IN for the same user. */
   const lastMergedUserIdRef = useRef<string | null>(null)
   const mergeInFlightRef = useRef<Promise<void> | null>(null)
+
+  async function refreshAccount(): Promise<AccountSnapshot | null> {
+    if (!supabase) {
+      setAccount(null)
+      return null
+    }
+    setAccountLoading(true)
+    try {
+      const next = await fetchMyAccount()
+      setAccount(next)
+      return next
+    } finally {
+      setAccountLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!supabase) {
@@ -65,6 +99,7 @@ export function AuthProvider({
         try {
           const taste = await mergeLocalAndRemoteOnSignIn(userId)
           if (!cancelled && taste) onSyncedTasteRef.current?.(taste)
+          if (!cancelled) await refreshAccount()
         } catch (err) {
           lastMergedUserIdRef.current = null
           console.warn('[auth] merge on sign-in failed:', err)
@@ -90,9 +125,11 @@ export function AuthProvider({
       setSession(next)
       if (event === 'SIGNED_OUT') {
         lastMergedUserIdRef.current = null
+        setAccount(null)
         return
       }
       if (event === 'SIGNED_IN' && next?.user) {
+        telemetry.authComplete()
         void syncUser(next.user.id)
       }
     })
@@ -128,8 +165,36 @@ export function AuthProvider({
   async function signOut() {
     if (!supabase) return
     lastMergedUserIdRef.current = null
+    setAccount(null)
     await supabase.auth.signOut()
   }
+
+  async function claimUsername(username: string) {
+    const result = await apiClaimUsername(username)
+    if (!result.ok) return { error: result.error }
+    await refreshAccount()
+    return { error: null }
+  }
+
+  async function changeUsername(username: string) {
+    const result = await apiChangeUsername(username)
+    if (!result.ok) {
+      return { error: result.error, nextChangeAt: result.nextChangeAt }
+    }
+    await refreshAccount()
+    return { error: null, nextChangeAt: result.nextChangeAt }
+  }
+
+  async function updateSettings(input: {
+    readerTaste?: ReaderTaste | null
+  }) {
+    const result = await apiUpdateMySettings(input)
+    if (!result.ok) return { error: result.error }
+    await refreshAccount()
+    return { error: null }
+  }
+
+  const needsUsername = Boolean(session?.user && account?.needsUsername)
 
   return (
     <AuthContext.Provider
@@ -138,6 +203,13 @@ export function AuthProvider({
         session,
         loading,
         configured,
+        account,
+        accountLoading,
+        needsUsername,
+        refreshAccount,
+        claimUsername,
+        changeUsername,
+        updateSettings,
         signInWithMagicLink,
         signInWithOAuth,
         signOut,

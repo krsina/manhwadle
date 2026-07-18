@@ -3,17 +3,28 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
-    "library": "vite --open /library.html",
-    "review:images": "node scripts/build-character-image-review.mjs && vite --open /character-images.html",
+    "dev:tools": "vite --config vite.tools.config.ts",
+    "library": "vite --config vite.tools.config.ts --open /library.html",
+    "review:images": "node scripts/build-character-image-review.mjs && vite --config vite.tools.config.ts --open /character-images.html",
     "verify:images": "python scripts/generate_character_image_report.py && python scripts/serve_character_image_verify.py",
-    "build": "tsc -b && vite build",
+    "build:catalog": "node scripts/build-client-catalog.mjs",
+    "build": "npm run build:catalog && tsc -b && vite build",
+    "build:tools": "vite build --config vite.tools.config.ts",
     "lint": "oxlint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "test:live": "node scripts/smoke-supabase.mjs",
     "test:live:auth": "node scripts/smoke-auth-sync.mjs",
+    "check:dist": "node scripts/check-dist-artifacts.mjs",
+    "check:contact": "node scripts/check-contact-configured.mjs",
+    "check:migrations": "node scripts/check-migration-timestamps.mjs",
+    "check:secrets": "node scripts/secret-scan.mjs",
     "preview": "vite preview",
     "fetch-data": "node scripts/fetch-manhwa.mjs",
     "sync-data": "node scripts/sync-game-data.mjs && node scripts/build-protagonists.mjs",
@@ -28,10 +39,14 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.5",
+    "posthog-js": "^1.404.1",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "react-router-dom": "^7.18.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.54.2",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

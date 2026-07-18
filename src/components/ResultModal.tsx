@@ -9,7 +9,10 @@ import { nameOrderVariants, namesMatch } from '../lib/nameMatch'
 import { BonusCelebrate } from './BonusCelebrate'
 import { CharacterGuessInput } from './CharacterGuessInput'
 import { ConfettiBurst } from './ConfettiBurst'
+import { Dialog } from './Dialog'
 import { ElectricBorder } from './ElectricBorder'
+import { MediaImage } from './MediaImage'
+import { telemetry } from '../lib/telemetry'
 
 interface BonusNameResult {
   guess: string
@@ -213,6 +216,7 @@ export function ResultModal({
     const copied = await copyToClipboard()
     if (copied) {
       setShareFeedback('copied')
+      telemetry.resultShare(true, 'clipboard')
       return
     }
 
@@ -220,6 +224,7 @@ export function ResultModal({
       try {
         await navigator.share({ text: shareText })
         setShareFeedback('shared')
+        telemetry.resultShare(true, 'share')
         return
       } catch {
         /* user cancelled or share failed */
@@ -227,6 +232,7 @@ export function ResultModal({
     }
 
     setShareFeedback('copied')
+    telemetry.resultShare(false, 'unknown')
   }
 
   const toastLabel =
@@ -246,16 +252,20 @@ export function ResultModal({
   }
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
-      {won && <ConfettiBurst active firstTry={firstTry} />}
-      {doubleSolve && <BonusCelebrate active />}
-      <div className="result-shell" onClick={(e) => e.stopPropagation()}>
-        <div
-          className={`modal${firstTry ? ' is-first-try' : ''}${showBonus ? ' has-bonus' : ''}${doubleSolve ? ' is-double-solve' : ''}${showCharacter ? ' is-character-reveal' : ''}`}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="result-title"
-        >
+    <Dialog
+      open={open}
+      onClose={onClose}
+      titleId="result-title"
+      descriptionId="result-desc"
+      shellClassName="result-shell"
+      panelClassName={`${firstTry ? ' is-first-try' : ''}${showBonus ? ' has-bonus' : ''}${doubleSolve ? ' is-double-solve' : ''}${showCharacter ? ' is-character-reveal' : ''}`}
+      backdropChildren={
+        <>
+          {won && <ConfettiBurst active firstTry={firstTry} />}
+          {doubleSolve && <BonusCelebrate active />}
+        </>
+      }
+    >
           {doubleSolve ? (
             <ElectricBorder variant="double-solve" />
           ) : (
@@ -264,7 +274,7 @@ export function ResultModal({
           <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
             <span aria-hidden="true">×</span>
           </button>
-          <p className="modal-kicker">
+          <p id="result-desc" className="modal-kicker">
             {firstTry
               ? 'First try!'
               : won
@@ -303,16 +313,17 @@ export function ResultModal({
           )}
 
           {heroImage && (
-            <img
+            <MediaImage
               className={`modal-cover${showCharacter ? ' is-portrait' : ''}`}
               src={heroImage}
               alt={
                 showCharacter
                   ? showCharacterName
                     ? `Portrait of ${titleText}`
-                    : 'Character portrait'
+                    : 'Character portrait for today’s puzzle'
                   : `Cover of ${displayTitle(answer)}`
               }
+              fallbackLabel="Artwork unavailable"
               loading="lazy"
               referrerPolicy="no-referrer"
             />
@@ -447,8 +458,6 @@ export function ResultModal({
               {toastLabel}
             </p>
           )}
-        </div>
-      </div>
-    </div>
+    </Dialog>
   )
 }

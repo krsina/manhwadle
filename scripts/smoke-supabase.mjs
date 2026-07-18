@@ -111,21 +111,34 @@ async function main() {
     .eq('date_key', dateKey)
   if (dailyErr) throw dailyErr
 
+  const MODES = ['summary', 'character', 'cover', 'heardle']
+  const TASTES = ['action', 'romance', 'both']
+  const expectedLanes = new Set(
+    MODES.flatMap((mode) => TASTES.map((taste) => `${mode}/${taste}`)),
+  )
+
   if (!dailies || dailies.length !== 12) {
     fail(`expected 12 daily_puzzles for ${dateKey}, got ${dailies?.length ?? 0}`)
   } else {
     console.log(`[ok] daily_puzzles for ${dateKey}: ${dailies.length}`)
   }
 
+  const seenLanes = new Set()
   for (const row of dailies || []) {
+    const lane = `${row.mode}/${row.taste}`
+    seenLanes.add(lane)
+    if (!expectedLanes.has(lane)) {
+      fail(`unexpected daily lane ${lane}`)
+    }
+
     const title = byId.get(row.answer_id)
     if (!title) {
-      fail(`${row.mode}/${row.taste}: answer_id ${row.answer_id} missing from manhwa.json`)
+      fail(`${lane}: answer_id ${row.answer_id} missing from manhwa.json`)
       continue
     }
     if (row.mode === 'character') {
       if (row.character_id == null) {
-        fail(`${row.mode}/${row.taste}: character_id is null`)
+        fail(`${lane}: character_id is null`)
         continue
       }
       const eligible = new Set(guessableCharacters(title).map((c) => c.id))
@@ -136,10 +149,38 @@ async function main() {
       )
       if (!eligible.has(row.character_id) && !cropOk) {
         fail(
-          `${row.mode}/${row.taste}: character_id ${row.character_id} not eligible for manhwa ${title.id}`,
+          `${lane}: character_id ${row.character_id} not eligible for manhwa ${title.id}`,
         )
       }
     }
+    if (row.mode === 'heardle') {
+      const localHeardle = localRows.filter(
+        (r) => r.mode === 'heardle' && r.taste === row.taste,
+      )
+      if (!localHeardle.some((r) => r.manhwa_id === row.answer_id)) {
+        fail(
+          `${lane}: answer_id ${row.answer_id} not in local heardle pool for taste`,
+        )
+      }
+    }
+  }
+
+  for (const lane of expectedLanes) {
+    if (!seenLanes.has(lane)) fail(`missing daily lane ${lane}`)
+  }
+
+  const heardleDailies = (dailies || []).filter((r) => r.mode === 'heardle')
+  if (heardleDailies.length !== 3) {
+    fail(`expected 3 heardle daily_puzzles, got ${heardleDailies.length}`)
+  } else {
+    console.log('[ok] heardle daily lanes present for all tastes')
+  }
+
+  const localHeardleCount = localRows.filter((r) => r.mode === 'heardle').length
+  if (localHeardleCount === 0) {
+    fail('local rebuilt heardle pool is empty')
+  } else {
+    console.log(`[ok] local heardle pool rows=${localHeardleCount}`)
   }
 
   if (process.exitCode) {

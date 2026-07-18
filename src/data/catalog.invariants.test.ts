@@ -9,10 +9,12 @@ import {
   buildRows,
   manhwaHasCover,
   manhwaHasGuessableCharacter,
+  manhwaHasVocalSong,
 } from '../../scripts/lib/puzzle-pools.mjs'
 import { CATALOG_EXCLUDE_IDS, CATALOG_SIZE, CATALOG_TOP_N } from '../lib/catalogConfig'
 import {
   characterImageUrl,
+  isCharacterEnabledForGuess,
   type Manhwa,
 } from '../lib/anilist-types'
 import { guessableCharacters } from '../lib/crops'
@@ -158,5 +160,47 @@ describe('catalog invariants', () => {
 
     const heardleRows = rows.filter((r: { mode: string }) => r.mode === 'heardle')
     expect(heardleRows.length).toBeGreaterThan(0)
+    for (const row of heardleRows) {
+      const title = manhwa.find((m) => m.id === row.manhwa_id)
+      expect(title, `heardle manhwa ${row.manhwa_id}`).toBeTruthy()
+      expect(manhwaHasVocalSong(title!)).toBe(true)
+    }
+  })
+})
+
+describe('client catalog (player payload)', () => {
+  const clientCatalog = JSON.parse(
+    readFileSync(join(root, 'src/data/client-catalog.json'), 'utf8'),
+  ) as Manhwa[]
+
+  it('matches source title count and ids', () => {
+    expect(clientCatalog).toHaveLength(manhwa.length)
+    const sourceIds = manhwa.map((m) => m.id).sort((a, b) => a - b)
+    const clientIds = clientCatalog.map((m) => m.id).sort((a, b) => a - b)
+    expect(clientIds).toEqual(sourceIds)
+  })
+
+  it('omits character prose / favourites while keeping search + image fields', () => {
+    for (const title of clientCatalog) {
+      expect(title.title).toBeTruthy()
+      expect(Array.isArray(title.synonyms)).toBe(true)
+      expect(Array.isArray(title.genres)).toBe(true)
+      expect(Array.isArray(title.tags)).toBe(true)
+      for (const character of title.characters || []) {
+        expect(character.description == null || character.description === '').toBe(true)
+        expect(character.favourites == null).toBe(true)
+        expect(character.name?.full != null || character.name?.native != null).toBe(true)
+        if (isCharacterEnabledForGuess(character)) {
+          expect(characterImageUrl(character)).toBeTruthy()
+        }
+      }
+    }
+  })
+
+  it('stays smaller than the pretty-printed source catalog on disk', () => {
+    const sourceBytes = readFileSync(join(root, 'src/data/manhwa.json')).byteLength
+    const clientBytes = readFileSync(join(root, 'src/data/client-catalog.json')).byteLength
+    expect(clientBytes).toBeLessThan(sourceBytes)
+    expect(clientBytes).toBeLessThan(2_800_000)
   })
 })

@@ -1,21 +1,42 @@
-import { characterMode } from './character'
-import { coverMode } from './cover'
-import { heardleMode } from './heardle'
-import { summaryMode } from './summary'
-import type { GameModeDefinition } from './types'
+import { lazy, type ComponentType } from 'react'
+import { characterModeMeta } from './character/config'
+import { coverModeMeta } from './cover/config'
+import { heardleModeMeta } from './heardle/config'
+import { summaryModeMeta } from './summary/config'
+import type { GameModeDefinition, GameModeProps } from './types'
 
 /** Default guessing variant — summary clue + attribute feedback */
-export const DEFAULT_MODE_ID = summaryMode.id
+export const DEFAULT_MODE_ID = summaryModeMeta.id
+
+const SummaryGame = lazy(() =>
+  import('./summary/SummaryGame').then((m) => ({ default: m.SummaryGame })),
+)
+const CharacterGame = lazy(() =>
+  import('./character/CharacterGame').then((m) => ({ default: m.CharacterGame })),
+)
+const CoverGame = lazy(() =>
+  import('./cover/CoverGame').then((m) => ({ default: m.CoverGame })),
+)
+const HeardleGame = lazy(() =>
+  import('./heardle/HeardleGame').then((m) => ({ default: m.HeardleGame })),
+)
+
+function defineMode(
+  meta: Omit<GameModeDefinition, 'Component'>,
+  Component: ComponentType<GameModeProps>,
+): GameModeDefinition {
+  return { ...meta, Component }
+}
 
 /**
  * Register playable variants here.
- * Import the mode module and add it to this map.
+ * Game components are lazy-loaded so unused modes stay out of the initial chunk.
  */
 const modes: Record<string, GameModeDefinition> = {
-  [summaryMode.id]: summaryMode,
-  [characterMode.id]: characterMode,
-  [coverMode.id]: coverMode,
-  [heardleMode.id]: heardleMode,
+  [summaryModeMeta.id]: defineMode(summaryModeMeta, SummaryGame),
+  [characterModeMeta.id]: defineMode(characterModeMeta, CharacterGame),
+  [coverModeMeta.id]: defineMode(coverModeMeta, CoverGame),
+  [heardleModeMeta.id]: defineMode(heardleModeMeta, HeardleGame),
 }
 
 export function getMode(id: string): GameModeDefinition | undefined {
@@ -32,8 +53,10 @@ export function resolveActiveMode(id: string = DEFAULT_MODE_ID): GameModeDefinit
 }
 
 export function listModes(): GameModeDefinition[] {
-  // Stable switcher order (Object.values insertion order can vary across builds).
-  return [summaryMode, characterMode, coverMode, heardleMode].filter(
-    (mode) => modes[mode.id],
-  )
+  return [
+    modes[summaryModeMeta.id]!,
+    modes[characterModeMeta.id]!,
+    modes[coverModeMeta.id]!,
+    modes[heardleModeMeta.id]!,
+  ].filter(Boolean)
 }

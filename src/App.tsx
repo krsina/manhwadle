@@ -1,203 +1,52 @@
-import { useCallback, useMemo, useState } from 'react'
-import { APP_NAME } from './brand'
+import { lazy, Suspense, useCallback, useState } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from './components/AuthProvider'
+import { AppLayout } from './components/AppLayout'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import {
-  ArchiveButton,
-  ArchiveCalendarModal,
-} from './components/ArchiveCalendarModal'
-import { AuthButton } from './components/AuthButton'
-import { AuthProvider, useAuth } from './components/AuthProvider'
-import { HowToPlay } from './components/howto/HowToPlay'
-import {
-  loadStoredModeId,
-  ModeSwitcher,
-  readModeIdFromUrl,
-  saveStoredModeId,
-} from './components/ModeSwitcher'
-import { ReaderTastePrompt } from './components/ReaderTastePrompt'
-import { StatsButton } from './components/StatsButton'
-import { ThemeToggle } from './components/ThemeToggle'
-import manhwaData from './data/manhwa.json'
-import type { Manhwa } from './lib/anilist-types'
-import { isArchiveDate, readDateKeyFromUrl, writeDateKeyToUrl } from './lib/archive'
-import { getTodayKey } from './lib/daily'
-import {
-  filterPoolByTaste,
   loadReaderTaste,
-  readerTasteLabel,
   saveReaderTaste,
   type ReaderTaste,
 } from './lib/readerTaste'
-import { catalogSizeLabel } from './lib/catalogConfig'
-import { syncAfterLocalChange } from './lib/sync'
-import type { StatsModeId } from './lib/stats'
-import { resolveActiveMode } from './modes'
+import { telemetry } from './lib/telemetry'
 import './styles.css'
 
-const fullPool = manhwaData as Manhwa[]
+const HomePage = lazy(() =>
+  import('./pages/HomePage').then((m) => ({ default: m.HomePage })),
+)
+const PlayPage = lazy(() =>
+  import('./pages/PlayPage').then((m) => ({ default: m.PlayPage })),
+)
+const SettingsPage = lazy(() =>
+  import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+)
+const PrivacyPage = lazy(() =>
+  import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
+)
+const TermsPage = lazy(() =>
+  import('./pages/TermsPage').then((m) => ({ default: m.TermsPage })),
+)
+const AttributionPage = lazy(() =>
+  import('./pages/AttributionPage').then((m) => ({ default: m.AttributionPage })),
+)
+const ModerationAppealsPage = lazy(() =>
+  import('./pages/ModerationAppealsPage').then((m) => ({
+    default: m.ModerationAppealsPage,
+  })),
+)
 
-function initialModeId(): string {
-  return readModeIdFromUrl() || loadStoredModeId() || resolveActiveMode().id
-}
-
-function initialDateKey(): string {
-  return readDateKeyFromUrl() || getTodayKey()
-}
-
-function AppInner({
-  taste,
-  setTaste,
-}: {
-  taste: ReaderTaste | null
-  setTaste: (taste: ReaderTaste) => void
-}) {
-  const { user } = useAuth()
-  const [modeId, setModeId] = useState(initialModeId)
-  const [dateKey, setDateKey] = useState(initialDateKey)
-  const [showTasteEditor, setShowTasteEditor] = useState(false)
-  const [showArchive, setShowArchive] = useState(false)
-
-  const mode = resolveActiveMode(modeId)
-  const ModeGame = mode.Component
-  const archive = isArchiveDate(dateKey)
-
-  const answerPool = useMemo(
-    () => (taste ? filterPoolByTaste(fullPool, taste) : fullPool),
-    [taste],
-  )
-
-  function handleModeChange(nextId: string) {
-    setModeId(nextId)
-    saveStoredModeId(nextId)
-    const url = new URL(window.location.href)
-    url.searchParams.set('mode', nextId)
-    url.hash = ''
-    window.history.replaceState({}, '', url)
-  }
-
-  function handleDateSelect(next: string) {
-    setDateKey(next)
-    writeDateKeyToUrl(next)
-  }
-
-  function handleTasteSelect(next: ReaderTaste) {
-    saveReaderTaste(next)
-    setTaste(next)
-    setShowTasteEditor(false)
-    syncAfterLocalChange(user?.id).taste(next)
-  }
-
+function RouteFallback() {
   return (
-    <div className="page">
-      <div className="atmosphere" aria-hidden="true" />
-      <header className="site-header">
-        <div className="site-header-top">
-          <div className="site-brand">
-            <span className="site-brand-mark" aria-hidden="true">M</span>
-            <div>
-              <p className="site-brand-name">{APP_NAME}</p>
-              <p className="site-brand-tagline">A daily manhwa guessing game</p>
-            </div>
-          </div>
-          <div className="site-actions">
-            <HowToPlay modeId={mode.id} guide={mode.howTo} />
-            {taste && (
-              <StatsButton
-                modeId={mode.id as StatsModeId}
-                taste={taste}
-                maxGuesses={mode.maxGuesses}
-              />
-            )}
-            <ArchiveButton
-              onClick={() => {
-                if (!taste) return
-                setShowArchive(true)
-              }}
-            />
-            <ThemeToggle />
-            <AuthButton />
-          </div>
-        </div>
-        <div className="site-nav">
-          <span className="site-nav-label">Game mode</span>
-          <ModeSwitcher activeId={mode.id} onChange={handleModeChange} />
-        </div>
-      </header>
-
-      {taste ? (
-        <ModeGame
-          key={`${mode.id}-${taste}-${dateKey}`}
-          pool={answerPool}
-          guessPool={answerPool}
-          taste={taste}
-          dateKey={dateKey}
-        />
-      ) : (
-        <section className="mode-empty taste-gate">
-          <p className="mode-empty-title">Choose what you usually read</p>
-          <p className="mode-empty-body">
-            Pick a reading preference to unlock today’s puzzle. You can change it later.
-          </p>
-        </section>
-      )}
-
-      <footer className="footer">
-        <p>
-          Data from{' '}
-          <a href="https://anilist.co" target="_blank" rel="noreferrer">
-            AniList
-          </a>
-          . {catalogSizeLabel()} Korean manhwa by popularity.
-        </p>
-        {taste && (
-          <p className="footer-taste">
-            <button
-              type="button"
-              className="footer-taste-btn"
-              onClick={() => setShowTasteEditor(true)}
-            >
-              Reading preference: {readerTasteLabel(taste)}
-            </button>
-          </p>
-        )}
-        {archive && (
-          <p className="footer-archive">
-            <button
-              type="button"
-              className="footer-taste-btn"
-              onClick={() => handleDateSelect(getTodayKey())}
-            >
-              Leave archive · back to today
-            </button>
-          </p>
-        )}
-      </footer>
-
-      {!taste && <ReaderTastePrompt onSelect={handleTasteSelect} />}
-      {taste && showTasteEditor && (
-        <ReaderTastePrompt
-          currentTaste={taste}
-          onSelect={handleTasteSelect}
-          onClose={() => setShowTasteEditor(false)}
-        />
-      )}
-      {taste && (
-        <ArchiveCalendarModal
-          open={showArchive}
-          taste={taste}
-          selectedDateKey={dateKey}
-          onSelectDate={handleDateSelect}
-          onClose={() => setShowArchive(false)}
-        />
-      )}
+    <div className="route-fallback" role="status" aria-live="polite">
+      Loading…
     </div>
   )
 }
 
 /**
- * Shell: resolve which guessing variant to run.
- * Mode comes from ?mode= / #hash, then localStorage, then default.
- * Reader taste gates first visit and filters the daily answer + guess pools.
- * Optional ?date=YYYY-MM-DD opens an archive puzzle for that UTC day.
+ * Shell: homepage, play routes, settings, legal.
+ * Legacy `?mode=` / hash links redirect into `/play/:mode`.
+ * Taste gates only when entering a game.
  */
 function App() {
   const [taste, setTaste] = useState<ReaderTaste | null>(() => loadReaderTaste())
@@ -207,10 +56,81 @@ function App() {
     setTaste(next)
   }, [])
 
+  function handleTasteChange(next: ReaderTaste) {
+    saveReaderTaste(next)
+    setTaste(next)
+    telemetry.tasteSelected(next)
+  }
+
   return (
-    <AuthProvider onSyncedTaste={handleSyncedTaste}>
-      <AppInner taste={taste} setTaste={setTaste} />
-    </AuthProvider>
+    <ErrorBoundary label="app-root">
+      <AuthProvider onSyncedTaste={handleSyncedTaste}>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<AppLayout taste={taste} onTasteChange={handleTasteChange} />}>
+              <Route
+                index
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <HomePage taste={taste} />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="play/:mode"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <PlayPage taste={taste} setTaste={handleTasteChange} />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="settings"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <SettingsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="privacy"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <PrivacyPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="terms"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <TermsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="attribution"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <AttributionPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="moderation"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <ModerationAppealsPage />
+                  </Suspense>
+                }
+              />
+              <Route path="play" element={<Navigate to="/play/summary" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }
 

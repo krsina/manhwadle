@@ -1,27 +1,48 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+const DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function jsonResponse(
+  body: Record<string, unknown>,
+  status = 200,
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req: Request) => {
   try {
-    const cronSecret = Deno.env.get("CRON_SECRET");
-    if (cronSecret) {
-      const header = req.headers.get("x-cron-secret");
-      const auth = req.headers.get("Authorization") ?? "";
-      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-      const ok =
-        header === cronSecret ||
-        auth === `Bearer ${cronSecret}` ||
-        auth === `Bearer ${serviceKey}`;
-      if (!ok) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
+    if (req.method !== "POST" && req.method !== "GET") {
+      return jsonResponse({ error: "Method not allowed" }, 405);
     }
 
-    const url = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const cronSecret = Deno.env.get("CRON_SECRET");
+    if (!cronSecret) {
+      return jsonResponse({ error: "CRON_SECRET is not configured" }, 500);
+    }
+
+    const header = req.headers.get("x-cron-secret");
+    const auth = req.headers.get("Authorization") ?? "";
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const ok =
+      header === cronSecret ||
+      auth === `Bearer ${cronSecret}` ||
+      (serviceKey.length > 0 && auth === `Bearer ${serviceKey}`);
+    if (!ok) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+
+    const url = Deno.env.get("SUPABASE_URL");
+    if (!url || !serviceKey) {
+      return jsonResponse(
+        { error: "Supabase service credentials are not configured" },
+        500,
+      );
+    }
+
     const supabase = createClient(url, serviceKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
@@ -30,31 +51,34 @@ Deno.serve(async (req: Request) => {
     if (req.method === "POST") {
       try {
         const body = await req.json();
-        if (body && typeof body.date_key === "string") dateKey = body.date_key;
+        if (body && typeof body.date_key === "string") {
+          dateKey = body.date_key;
+        }
       } catch {
         /* empty body ok */
       }
+    } else {
+      const fromQuery = new URL(req.url).searchParams.get("date_key");
+      if (fromQuery) dateKey = fromQuery;
+    }
+
+    if (dateKey != null && !DATE_KEY_RE.test(dateKey)) {
+      return jsonResponse(
+        { error: "date_key must be YYYY-MM-DD" },
+        400,
+      );
     }
 
     const { data, error } = await supabase.rpc("ensure_daily_puzzles", {
       p_date_key: dateKey,
     });
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: error.message }, 500);
     }
 
-    return new Response(
-      JSON.stringify({ inserted: data ?? 0, date_key: dateKey }),
-      { headers: { "Content-Type": "application/json" } },
-    );
+    return jsonResponse({ inserted: data ?? 0, date_key: dateKey });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: message }, 500);
   }
 });

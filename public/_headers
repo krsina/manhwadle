@@ -1,0 +1,30 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+  #
+  # Content-Security-Policy notes:
+  # - script-src includes 'unsafe-inline' ONLY for the tiny theme boot in index.html
+  #   (localStorage theme → data-theme). Avoid adding other inline scripts.
+  # - No 'unsafe-eval'.
+  # - Supabase Auth/API, PostHog EU, Cloudflare beacon, Google Fonts, AniList media,
+  #   and YouTube Heardle embeds are allowlisted.
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://*.supabase.co; img-src 'self' data: blob: https://s4.anilist.co https://img.anili.st https://*.anilist.co https://*.nocookie.net https://*.fandom.com https://i.ytimg.com https://*.googleusercontent.com; media-src 'self' blob: https://*.supabase.co; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.youtube.com https://www.youtube-nocookie.com https://eu.i.posthog.com https://eu-assets.i.posthog.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://s4.anilist.co https://img.anili.st https://*.anilist.co https://www.youtube.com https://www.youtube-nocookie.com https://i.ytimg.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://*.supabase.co; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.svg
+  Cache-Control: public, max-age=86400
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Robots-Tag: index, follow
+
+/robots.txt
+  Cache-Control: public, max-age=86400
+
+/sitemap.xml
+  Cache-Control: public, max-age=86400

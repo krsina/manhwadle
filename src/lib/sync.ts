@@ -1,4 +1,5 @@
 import type { DayState } from './anilist-types'
+import { announce } from './appAnnouncer'
 import type { ReaderTaste } from './readerTaste'
 import {
   loadReaderTaste,
@@ -213,9 +214,17 @@ async function withOneRetry(
     const second = await run()
     if (!second.error) return
     console.warn(`[sync] ${label} failed after retry:`, second.error.message)
+    announce(
+      'Cloud sync failed after retry. Local progress is still saved in this browser.',
+      'polite',
+    )
     return
   }
   console.warn(`[sync] ${label} failed:`, first.error.message)
+  announce(
+    'Cloud sync issue. Local progress is still saved in this browser.',
+    'polite',
+  )
 }
 
 export async function pushModeStats(
@@ -261,8 +270,8 @@ export async function pushDayProgress(
 
 export async function pushReaderTaste(userId: string, taste: ReaderTaste): Promise<void> {
   if (!supabase) return
-  await withOneRetry('profiles reader_taste', async () =>
-    supabase!.from('profiles').upsert(
+  await withOneRetry('user_settings reader_taste', async () =>
+    supabase!.from('user_settings').upsert(
       { user_id: userId, reader_taste: taste },
       { onConflict: 'user_id' },
     ),
@@ -279,16 +288,16 @@ export async function mergeLocalAndRemoteOnSignIn(
   if (!isSupabaseConfigured() || !supabase) return loadReaderTaste()
 
   const localTaste = loadReaderTaste()
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
+  const { data: settings, error: settingsError } = await supabase
+    .from('user_settings')
     .select('reader_taste')
     .eq('user_id', userId)
     .maybeSingle()
-  if (profileError) {
-    console.warn('[sync] profiles read failed:', profileError.message)
+  if (settingsError) {
+    console.warn('[sync] user_settings read failed:', settingsError.message)
   }
 
-  const remoteTasteRaw = profile?.reader_taste
+  const remoteTasteRaw = settings?.reader_taste
   const remoteTaste =
     typeof remoteTasteRaw === 'string' && isReaderTaste(remoteTasteRaw)
       ? remoteTasteRaw

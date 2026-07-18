@@ -23,6 +23,7 @@ import {
   type DayPlayLevel,
 } from '../lib/streak'
 import { ArchiveDevStreakPanel } from './ArchiveDevStreakPanel'
+import { Dialog } from './Dialog'
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
@@ -222,20 +223,16 @@ export function ArchiveCalendarModal({
     setViewMonth(date.getUTCMonth())
   }
 
-  if (!open) return null
-
   return (
-    <div className="modal-backdrop archive-backdrop" role="presentation" onClick={onClose}>
-      <div
-        className={`archive-shell${import.meta.env.DEV ? ' has-dev-panel' : ''}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          className="modal archive-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="archive-title"
-        >
+    <Dialog
+      open={open}
+      onClose={onClose}
+      titleId="archive-title"
+      descriptionId="archive-desc"
+      backdropClassName="archive-backdrop"
+      panelClassName="archive-modal"
+      shellClassName={`archive-shell${import.meta.env.DEV ? ' has-dev-panel' : ''}`}
+    >
           <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
             <span aria-hidden="true">×</span>
           </button>
@@ -244,7 +241,7 @@ export function ArchiveCalendarModal({
           <h2 id="archive-title" className="modal-title archive-modal-title">
             Pick a past day
           </h2>
-          <p className="archive-note">
+          <p id="archive-desc" className="archive-note">
             Archive plays don't count towards stats. Streaks group days you finished any mode.
           </p>
 
@@ -404,8 +401,6 @@ export function ArchiveCalendarModal({
               </button>
             </div>
           )}
-        </div>
-
         {import.meta.env.DEV && (
           <ArchiveDevStreakPanel
             taste={taste}
@@ -416,8 +411,7 @@ export function ArchiveCalendarModal({
             onChanged={() => setDevTick((n) => n + 1)}
           />
         )}
-      </div>
-    </div>
+    </Dialog>
   )
 }
 

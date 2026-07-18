@@ -1,4 +1,6 @@
+import { useRef } from 'react'
 import { listModes } from '../modes'
+import { handleTabListKeyDown } from '../lib/focusTabs'
 
 const MODE_STORAGE_KEY = 'manhwadle:mode'
 
@@ -34,10 +36,19 @@ interface ModeSwitcherProps {
 /** Compact mode tabs for switching daily variants. */
 export function ModeSwitcher({ activeId, onChange }: ModeSwitcherProps) {
   const modes = listModes()
+  const tablistRef = useRef<HTMLDivElement>(null)
   if (modes.length < 2) return null
 
   return (
-    <div className="mode-switcher" role="tablist" aria-label="Game mode">
+    <div
+      ref={tablistRef}
+      className="mode-switcher"
+      role="tablist"
+      aria-label="Game mode"
+      onKeyDown={(event) => {
+        if (tablistRef.current) handleTabListKeyDown(event, tablistRef.current)
+      }}
+    >
       {modes.map((mode) => {
         const active = mode.id === activeId
         return (
@@ -46,6 +57,7 @@ export function ModeSwitcher({ activeId, onChange }: ModeSwitcherProps) {
             type="button"
             role="tab"
             aria-selected={active}
+            tabIndex={active ? 0 : -1}
             className={`mode-switcher-btn${active ? ' is-active' : ''}`}
             onClick={() => onChange(mode.id)}
           >

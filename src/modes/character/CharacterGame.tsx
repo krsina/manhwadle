@@ -36,10 +36,15 @@ import {
 import { applyGuess } from '../../lib/guessLoop'
 import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
 import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
+import {
+  isSurrenderedLoss,
+  queueVerifiedDailyCompletion,
+} from '../../lib/ranked'
 import { recordBonusResult, recordDailyResult } from '../../lib/stats'
 import { syncAfterLocalChange } from '../../lib/sync'
 import { catalogSizePhrase } from '../../lib/catalogConfig'
 import { useDailyPuzzleAnswer } from '../../lib/useDailyPuzzleAnswer'
+import { useRoundTelemetry } from '../../lib/useRoundTelemetry'
 import type { GameModeProps } from '../types'
 import { characterModeMeta } from './config'
 
@@ -109,7 +114,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
   /** Same daily title for normal/hard; hard only changes which cast member is shown. */
   const charSeed = hardMode ? `${tasteSeed}:hard` : tasteSeed
 
-  const { answer: dailyAnswer, characterId: remoteCharacterId } =
+  const { answer: dailyAnswer, characterId: remoteCharacterId, settled: answerSettled } =
     useDailyPuzzleAnswer(
       'character',
       taste,
@@ -124,6 +129,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
   const answer =
     practiceIndex != null ? playablePool[practiceIndex] ?? dailyAnswer : dailyAnswer
   const isPractice = practiceIndex != null
+  const answerReady = isPractice || answerSettled
 
   const crop = useMemo(
     () =>
@@ -185,7 +191,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
   const [showSurrender, setShowSurrender] = useState(false)
 
   useEffect(() => {
-    if (!hasCrops || isPractice) return
+    if (!hasCrops || isPractice || !answerSettled) return
     const saved = loadDayState(dateKey, tasteStorage)
     if (saved && saved.answerId === dailyAnswer.id) {
       setDayState(saved)
@@ -198,13 +204,27 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
       return
     }
     const preferredHard = loadHardModePreference()
-    setHardMode(preferredHard)
-    setDayState(
-      createInitialState(dateKey, dailyAnswer.id, { hardMode: preferredHard }),
-    )
-    setShowResult(false)
-    setShowSurrender(false)
-  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasCrops, id])
+    let didReset = false
+    setDayState((prev) => {
+      if (
+        prev.dateKey === dateKey &&
+        (prev.guessIds.length > 0 ||
+          (prev.hintsUsed ?? 0) > 0 ||
+          prev.status !== 'playing')
+      ) {
+        return prev
+      }
+      didReset = true
+      return createInitialState(dateKey, dailyAnswer.id, {
+        hardMode: preferredHard,
+      })
+    })
+    if (didReset) {
+      setHardMode(preferredHard)
+      setShowResult(false)
+      setShowSurrender(false)
+    }
+  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasCrops, answerSettled, id])
 
   const hardModeLocked = dayState.guessIds.length > 0
 
@@ -236,13 +256,27 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
   const finished = dayState.status !== 'playing'
   const surrendered =
     dayState.status === 'lost' && dayState.guessIds.length < maxGuesses
+
+  const roundTelemetry = useRoundTelemetry({
+    mode: 'character',
+    taste,
+    dateKey,
+    hardMode,
+    isPractice,
+    isArchive,
+    active: answerReady && hasCrops,
+    status: dayState.status,
+    guessCount: dayState.guessIds.length,
+    hintsUsed: dayState.hintsUsed ?? 0,
+  })
+
   const canUnlockColor = hardMode && !finished && remaining === 1
   const colorToggleLocked = hardMode && !canUnlockColor
   const grayscale = hardMode && !colorEnabled
 
   const progress = clueProgress(dayState)
   const maxClueStep = Math.max(0, maxGuesses - 1)
-  const canRevealMore = canAdvanceClue(dayState, maxClueStep)
+  const canRevealMore = answerReady && canAdvanceClue(dayState, maxClueStep)
 
   const firstTryWin =
     dayState.status === 'won' && dayState.guessIds.length === 1
@@ -285,20 +319,54 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
 
   function persistDay(next: DayState) {
     setDayState(next)
-    if (!isPractice) {
+    if (!isPractice && answerReady) {
       saveDayState(next, tasteStorage)
       if (!isArchive) sync.progress('character', taste, next)
     }
   }
 
+  function submitTerminal(next: DayState, won: boolean, surrendered: boolean) {
+    if (isPractice || isArchive) return
+    recordDailyResult({
+      modeId: 'character',
+      taste,
+      dateKey,
+      maxGuesses,
+      won,
+      guessCount: next.guessIds.length,
+      hintsUsed: next.hintsUsed ?? 0,
+    })
+    sync.stats('character', taste)
+    queueVerifiedDailyCompletion({
+      userId: user?.id,
+      isPractice,
+      isArchive,
+      mode: 'character',
+      taste,
+      guessIds: next.guessIds,
+      hintsUsed: next.hintsUsed ?? 0,
+      hardMode: Boolean(next.hardMode ?? hardMode),
+      surrendered,
+      dateKey,
+    })
+    roundTelemetry.trackCompleted({
+      won,
+      surrendered,
+      guessCount: next.guessIds.length,
+      hintsUsed: next.hintsUsed ?? 0,
+      hardMode: Boolean(next.hardMode ?? hardMode),
+    })
+  }
+
   function handleRevealMore() {
+    if (!answerReady) return
     const next = advanceClue(dayState, maxClueStep)
     if (!next) return
     persistDay(next)
   }
 
   function handleSurrender() {
-    if (!hasCrops || dayState.status !== 'playing') return
+    if (!answerReady || !hasCrops || dayState.status !== 'playing') return
     setShowSurrender(false)
     const next: DayState = {
       ...dayState,
@@ -307,23 +375,12 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
       hardMode,
     }
     persistDay(next)
-    if (!isPractice && !isArchive) {
-      recordDailyResult({
-        modeId: 'character',
-        taste,
-        dateKey,
-        maxGuesses,
-        won: false,
-        guessCount: dayState.guessIds.length,
-        hintsUsed: next.hintsUsed ?? 0,
-      })
-      sync.stats('character', taste)
-    }
+    submitTerminal(next, false, true)
     setShowResult(true)
   }
 
   function handleGuess(manhwa: Manhwa, matchedLabel?: string) {
-    if (!hasCrops) return
+    if (!answerReady || !hasCrops) return
     const transition = applyGuess(dayState, manhwa.id, answer.id, maxGuesses)
     if (!transition) return
     const priorLabels = dayState.guessLabels ?? []
@@ -343,19 +400,14 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
     const lost = transition.status === 'lost'
 
     persistDay(next)
-    if (!isPractice && !isArchive && (won || lost)) {
-      recordDailyResult({
-        modeId: 'character',
-        taste,
-        dateKey,
-        maxGuesses,
+    if (won || lost) {
+      submitTerminal(
+        next,
         won,
-        guessCount: transition.guessIds.length,
-        hintsUsed: next.hintsUsed ?? 0,
-      })
-      sync.stats('character', taste)
+        isSurrenderedLoss(transition.status, transition.guessIds.length, maxGuesses),
+      )
+      setShowResult(true)
     }
-    if (won || lost) setShowResult(true)
   }
 
   function tryAnotherCharacter() {
@@ -367,6 +419,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
     setColorEnabled(false)
     setShowResult(false)
     setShowSurrender(false)
+    roundTelemetry.trackNextRound()
   }
 
   function handleBonusNameAnswer(result: { guess: string; correct: boolean }) {
@@ -394,6 +447,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
           doubleSolve: isDoubleSolve,
         })
         sync.stats('character', taste)
+        roundTelemetry.trackBonus(result.correct)
       }
     }
   }
@@ -445,9 +499,9 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
                 <button
                   type="button"
                   className="surrender-toggle"
-                  disabled={finished}
+                  disabled={!answerReady || finished}
                   onClick={() => {
-                    if (finished) return
+                    if (!answerReady || finished) return
                     setShowSurrender(true)
                   }}
                 >
@@ -456,7 +510,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
                 {hardMode && (
                   <FilterToggle
                     enabled={colorEnabled}
-                    disabled={colorToggleLocked}
+                    disabled={!answerReady || colorToggleLocked}
                     onChange={setColorEnabled}
                     label="Color"
                     titleOn="Color on"
@@ -466,7 +520,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
                 )}
                 <HardModeToggle
                   enabled={hardMode}
-                  disabled={hardModeLocked}
+                  disabled={!answerReady || hardModeLocked}
                   onChange={handleHardModeChange}
                   titleOn="Black and white"
                   titleOff="Black and white"
@@ -508,7 +562,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
             )}
             <GuessInput
               pool={guessPool}
-              disabled={finished}
+              disabled={!answerReady || finished}
               excludedIds={excludedIds}
               onGuess={handleGuess}
             />

@@ -1,4 +1,5 @@
-import { createPortal } from 'react-dom'
+import { useRef } from 'react'
+import { Dialog } from './Dialog'
 
 interface SurrenderModalProps {
   open: boolean
@@ -8,41 +9,46 @@ interface SurrenderModalProps {
 
 /** Confirm before ending the round and revealing the answer. */
 export function SurrenderModal({ open, onCancel, onConfirm }: SurrenderModalProps) {
-  if (!open) return null
+  const confirmRef = useRef<HTMLButtonElement>(null)
 
-  return createPortal(
-    <div className="modal-backdrop surrender-backdrop" role="presentation" onClick={onCancel}>
-      <div
-        className="modal surrender-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="surrender-title"
-        onClick={(e) => e.stopPropagation()}
+  return (
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      titleId="surrender-title"
+      descriptionId="surrender-desc"
+      backdropClassName="surrender-backdrop"
+      panelClassName="surrender-modal"
+      initialFocusRef={confirmRef}
+    >
+      <button
+        type="button"
+        className="modal-close"
+        onClick={onCancel}
+        aria-label="Close"
       >
-        <button
-          type="button"
-          className="modal-close"
-          onClick={onCancel}
-          aria-label="Close"
-        >
-          <span aria-hidden="true">×</span>
+        <span aria-hidden="true">×</span>
+      </button>
+      <h2 id="surrender-title" className="modal-title">
+        Are you sure?
+      </h2>
+      <p id="surrender-desc" className="surrender-intro">
+        This ends the round and reveals the answer.
+      </p>
+      <div className="modal-actions surrender-actions">
+        <button type="button" className="btn btn-ghost" onClick={onCancel}>
+          No
         </button>
-        <h2 id="surrender-title" className="modal-title">
-          Are you sure?
-        </h2>
-        <p className="surrender-intro">
-          This ends the round and reveals the answer.
-        </p>
-        <div className="modal-actions surrender-actions">
-          <button type="button" className="btn btn-ghost" onClick={onCancel}>
-            No
-          </button>
-          <button type="button" className="btn btn-primary" onClick={onConfirm}>
-            Yes, show me the answer…
-          </button>
-        </div>
+        <button
+          ref={confirmRef}
+          type="button"
+          className="btn btn-primary"
+          onClick={onConfirm}
+          data-dialog-initial-focus
+        >
+          Yes, show me the answer…
+        </button>
       </div>
-    </div>,
-    document.body,
+    </Dialog>
   )
 }
