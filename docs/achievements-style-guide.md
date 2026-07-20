@@ -9,14 +9,16 @@ Canonical rules for **Milestones** (progressive ladders) and **Hush-Hush** (secr
 
 ## Goals
 
-- Celebrate verified play and return habits with readable ladders.
-- Hide playful secrets behind natural product actions (theme, shop, Konami, etc.).
+- Celebrate verified play with readable ladders (completions, streaks, full clears).
+- Hide playful secrets behind natural product actions (theme, shop, Konami, hiatus returns, founding signup, etc.).
 - Sound like Manhwadle: witty, short, manhwa-literate, never corporate.
-- Keep unlocks fair: server-verified for ladders; secrets are intentional client triggers with server-side claim guards.
+- Keep unlocks fair: server-verified for ladders; secrets are server-claimed (client triggers or metric-backed hush).
+- Avoid stacking that makes Cascade trivial on forced twins (e.g. first finish + day-1 streak).
 
 ## Non-goals
 
 - Do **not** use competitive ladder criteria for hard mode or hints.
+- Do **not** reward “opened the tab” visit-day or visit-streak ladders (play ladders already incentivize showing up).
 - Do **not** copy osu! medal names, icons, or copy verbatim.
 - Do **not** put UTC, timezone jargon, or internal metric names in user-facing text.
 - Do **not** use em dashes (`—`) in titles or descriptions.
@@ -30,10 +32,10 @@ Canonical rules for **Milestones** (progressive ladders) and **Hush-Hush** (secr
 | --- | --- |
 | achievements | **Milestones** (page, home section, empty states) |
 | category `secret` | **Hush-Hush** |
-| unlock celebration | “Unlocked” kicker + shop points line |
+| unlock celebration | Type kicker (Completions / Streaks / Full clears / Hush-Hush) + shop points line |
 | detail inspect | “Milestone” kicker (no confetti) |
 
-UI section order on the full catalog: Completions → Streaks → Full clears → Return arcs → Hush-Hush.
+UI section order on the full catalog: Completions → Streaks → Full clears → Hush-Hush.
 
 ---
 
@@ -42,10 +44,10 @@ UI section order on the full catalog: Completions → Streaks → Full clears �
 | Category | UI label | What it measures | Flavor lean |
 | --- | --- | --- | --- |
 | `completions` | Completions | Lifetime verified daily mode finishes | Series / publishing arcs |
-| `streak` | Streaks | Any-mode day streak (current or max, per def) | Weekly drops, cultivation, seasons |
+| `streak` | Streaks | Any-mode day streak (max); starts at **2** days | Weekly drops, cultivation, seasons |
 | `all_mode` | Full clears | All required modes in a day; streak or banked clear-days | Party / tower / sweep |
-| `visit` | Return arcs | Visit days, visit streaks, comebacks | Sect / cultivation return |
-| `secret` | Hush-Hush | One-shot (or counter) secret flags | Easter eggs, UI mischief |
+| `secret` | Hush-Hush | Secret flags **or** metric-backed hush (hiatus returns) | Easter eggs, founding, comebacks |
+| `visit` | (legacy) | Prefer `secret` for new hiatus seals; empty in catalog | — |
 
 Hard mode and hints may appear as **secrets**, never as ladder gates.
 
@@ -57,7 +59,7 @@ Hard mode and hints may appear as **secrets**, never as ladder gates.
 
 - Prefer **2–4 words**. Questions and mild punctuation are OK when they land (`Who turned on the lights?`, `You came back!`).
 - Sound like chapter titles, system messages, or reader slang—not HR badges (`First Login`, `Engagement Streak`).
-- Progressive titles should escalate: early = prologue / tutorial energy; late = seasonal / lifetime weight.
+- Progressive titles should escalate: early = tutorial energy; late = seasonal / lifetime weight.
 - Secrets can be punchier and more opaque; the description may stay coy.
 
 ### Descriptions
@@ -66,9 +68,8 @@ Hard mode and hints may appear as **secrets**, never as ladder gates.
 - Progressive pattern: **requirement phrase** + **flavor punch**.  
   Example: `Finish 25 verified daily modes. No filler arcs allowed.`
 - Secrets: often skip the literal how-to; tease the action.  
-  Example: `The ancient sequence still works.`
+  Example: `You showed up while the ink was still wet.` (Early Bird; do **not** mention the signup window length.)
 - Prefer “verified daily mode(s)” when the metric is server-backed completions.
-- Prefer “visit” / “comeback” language for return arcs; avoid “login streak” corporate speak.
 - Ellipsis (`…`) is fine for cliffhanger tone (`Just one more chapter…`).
 
 ### Hard bans (user-facing)
@@ -87,11 +88,12 @@ Hard mode and hints may appear as **secrets**, never as ladder gates.
 
 ## Progressive ladder design
 
-1. **Early rungs are dense** (1, 2, 3, 5, 7…) so new players feel progress.
+1. **Early rungs are dense** (2, 3, 5, 7…) so new players feel progress without auto-pairing with Awakening.
 2. **Mid rungs** hit weekly / monthly / seasonal beats (14, 30, 60, 100, 180…).
 3. **Late rungs** stretch toward ~1–2 year horizons (365, 500, 730, 1000+ completions).
 4. Each rung needs a **distinct title**—do not reuse “Streak N” style labels.
 5. Thresholds must match the metric exactly; titles must not claim a different count than `threshold`.
+6. Do **not** add a day-1 any-mode streak rung (it always pairs with first completion).
 
 When adding a rung: update `ACHIEVEMENT_POINT_REWARDS`, `ACHIEVEMENT_BASE_DEFINITIONS`, SQL `achievement_definitions`, and any awarder path that reads thresholds.
 
@@ -105,23 +107,30 @@ When adding a rung: update `ACHIEVEMENT_POINT_REWARDS`, `ACHIEVEMENT_BASE_DEFINI
 - Is discoverable without a wiki, or delightful if found by accident.
 - Does not require griefing others or breaking the game.
 - Meta secrets (e.g. **Cascade** for multiple seals in one award pass) are OK when server-counted.
+- Hiatus returns (Regression, Second Life, Reincarnation, Protagonist Arc, Time Skip) are Hush-Hush with visit comeback metrics.
+- **Early Bird** is founding signup within the first four months after launch epoch (server-checked; copy stays coy).
+
+### Cascade
+
+- Requires **3+** newly inserted awards in one award pass (ladder, completion secrets, or mix).
+- Full Party + Clean Sweep alone (2) must **not** grant Cascade.
 
 ### Implementation pattern
 
 | Layer | Responsibility |
 | --- | --- |
-| Client | Fire `reportSecretEvent(event)` from the interaction (`src/lib/secretEvents.ts`) |
-| Server | `report_secret_event` validates, increments counters, awards via `try_award_secret` |
-| Catalog | `category: 'secret'`, `metric: 'secret_flag'`, `threshold` usually `1` (or a counter target) |
+| Client | Fire `reportSecretEvent(event)` from the interaction (`src/lib/secretEvents.ts`) when applicable |
+| Server | `report_secret_event` / metric awarder / signup hydrate validates and awards |
+| Catalog | `category: 'secret'`; `metric` is `secret_flag` **or** a visit comeback metric |
 | UX | Site-wide unlock host (`AchievementUnlockHost`) toasts on any route |
 
-Secrets are **intentionally client-triggered** but **server-claimed** so grants stay idempotent and point balances stay honest. Award RPCs are rate-limited; already-owned one-shots short-circuit without writing; Cascade is server-counted only (no client `multi_unlock` claim).
+Award RPCs are rate-limited where client-triggered; already-owned one-shots short-circuit without writing; Cascade is server-counted only (no client `multi_unlock` claim). Metric-backed hush seals are granted when `metric <> 'secret_flag'` in `award_achievements`.
 
 ### Naming
 
-- IDs: `secret_<slug>` (snake_case).
+- Prefer IDs: `secret_<slug>` (snake_case) for new secrets.
+- Legacy hiatus ids (`visit_comeback_*`, `visit_timeskip`) may keep their ids for existing `user_achievements` rows.
 - Events: short snake_case verbs (`light_theme`, `dark_theme`, `konami`).
-- Keep event name ↔ award id mapping obvious in the migration `when` branches.
 
 ### Spoiler posture
 
@@ -138,7 +147,7 @@ Shop points on unlock (`pointReward` / server grant). Typical bands:
 | --- | --- | --- |
 | Small | **25** | Early ladder rungs, light secrets |
 | Medium | **50** | Mid rungs, meatier secrets |
-| Large | **100** | Strong mid-late milestones |
+| Large | **100** | Strong mid-late milestones / timing hush |
 | Capstone | **200** | Deep ladder / long-horizon titles |
 
 Milestone points increase `lifetime_earned` (level XP) and are **not** subject to the daily play-XP cap (see `docs/play-xp-leveling.md`).
@@ -155,20 +164,20 @@ Do not invent one-off amounts outside these bands without a product reason.
 | --- | --- |
 | First completion special-case | `first_completion` |
 | Completions ladder | `completions_<n>` |
-| Any-mode streak | `any_streak_<n>` |
+| Any-mode streak | `any_streak_<n>` (no `_1`) |
 | All-mode / clear-day mix | `all_mode_day`, `all_mode_days_<n>`, `all_mode_streak_<n>` |
-| Visits | `visit_days_<n>`, `visit_streak_<n>`, `visit_comeback_<n>`, `visit_timeskip` |
-| Secrets | `secret_<slug>` |
+| Hiatus hush | `visit_comeback_<n>`, `visit_timeskip` |
+| Secrets | `secret_<slug>` (e.g. `secret_early_bird`) |
 
 ### Metrics
 
-Only use metrics declared on `AchievementDefinition.metric` and mirrored by the server awarder. Secrets use `secret_flag`.
+Only use metrics declared on `AchievementDefinition.metric` and mirrored by the server awarder. Classic secrets use `secret_flag`; hiatus hush uses `visit_comebacks` / `visit_long_comebacks`.
 
 ---
 
 ## Unlock UX
 
-- **Unlock modal:** confetti, “Unlocked”, title, description, `◆ N shop points`, Continue.
+- **Unlock modal:** confetti, type kicker, title, description, `◆ N shop points`, Continue.
 - **Detail modal:** quieter inspect from badge click; shows earned date when known.
 - **Seen tracking:** `manhwadle:achievements:seen-v1` via `consumeNewAchievementIds`—first hydrate seeds without toasting; later new IDs toast.
 - **Notify:** after server awards may have changed, call `notifyAchievementsChanged()` so the host refetches.
@@ -179,7 +188,7 @@ Only use metrics declared on `AchievementDefinition.metric` and mirrored by the 
 ## Visual language
 
 - Badge “seal” icons are category-tinted SVG marks (`AchievementIcon`); colors live under `.achievement-<category>` in `src/styles.css`.
-- Completions / streaks / full clears / visits / secrets each have a distinct mark gradient—keep new categories from collapsing into purple-glow defaults.
+- Completions / streaks / full clears / secrets each have a distinct mark gradient—keep new categories from collapsing into purple-glow defaults.
 - Locked catalog tiles stay muted (`is-locked`); earned tiles stay readable at home chip size and milestones grid size.
 - Prefer crisp, readable seals over ornate illustration; icons should survive ~30–40px marks.
 
@@ -191,7 +200,7 @@ When adding a category: extend CSS tint tokens, `achievementCategoryLabel`, and 
 
 1. Add/update definition + points in `src/lib/achievements.ts`.
 2. Mirror row in a Supabase migration (`achievement_definitions` upsert/insert).
-3. Wire award path (ladder metric awarder **or** `report_secret_event` branch + client `reportSecretEvent`).
+3. Wire award path (ladder metric awarder, signup hydrate, **or** `report_secret_event` branch + client `reportSecretEvent`).
 4. Add/adjust icon branch in `AchievementIcon` if the id needs a unique glyph.
 5. Update tests that assert catalog size, parsing, or copy bans if present.
 6. Apply migration to remote before expecting live unlocks.
@@ -206,6 +215,7 @@ When adding a category: extend CSS tint tokens, `achievementCategoryLabel`, and 
 | `Reach a 7-day any-mode streak. Reliable as a weekly upload.` | `Maintain a streak of 7 days (UTC).` |
 | `Who turned on the lights?` / `You banished the shadows. The dungeon squints.` | `Enable light theme in settings.` |
 | `Finish every required mode on a single day. Party wipe averted.` | `Complete all modes — great job!` |
+| `You showed up while the ink was still wet.` | `Sign up within the first 4 months of launch.` |
 
 ---
 
@@ -220,4 +230,4 @@ When adding a category: extend CSS tint tokens, `achievementCategoryLabel`, and 
 | Unlock / detail UI | `src/components/AchievementUnlockModal.tsx` |
 | Icons | `src/components/AchievementIcon.tsx` |
 | Catalog UI | `src/components/AchievementBadges.tsx`, `src/pages/MilestonesPage.tsx` |
-| Secret RPC seed | `supabase/migrations/20260718210000_secret_hush_achievements.sql` (+ later secret/ladder migrations) |
+| Rebalance migration | `supabase/migrations/20260720232417_achievement_rebalance_early_bird_cascade.sql` |

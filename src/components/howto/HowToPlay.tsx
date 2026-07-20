@@ -4,17 +4,16 @@ import { HowToPlayModal } from './HowToPlayModal'
 import { useHowToPlay } from './useHowToPlay'
 
 interface HowToPlayProps {
-  /** Stable mode id — used for per-mode “seen” storage */
-  modeId: string
+  /** Kept for call-site compatibility; how-to no longer auto-opens per mode. */
+  modeId?: string
   guide: HowToPlayGuide
 }
 
 /**
- * Drop-in how-to for any game mode: auto-opens once for first-time visitors,
- * and exposes a “?” button to reopen later.
+ * Drop-in how-to for any game mode: “?” button opens the guide on demand.
  */
-export function HowToPlay({ modeId, guide }: HowToPlayProps) {
-  const { open, openHowTo, closeHowTo } = useHowToPlay(modeId)
+export function HowToPlay({ guide }: HowToPlayProps) {
+  const { open, openHowTo, closeHowTo } = useHowToPlay()
 
   return (
     <>

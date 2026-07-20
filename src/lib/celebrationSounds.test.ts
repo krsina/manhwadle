@@ -71,4 +71,8 @@ describe('celebrationSounds', () => {
   it('gives cascade a stacked-drop cue', () => {
     expect(hushSoundForAchievement('secret_cascade')).toBe('cascade')
   })
+
+  it('gives Early Bird a dawn cue', () => {
+    expect(hushSoundForAchievement('secret_early_bird')).toBe('dawn')
+  })
 })

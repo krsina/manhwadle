@@ -24,7 +24,6 @@ const CATEGORY_ORDER: AchievementCategory[] = [
   'completions',
   'streak',
   'all_mode',
-  'visit',
   'secret',
 ]
 
@@ -34,12 +33,23 @@ function categorySectionTitle(category: AchievementCategory): string {
       return 'Streaks'
     case 'all_mode':
       return 'Full clears'
-    case 'visit':
-      return 'Return arcs'
     case 'secret':
+      return 'Hush-Hush'
+    case 'visit':
       return 'Hush-Hush'
     default:
       return 'Completions'
+  }
+}
+
+/** Catalog tile: display copy/points from definitions; keep server awardedAt when earned. */
+function catalogAward(
+  def: AchievementDefinition,
+  earned: AchievementAward | undefined,
+): AchievementAward {
+  return {
+    ...definitionToAward(def),
+    awardedAt: earned?.awardedAt ?? null,
   }
 }
 
@@ -66,7 +76,7 @@ export function AchievementBadges({
     return ACHIEVEMENT_DEFINITIONS.map((def) => {
       const earned = earnedById.get(def.id)
       return {
-        award: earned ?? definitionToAward(def),
+        award: catalogAward(def, earned),
         earned: Boolean(earned),
       }
     })
@@ -118,7 +128,7 @@ export function AchievementBadges({
                 tiles={defs.map((def) => {
                   const earned = earnedById.get(def.id)
                   return {
-                    award: earned ?? definitionToAward(def),
+                    award: catalogAward(def, earned),
                     earned: Boolean(earned),
                   }
                 })}
@@ -156,9 +166,9 @@ function categoryBlurb(category: AchievementCategory, defs: readonly Achievement
       return `Keep any mode alive from ${first} to ${last} days.`
     case 'all_mode':
       return 'Clear every mode in a day, then chain those sweeps.'
-    case 'visit':
-      return 'Show up each day, keep visit streaks, and come back after hiatus.'
     case 'secret':
+      return 'Hidden feats. No spoilers.'
+    case 'visit':
       return 'Hidden feats. No spoilers.'
     default:
       return `Stack verified finishes from ${first} to ${last}.`

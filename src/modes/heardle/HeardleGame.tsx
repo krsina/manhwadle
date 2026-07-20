@@ -21,7 +21,6 @@ import {
 } from '../../lib/compare'
 import { isArchiveDate } from '../../lib/archive'
 import { displayTitle } from '../../lib/daily'
-import { hasSeenHowTo } from '../../lib/howto'
 import { useOwnerDevAccess } from '../../lib/useOwnerDevAccess'
 import { buildKnownInfo } from '../../lib/knowledge'
 import { randomPlayableIndex } from '../../lib/random'
@@ -90,7 +89,7 @@ function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): Gue
 
 /** Heardle mode: progressive YouTube song clips → guess the manhwa. */
 export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
-  const { id, name, seedPrefix, storagePrefix, maxGuesses, tagline } =
+  const { id: _id, name, seedPrefix, storagePrefix, maxGuesses, tagline } =
     heardleModeMeta
   const { user } = useAuth()
   const { ownerDev } = useOwnerDevAccess()
@@ -200,9 +199,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       if (saved.hardMode != null) setHardMode(saved.hardMode)
       else if (saved.guessIds.length > 0) setHardMode(false)
       else setHardMode(loadHardModePreference())
-      setShowResult(
-        (saved.status === 'won' || saved.status === 'lost') && hasSeenHowTo(id),
-      )
+      setShowResult(saved.status === 'won' || saved.status === 'lost')
       return
     }
     const preferredHard = loadHardModePreference()
@@ -226,13 +223,11 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       setShowResult(false)
       setShowSurrender(false)
     }
-  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasSongs, answerSettled, id])
+  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasSongs, answerSettled])
 
   const [showResult, setShowResult] = useState(
     () =>
-      hasSongs &&
-      (dayState.status === 'won' || dayState.status === 'lost') &&
-      hasSeenHowTo(id),
+      hasSongs && (dayState.status === 'won' || dayState.status === 'lost'),
   )
   const [showSurrender, setShowSurrender] = useState(false)
 
