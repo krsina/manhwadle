@@ -7,7 +7,17 @@ name: CI
 on:
   push:
     branches: [main, production-readiness]
+    # Non-app paths: skip full quality (lint/tests/build/e2e). Mixed PRs with
+    # src/public/supabase/etc. still run CI. Live avatar assets live under public/.
+    paths-ignore:
+      - 'docs/**'
+      - 'art/**'
+      - '**.md'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'art/**'
+      - '**.md'
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
