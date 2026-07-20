@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../components/AuthProvider'
 import { CoverClue } from '../../components/CoverClue'
 import { FeedbackGrid } from '../../components/FeedbackGrid'
@@ -23,6 +23,7 @@ import { manhwaHasCover } from '../../lib/cover'
 import { isArchiveDate } from '../../lib/archive'
 import { displayTitle } from '../../lib/daily'
 import { hasSeenHowTo } from '../../lib/howto'
+import { useOwnerDevAccess } from '../../lib/useOwnerDevAccess'
 import { buildKnownInfo } from '../../lib/knowledge'
 import { randomPlayableIndex } from '../../lib/random'
 import { findById } from '../../lib/search'
@@ -36,9 +37,12 @@ import { reportWrongGenreIfCompleteMiss } from '../../lib/secretEvents'
 import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
 import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
 import {
+  applyRankedCompletionReward,
   isSurrenderedLoss,
   queueBonusNameReward,
   queueVerifiedDailyCompletion,
+  shouldUseServerRankedAttempt,
+  submitRankedDailyGuess,
 } from '../../lib/ranked'
 import { recordBonusResult, recordDailyResult } from '../../lib/stats'
 import { syncAfterLocalChange } from '../../lib/sync'
@@ -86,6 +90,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
   const { id, name, seedPrefix, storagePrefix, maxGuesses, tagline } =
     coverModeMeta
   const { user } = useAuth()
+  const { ownerDev } = useOwnerDevAccess()
   const sync = syncAfterLocalChange(user?.id)
   const isArchive = isArchiveDate(dateKey)
   const tasteSeed = withTastePrefix(seedPrefix, taste)
@@ -98,20 +103,41 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
 
   const hasCovers = playablePool.length > 0
 
-  const { answer: dailyAnswer, settled: answerSettled } = useDailyPuzzleAnswer(
+  const {
+    answer: dailyAnswer,
+    settled: answerSettled,
+    migrationMissing,
+    clue,
+    rankedClueReady,
+  } = useDailyPuzzleAnswer(
     'cover',
     taste,
     playablePool,
     pool,
     tasteSeed,
     dateKey,
+    Boolean(user?.id && !isArchive),
   )
 
   const [practiceIndex, setPracticeIndex] = useState<number | null>(null)
+  const [rankedRevealId, setRankedRevealId] = useState<number | null>(null)
+  const [forcedLocalOnly, setForcedLocalOnly] = useState(false)
+  const forcedLocalOnlyRef = useRef(false)
+  const rankedRevealedAnswer =
+    rankedRevealId != null ? findById(playablePool, rankedRevealId) : null
   const answer =
-    practiceIndex != null ? playablePool[practiceIndex] ?? dailyAnswer : dailyAnswer
+    practiceIndex != null
+      ? playablePool[practiceIndex] ?? dailyAnswer
+      : rankedRevealedAnswer ?? dailyAnswer
   const isPractice = practiceIndex != null
-  const answerReady = isPractice || answerSettled
+  const wantsRanked = shouldUseServerRankedAttempt({
+    userId: user?.id,
+    isPractice,
+    isArchive,
+  })
+  const localOnlyToday = wantsRanked && (migrationMissing || forcedLocalOnly)
+  const rankedPayloadMissing = wantsRanked && !migrationMissing && !rankedClueReady
+  const answerReady = isPractice || (answerSettled && !rankedPayloadMissing)
 
   const coverUrl = answer.coverImage?.trim() || null
   const focusSeed = isPractice
@@ -260,12 +286,25 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
     setDayState(next)
     if (!isPractice && answerReady) {
       saveDayState(next, tasteStorage)
-      if (!isArchive) sync.progress('cover', taste, next)
+      if (
+        !isArchive &&
+        !localOnlyToday &&
+        !forcedLocalOnlyRef.current &&
+        (!wantsRanked || (next.status !== 'playing' && next.answerId > 0))
+      ) {
+        sync.progress('cover', taste, next)
+      }
     }
   }
 
-  function submitTerminal(next: DayState, won: boolean, surrendered: boolean) {
+  function submitTerminal(
+    next: DayState,
+    won: boolean,
+    surrendered: boolean,
+    opts: { rankedAlreadyFinalized?: boolean } = {},
+  ) {
     if (isPractice || isArchive) return
+    if (localOnlyToday || forcedLocalOnlyRef.current) return
     recordDailyResult({
       modeId: 'cover',
       taste,
@@ -276,6 +315,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
       hintsUsed: next.hintsUsed ?? 0,
     })
     sync.stats('cover', taste)
+    if (opts.rankedAlreadyFinalized) return
     queueVerifiedDailyCompletion({
       userId: user?.id,
       isPractice,
@@ -287,6 +327,11 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
       hardMode: Boolean(next.hardMode ?? hardMode),
       surrendered,
       dateKey,
+      onResult: (result) => {
+        if (result.status === 'ok' && result.answerId != null) {
+          setRankedRevealId(result.answerId)
+        }
+      },
     })
   }
 
@@ -311,8 +356,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
     setShowResult(true)
   }
 
-  function handleGuess(manhwa: Manhwa, matchedLabel?: string) {
-    if (!answerReady || !hasCovers) return
+  function applyLocalGuess(manhwa: Manhwa, matchedLabel?: string) {
     const transition = applyGuess(dayState, manhwa.id, answer.id, maxGuesses)
     if (!transition) return
     reportWrongGenreIfCompleteMiss(manhwa, answer)
@@ -343,6 +387,77 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
     }
   }
 
+  function handleGuess(manhwa: Manhwa, matchedLabel?: string) {
+    if (!answerReady || !hasCovers) return
+
+    const useServer =
+      shouldUseServerRankedAttempt({
+        userId: user?.id,
+        isPractice,
+        isArchive,
+      }) && !migrationMissing
+
+    if (!useServer) {
+      applyLocalGuess(manhwa, matchedLabel)
+      return
+    }
+
+    void (async () => {
+      const ranked = await submitRankedDailyGuess({
+        userId: user?.id,
+        isPractice,
+        isArchive,
+        mode: 'cover',
+        taste,
+        guessId: manhwa.id,
+        hintsUsed: dayState.hintsUsed ?? 0,
+        hardMode,
+        dateKey,
+      })
+
+      if (ranked.status === 'skipped' && ranked.reason === 'migration_missing') {
+        forcedLocalOnlyRef.current = true
+        setForcedLocalOnly(true)
+        applyLocalGuess(manhwa, matchedLabel)
+        return
+      }
+      if (ranked.status !== 'ok' || !ranked.accepted) {
+        if (ranked.status === 'error') {
+          console.warn('[ranked]', ranked.warning, ranked.message)
+        }
+        return
+      }
+
+      reportWrongGenreIfCompleteMiss(manhwa, answer)
+      const priorLabels = dayState.guessLabels ?? []
+      const guessLabels = [
+        ...dayState.guessIds.map((_, i) => priorLabels[i] || ''),
+        matchedLabel?.trim() || displayTitle(manhwa),
+      ]
+      const revealedAnswerId = ranked.answerId ?? answer.id
+      if (ranked.answerId != null) setRankedRevealId(ranked.answerId)
+      const next: DayState = {
+        ...dayState,
+        answerId: revealedAnswerId,
+        guessIds: ranked.guessIds,
+        guessLabels,
+        status: ranked.dayStatus,
+        hardMode,
+      }
+      persistDay(next)
+      if (ranked.finalized) {
+        if (ranked.completion) applyRankedCompletionReward(ranked.completion)
+        submitTerminal(
+          next,
+          ranked.dayStatus === 'won',
+          isSurrenderedLoss(ranked.dayStatus, ranked.guessIds.length, maxGuesses),
+          { rankedAlreadyFinalized: true },
+        )
+        setShowResult(true)
+      }
+    })()
+  }
+
   function tryAnotherCover() {
     if (!hasCovers || playablePool.length === 0) return
     const nextIndex = randomPlayableIndex(playablePool, answer.id)
@@ -353,7 +468,12 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
     setShowSurrender(false)
   }
 
-  function handleBonusNameAnswer(result: { guess: string; correct: boolean }) {
+  function handleBonusNameAnswer(result: {
+    guess: string
+    correct: boolean
+    guessedCharacterId?: number
+    guessLabel?: string
+  }) {
     if (dayState.bonusNameGuess != null) return
 
     const firstTry = dayState.status === 'won' && dayState.guessIds.length === 1
@@ -367,7 +487,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
     setDayState(next)
     if (!isPractice) {
       saveDayState(next, tasteStorage)
-      if (!isArchive) {
+      if (!isArchive && !localOnlyToday) {
         sync.progress('cover', taste, next)
         recordBonusResult({
           modeId: 'cover',
@@ -378,16 +498,20 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
           doubleSolve: isDoubleSolve,
         })
         sync.stats('cover', taste)
-        queueBonusNameReward({
-          userId: user?.id,
-          isPractice,
-          isArchive,
-          mode: 'cover',
-          taste,
-          correct: result.correct,
-          firstTry,
-          dateKey,
-        })
+        if (result.guessedCharacterId != null && result.guessedCharacterId > 0) {
+          queueBonusNameReward({
+            userId: user?.id,
+            isPractice,
+            isArchive,
+            mode: 'cover',
+            taste,
+            correct: result.correct,
+            firstTry,
+            guessedCharacterId: result.guessedCharacterId,
+            guessLabel: result.guessLabel ?? result.guess,
+            dateKey,
+          })
+        }
       }
     }
   }
@@ -400,6 +524,16 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
             {isArchive ? `Archive · ${name}` : `Today’s ${name} puzzle`}
           </p>
           <h1 className="mode-title">{tagline}</h1>
+          {localOnlyToday && (
+            <p className="day-meta" role="status">
+              Local-only play — ranked sync is unavailable until the security migration is deployed.
+            </p>
+          )}
+          {rankedPayloadMissing && (
+            <p className="day-meta" role="alert">
+              Ranked puzzle unavailable: the server has no clue-safe metadata for today.
+            </p>
+          )}
         </div>
         <div className="hero-aside">
           <p className="day-meta">
@@ -464,11 +598,21 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
                 canRevealMore={canRevealMore}
                 onRevealMore={hardMode ? undefined : handleRevealMore}
                 grayscale={hardMode}
+                focusX={
+                  !isPractice && clue?.type === 'cover' && typeof clue.focus_x === 'number'
+                    ? clue.focus_x
+                    : undefined
+                }
+                focusY={
+                  !isPractice && clue?.type === 'cover' && typeof clue.focus_y === 'number'
+                    ? clue.focus_y
+                    : undefined
+                }
               />
             </div>
-            {(import.meta.env.DEV || (isArchive && !isPractice)) && (
+            {(ownerDev || (isArchive && !isPractice)) && (
               <div className="character-test-bar">
-                {import.meta.env.DEV && (
+                {ownerDev && (
                   <button
                     type="button"
                     className="btn btn-ghost"
@@ -482,7 +626,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
                     Archive puzzle — saved on this device; doesn’t count toward stats.
                   </p>
                 )}
-                {import.meta.env.DEV && isPractice && (
+                {ownerDev && isPractice && (
                   <p className="character-test-note">
                     Practice round — does not overwrite{' '}
                     {isArchive ? 'this archive' : 'today’s daily'} save.

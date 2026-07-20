@@ -2,27 +2,38 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Manhwa } from './anilist-types'
 import type { ReaderTaste } from './readerTaste'
 import type { StatsModeId } from './stats'
-import { getDailyAnswer } from './daily'
-import { getTodaysPuzzle } from './dailyPuzzle'
+import { getDailyAnswer, getTodayKey } from './daily'
+import {
+  getTodaysPuzzle,
+  type DailyPublicClue,
+  type DailyPuzzleSource,
+} from './dailyPuzzle'
 import { isSupabaseConfigured } from './supabase'
 
-export type DailyAnswerSource = 'remote' | 'local'
+export type DailyAnswerSource = DailyPuzzleSource
 
 export interface DailyPuzzleAnswerState {
   answer: Manhwa
   source: DailyAnswerSource
   characterId: number | null
+  meta: Record<string, unknown> | null
+  clue: DailyPublicClue | null
+  rankedClueReady: boolean
+  /** True while today's answer_id is withheld from the client. */
+  answerHidden: boolean
+  /** True when attempt RPCs are missing — ranked play must stay local/unranked. */
+  migrationMissing: boolean
   /**
-   * False while a remote daily_puzzles lookup is in flight (Supabase configured).
-   * Unconfigured / anonymous-local settles immediately.
+   * False while a remote daily play-state / archive lookup is in flight.
+   * Unconfigured settles immediately.
    */
   settled: boolean
 }
 
 /**
  * Resolve today's answer. With Supabase configured, stays unsettled until the
- * remote lookup finishes (miss/error settles to local FNV fallback). Without
- * Supabase, settles immediately on the local answer.
+ * remote lookup finishes. Today never receives answer_id from the table;
+ * signed-in ranked play validates guesses via server attempts.
  */
 export function useDailyPuzzleAnswer(
   mode: StatsModeId,
@@ -31,6 +42,8 @@ export function useDailyPuzzleAnswer(
   fallbackPool: Manhwa[],
   seedPrefix: string,
   dateKey: string,
+  /** Only signed-in current-day ranked play should request server-held clues. */
+  authoritativeToday = false,
 ): DailyPuzzleAnswerState {
   const pool = playablePool.length > 0 ? playablePool : fallbackPool
   const localAnswer = useMemo(
@@ -38,17 +51,28 @@ export function useDailyPuzzleAnswer(
     [pool, dateKey, seedPrefix],
   )
   const configured = isSupabaseConfigured()
+  const useRemote = configured && (dateKey < getTodayKey() || authoritativeToday)
 
   const [answer, setAnswer] = useState(localAnswer)
   const [source, setSource] = useState<DailyAnswerSource>('local')
   const [characterId, setCharacterId] = useState<number | null>(null)
-  const [settled, setSettled] = useState(!configured)
+  const [meta, setMeta] = useState<Record<string, unknown> | null>(null)
+  const [clue, setClue] = useState<DailyPublicClue | null>(null)
+  const [rankedClueReady, setRankedClueReady] = useState(false)
+  const [answerHidden, setAnswerHidden] = useState(false)
+  const [migrationMissing, setMigrationMissing] = useState(false)
+  const [settled, setSettled] = useState(!useRemote)
 
   useEffect(() => {
-    if (!configured) {
+    if (!useRemote) {
       setAnswer(localAnswer)
       setSource('local')
       setCharacterId(null)
+      setMeta(null)
+      setClue(null)
+      setRankedClueReady(false)
+      setAnswerHidden(false)
+      setMigrationMissing(false)
       setSettled(true)
       return
     }
@@ -56,11 +80,16 @@ export function useDailyPuzzleAnswer(
     setAnswer(localAnswer)
     setSource('local')
     setCharacterId(null)
+    setMeta(null)
+    setClue(null)
+    setRankedClueReady(false)
+    setAnswerHidden(false)
+    setMigrationMissing(false)
     setSettled(false)
-  }, [localAnswer, configured])
+  }, [localAnswer, useRemote])
 
   useEffect(() => {
-    if (!configured) return
+    if (!useRemote) return
 
     let cancelled = false
     setSettled(false)
@@ -76,12 +105,27 @@ export function useDailyPuzzleAnswer(
       setAnswer(result.answer)
       setSource(result.source)
       setCharacterId(result.characterId)
+      setMeta(result.meta)
+      setClue(result.clue)
+      setRankedClueReady(result.rankedClueReady)
+      setAnswerHidden(result.answerHidden)
+      setMigrationMissing(Boolean(result.migrationMissing))
       setSettled(true)
     })
     return () => {
       cancelled = true
     }
-  }, [configured, mode, taste, playablePool, fallbackPool, seedPrefix, dateKey])
+  }, [useRemote, mode, taste, playablePool, fallbackPool, seedPrefix, dateKey])
 
-  return { answer, source, characterId, settled }
+  return {
+    answer,
+    source,
+    characterId,
+    meta,
+    clue,
+    rankedClueReady,
+    answerHidden,
+    migrationMissing,
+    settled,
+  }
 }
