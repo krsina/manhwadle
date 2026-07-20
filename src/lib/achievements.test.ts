@@ -106,7 +106,7 @@ describe('parseAchievementAwards', () => {
     const cascade = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'secret_cascade')!
     expect(cascade.title).toBe('Cascade')
     expect(cascade.category).toBe('secret')
-    expect(cascade.pointReward).toBe(50)
+    expect(cascade.pointReward).toBe(100)
     expect(cascade.description.includes('—')).toBe(false)
   })
 })

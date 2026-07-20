@@ -93,6 +93,9 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
   return (
     <div className="page">
       <div className="atmosphere" aria-hidden="true" />
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <header className="site-header">
         <div className="site-header-top">
           <Link to="/" className="site-brand site-brand-link">
@@ -107,6 +110,17 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
           <div className="site-actions">
             <StreakBadge />
             <PointsBadge />
+            <a
+              className="site-icon-btn site-kofi-link"
+              href="https://ko-fi.com/krsina"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Support on Ko-fi"
+              title="Support on Ko-fi"
+            >
+              <KofiCupIcon />
+            </a>
+            <ThemeToggle />
             <button
               type="button"
               className="site-icon-btn site-settings-link"
@@ -118,7 +132,6 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
             >
               <SettingsCogIcon />
             </button>
-            <ThemeToggle />
             <AuthButton />
           </div>
         </div>
@@ -132,7 +145,7 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
       <NetworkStatus />
       <AppAnnouncer />
 
-      <div className="page-with-ads">
+      <div className="page-with-ads" id="main-content">
         <Outlet />
         <AdChrome />
       </div>
@@ -184,6 +197,34 @@ function SettingsCogIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+      />
+    </svg>
+  )
+}
+
+/** Coffee cup icon for the Ko-fi support link. */
+function KofiCupIcon() {
+  return (
+    <svg className="site-icon-svg" viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4.5 9.5h11.25v5.75a3.5 3.5 0 0 1-3.5 3.5H8a3.5 3.5 0 0 1-3.5-3.5V9.5Z"
+      />
+      <path
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15.75 9.5h1.5a2.75 2.75 0 0 1 0 5.5h-1.5"
+      />
+      <path
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        d="M8 6.25c.35-.7.35-1.4 0-2.1M11.25 6.25c.35-.7.35-1.4 0-2.1"
       />
     </svg>
   )

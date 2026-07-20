@@ -16,6 +16,9 @@ const wave1MigrationPath = path.resolve('supabase/migrations/20260719100000_avat
 const limitedTimeMigrationPath = path.resolve(
   'supabase/migrations/20260720100729_avatar_limited_time_newbies.sql',
 )
+const skyMeadowLimitedTimeMigrationPath = path.resolve(
+  'supabase/migrations/20260720174500_avatar_limited_time_sky_meadow.sql',
+)
 const stageMigrationPath = path.resolve('supabase/migrations/20260719110000_avatar_stage_shop.sql')
 const hasWholeCharacterMigration = fs.existsSync(wholeCharacterMigrationPath)
 const wholeCharacterMigration = hasWholeCharacterMigration
@@ -27,10 +30,13 @@ const wave1Migration = fs.existsSync(wave1MigrationPath)
 const limitedTimeMigration = fs.existsSync(limitedTimeMigrationPath)
   ? fs.readFileSync(limitedTimeMigrationPath, 'utf8')
   : ''
+const skyMeadowLimitedTimeMigration = fs.existsSync(skyMeadowLimitedTimeMigrationPath)
+  ? fs.readFileSync(skyMeadowLimitedTimeMigrationPath, 'utf8')
+  : ''
 const stageMigration = fs.existsSync(stageMigrationPath)
   ? fs.readFileSync(stageMigrationPath, 'utf8')
   : ''
-const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}\n${limitedTimeMigration}`
+const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}\n${limitedTimeMigration}\n${skyMeadowLimitedTimeMigration}`
 
 describe('avatar shop migration contracts', () => {
   it('makes point sources idempotent and balances non-negative', () => {
@@ -99,6 +105,41 @@ describe.runIf(hasWholeCharacterMigration)('whole-character avatar shop migratio
     expect(limitedTimeMigration).toContain("'limited_time'")
     expect(limitedTimeMigration).toContain('elsif v_item.price = 0 then')
     expect(limitedTimeMigration).not.toContain('and id not in (')
+  })
+
+  it('makes Sky Meadow a limited-time free stage without auto-grant', () => {
+    expect(skyMeadowLimitedTimeMigration).toContain("id = 'stage_sky_meadow'")
+    expect(skyMeadowLimitedTimeMigration).toContain('price = 0')
+    expect(skyMeadowLimitedTimeMigration).toContain(
+      "si.id = 'stage_blossom_courtyard'",
+    )
+    expect(skyMeadowLimitedTimeMigration).toContain(
+      "'limited_time', si.id = 'stage_sky_meadow'",
+    )
+    expect(skyMeadowLimitedTimeMigration).not.toContain('and si.price = 0')
+  })
+})
+
+const revokeLimitedTimeMigrationPath = path.resolve(
+  'supabase/migrations/20260720175500_revoke_autoclaimed_limited_time.sql',
+)
+const revokeLimitedTimeMigration = fs.existsSync(revokeLimitedTimeMigrationPath)
+  ? fs.readFileSync(revokeLimitedTimeMigrationPath, 'utf8')
+  : ''
+
+describe.runIf(Boolean(revokeLimitedTimeMigration))('revoke autoclaimed limited-time migration', () => {
+  it('revokes limited-time entitlements and never auto-grants by price=0', () => {
+    expect(revokeLimitedTimeMigration).toContain('avatar_quest_recruit')
+    expect(revokeLimitedTimeMigration).toContain('avatar_spark_apprentice')
+    expect(revokeLimitedTimeMigration).toContain('stage_sky_meadow')
+    expect(revokeLimitedTimeMigration).toContain('delete from public.user_shop_entitlements')
+    expect(revokeLimitedTimeMigration).toContain(
+      "si.id in ('avatar_default_female', 'avatar_default_male')",
+    )
+    expect(revokeLimitedTimeMigration).toContain("si.id = 'stage_blossom_courtyard'")
+    expect(revokeLimitedTimeMigration).not.toMatch(
+      /item_type = 'avatar_stage'[\s\S]*and si\.price = 0/,
+    )
   })
 })
 

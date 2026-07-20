@@ -2,7 +2,7 @@ import { DEFAULT_AVATAR_ID, normalizeEquippedAvatarId } from './avatarCompositio
 import { DEFAULT_STAGE_ID, normalizeEquippedStageId } from './avatarStages'
 
 /**
- * Community board helpers: dense ranks, opaque keyset cursors, board ids.
+ * Community board helpers: unique ordinal ranks, opaque keyset cursors, board ids.
  * Server is source of truth; these mirror pagination/rank parsing for tests + UI.
  */
 
@@ -27,6 +27,8 @@ export interface LeaderboardEntry {
   equippedAvatarId: string
   /** Equipped stage backdrop id (public catalog). */
   equippedStageId: string
+  /** Optional first-achieved time (ms) for local ordinal ranking. */
+  achievedAtMs?: number
 }
 
 export interface LeaderboardPage {
@@ -36,13 +38,14 @@ export interface LeaderboardPage {
   hasMore: boolean
 }
 
+/** Cursor v2: value + first-achieved timestamp + public_id. */
 export interface LeaderboardCursorPayload {
-  v: 1
+  v: 2
   board: LeaderboardBoard
   /** Sort value (streak length) */
   value: number
-  /** username_normalized tie-break */
-  u: string
+  /** First-achieved / tiebreak time (ISO) */
+  t: string
   /** public_id tie-break */
   p: string
 }
@@ -61,33 +64,52 @@ export function clampLeaderboardLimit(limit: number | undefined | null): number 
   return Math.min(n, LEADERBOARD_MAX_LIMIT)
 }
 
-/** Dense rank: ties share rank; next distinct value continues without gaps (1,1,2). */
-export function assignDenseRanks<T extends { value: number }>(
-  rows: readonly T[],
-): Array<T & { rank: number }> {
-  const out: Array<T & { rank: number }> = []
-  let rank = 0
-  let prev: number | null = null
-  for (const row of rows) {
-    if (prev === null || row.value !== prev) {
-      rank += 1
-      prev = row.value
-    }
-    out.push({ ...row, rank })
-  }
-  return out
+/**
+ * Unique ordinal ranks after rows are already sorted (1, 2, 3, …).
+ * Prefer {@link sortLeaderboardEntries} then this, or {@link assignOrdinalRanks}.
+ */
+export function assignOrdinalRanks<T>(rows: readonly T[]): Array<T & { rank: number }> {
+  return rows.map((row, index) => ({ ...row, rank: index + 1 }))
+}
+
+/** @deprecated Use assignOrdinalRanks — kept for older tests naming. */
+export const assignDenseRanks = assignOrdinalRanks
+
+/**
+ * Sort: higher value first, earlier first-achieved next, then publicId.
+ * Matches server get_leaderboard ordering.
+ */
+export function sortLeaderboardEntries<
+  T extends { value: number; publicId: string; achievedAtMs?: number },
+>(rows: readonly T[]): T[] {
+  return [...rows].sort((a, b) => {
+    if (a.value !== b.value) return b.value - a.value
+    const atA = a.achievedAtMs
+    const atB = b.achievedAtMs
+    if (atA != null && atB != null && atA !== atB) return atA - atB
+    if (atA != null && atB == null) return -1
+    if (atA == null && atB != null) return 1
+    return a.publicId.localeCompare(b.publicId)
+  })
+}
+
+/** Assign unique ranks 1..n using the server tiebreak order. */
+export function assignOrdinalRanksFromValues<
+  T extends { value: number; publicId: string; achievedAtMs?: number },
+>(rows: readonly T[]): Array<T & { rank: number }> {
+  return assignOrdinalRanks(sortLeaderboardEntries(rows))
 }
 
 /**
- * Stable sort for boards: higher value first, then username_normalized, then publicId.
- * Callers should pass already-normalized usernames for `u`.
+ * Stable keyset compare: higher value first, earlier t next, then publicId.
+ * Callers pass ISO `t` strings (lexicographic ISO-8601 works for UTC).
  */
 export function compareLeaderboardRows(
-  a: { value: number; u: string; p: string },
-  b: { value: number; u: string; p: string },
+  a: { value: number; t: string; p: string },
+  b: { value: number; t: string; p: string },
 ): number {
   if (a.value !== b.value) return b.value - a.value
-  if (a.u !== b.u) return a.u < b.u ? -1 : 1
+  if (a.t !== b.t) return a.t < b.t ? -1 : 1
   if (a.p !== b.p) return a.p < b.p ? -1 : 1
   return 0
 }
@@ -118,15 +140,16 @@ export function decodeLeaderboardCursor(
   if (!cursor || typeof cursor !== 'string') return null
   try {
     const raw = JSON.parse(base64ToUtf8(cursor)) as Partial<LeaderboardCursorPayload>
-    if (raw.v !== 1) return null
+    if (raw.v !== 2) return null
     if (!isLeaderboardBoard(raw.board)) return null
     if (typeof raw.value !== 'number' || !Number.isFinite(raw.value)) return null
-    if (typeof raw.u !== 'string' || typeof raw.p !== 'string') return null
+    if (typeof raw.t !== 'string' || !raw.t) return null
+    if (typeof raw.p !== 'string' || !raw.p) return null
     return {
-      v: 1,
+      v: 2,
       board: raw.board,
       value: raw.value,
-      u: raw.u,
+      t: raw.t,
       p: raw.p,
     }
   } catch {
@@ -136,12 +159,12 @@ export function decodeLeaderboardCursor(
 
 /** True when `row` sorts after the keyset cursor (for next page). */
 export function isAfterLeaderboardCursor(
-  row: { value: number; u: string; p: string },
+  row: { value: number; t: string; p: string },
   cursor: LeaderboardCursorPayload,
 ): boolean {
   return compareLeaderboardRows(row, {
     value: cursor.value,
-    u: cursor.u,
+    t: cursor.t,
     p: cursor.p,
   }) > 0
 }

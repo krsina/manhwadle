@@ -15,6 +15,8 @@ export interface AvatarStageMeta {
   assetPath: string
   assetKey: string
   starter: boolean
+  /** Free limited-time claim stage — not auto-owned; must be claimed in the shop. */
+  limitedTime?: boolean
   price: number
   rarity: AvatarRarity
 }
@@ -35,12 +37,13 @@ export const AVATAR_STAGE_META: readonly AvatarStageMeta[] = [
     id: 'stage_sky_meadow',
     slug: 'sky-meadow',
     name: 'Sky Meadow',
-    description: 'Pastoral meadow under a bright pixel sky.',
+    description: 'Limited-time free claim. Pastoral meadow under a bright pixel sky.',
     assetPath: 'sky-meadow.png',
     assetKey: 'stage_sky_meadow',
     starter: false,
-    price: 2500,
-    rarity: 'rare',
+    limitedTime: true,
+    price: 0,
+    rarity: 'common',
   },
   {
     id: 'stage_dusk_plaza',

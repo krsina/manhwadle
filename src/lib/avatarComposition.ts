@@ -58,9 +58,9 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     inspirationSeries: 'Newbie adventurer',
     inspirationCharacter: 'Village quest recruit',
     traits: {
-      hair: 'Messy warm-brown hair with a cute cowlick',
+      hair: 'Messy warm-brown spikes with a cute cowlick',
       eyes: 'Bright amber-brown eyes with an eager slight smile',
-      outfit: 'Cream short-sleeve tunic under a soft sky-blue vest, brown shorts, pouch, tan boots',
+      outfit: 'Cream laced tunic under an open sky-blue vest, brown shorts, hip pouch, tan boots',
       props: 'MUST hold ONE oversized wooden practice sword',
       aura: 'A few tiny soft warm-yellow sparkles (compact)',
     },
@@ -78,10 +78,10 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     inspirationSeries: 'Newbie mage apprentice',
     inspirationCharacter: 'Village spark apprentice',
     traits: {
-      hair: 'Soft pastel mint-teal twin tails with bangs and a cream ribbon',
+      hair: 'Soft pastel mint twin tails with bangs and a cream hair clip',
       eyes: 'Bright soft green eyes with a curious hopeful smile',
       outfit: 'Sky-blue beginner mage tunic with cream trim, belt, knee socks, brown shoes',
-      props: 'MUST hold ONE small wooden beginner staff with a pale-yellow wooden orb tip',
+      props: 'MUST hold ONE wooden beginner staff with a pale-yellow orb tip',
       aura: 'A few tiny soft mint and pale-yellow sparkles (compact)',
     },
   },
@@ -435,7 +435,7 @@ export function compareShopItemsByPrice(
 export function avatarAssetUrl(id: string | null | undefined): string {
   const meta = getAvatarCharacterMeta(id) ?? getAvatarCharacterMeta(DEFAULT_AVATAR_ID)!
   // Cache-bust when sprite plates are reprocessed (magenta fringe cleanup, etc.).
-  return `${STYLE_A_BASE}/${meta.assetPath}?v=4`
+  return `${STYLE_A_BASE}/${meta.assetPath}?v=5`
 }
 
 /** Identity bullets for sequential animation prompts (internal). */

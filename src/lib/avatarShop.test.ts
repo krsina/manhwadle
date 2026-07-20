@@ -133,6 +133,13 @@ describe('parseAvatarShopSnapshot', () => {
     )
     expect(STAGE_CATALOG_FALLBACK).toHaveLength(3)
     expect(STAGE_CATALOG_FALLBACK.filter((item) => item.owned)).toHaveLength(1)
+    expect(STAGE_CATALOG_FALLBACK.filter((item) => item.limitedTime)).toHaveLength(1)
+    expect(STAGE_CATALOG_FALLBACK.find((item) => item.id === 'stage_sky_meadow')).toMatchObject({
+      price: 0,
+      limitedTime: true,
+      owned: false,
+    })
+    expect(STAGE_CATALOG_FALLBACK[0]?.id).toBe('stage_sky_meadow')
   })
 })
 

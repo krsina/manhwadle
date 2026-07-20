@@ -27,11 +27,12 @@ describe('avatarStages', () => {
     expect(starterStageIds()).toEqual(['stage_blossom_courtyard'])
   })
 
-  it('prices paid stages at 2500 rare', () => {
+  it('prices paid stages and marks Sky Meadow as limited-time free', () => {
     expect(getAvatarStageMeta('stage_sky_meadow')).toMatchObject({
-      price: 2500,
-      rarity: 'rare',
+      price: 0,
+      rarity: 'common',
       starter: false,
+      limitedTime: true,
     })
     expect(getAvatarStageMeta('stage_dusk_plaza')).toMatchObject({
       price: 2500,

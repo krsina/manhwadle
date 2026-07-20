@@ -11,9 +11,9 @@ describe('secret achievements catalog', () => {
     const secrets = ACHIEVEMENT_DEFINITIONS.filter((d) => d.category === 'secret')
     expect(secrets.length).toBe(27)
     expect(secrets.every((d) => d.metric === 'secret_flag')).toBe(true)
-    expect(
-      secrets.every((d) => [25, 50, 100, 200].includes(d.pointReward)),
-    ).toBe(true)
+    expect(secrets.every((d) => [50, 100].includes(d.pointReward))).toBe(true)
+    expect(secrets.filter((d) => d.pointReward === 50)).toHaveLength(14)
+    expect(secrets.filter((d) => d.pointReward === 100)).toHaveLength(13)
     expect(secrets.some((d) => d.id === 'secret_account_menu')).toBe(true)
     expect(secrets.some((d) => d.id === 'secret_konami')).toBe(true)
     expect(secrets.some((d) => d.title === 'Ten Curtain Calls')).toBe(true)

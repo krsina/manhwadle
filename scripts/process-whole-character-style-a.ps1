@@ -224,8 +224,13 @@ public static class WholeCharacterProcessor
 }
 '@
 
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$reviewDirectory = Join-Path $repoRoot 'art\avatar-characters\style-a\review'
+$refDirectory = Join-Path $repoRoot 'art\avatar-characters\style-a'
+
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
-New-Item -ItemType Directory -Force -Path (Join-Path $OutputDirectory 'review') | Out-Null
+New-Item -ItemType Directory -Force -Path $reviewDirectory | Out-Null
+New-Item -ItemType Directory -Force -Path $refDirectory | Out-Null
 
 if (-not $ReviewOnly) {
   if ($ChromaFiles.Count -eq 0) {
@@ -258,22 +263,22 @@ if (-not $ReviewOnly) {
     Write-Output "Processed $sourceName -> $outputName"
   }
 
-  # Copy Style A reference into the folder for comparison (already 256 RGBA)
-  $publicRoot = Split-Path (Split-Path $OutputDirectory -Parent) -Parent
-  $refSrc = Join-Path $publicRoot 'avatar-style-study\elfbunny-study-a-classic.png'
+  # Keep Style A fidelity ref under art/ (not shipped via public/)
+  $refSrc = Join-Path $repoRoot 'art\avatar-style-study\elfbunny-study-a-classic.png'
   if (Test-Path $refSrc) {
-    Copy-Item -Force $refSrc (Join-Path $OutputDirectory 'elfbunny-style-a-ref.png')
+    Copy-Item -Force $refSrc (Join-Path $refDirectory 'elfbunny-style-a-ref.png')
   }
 }
 
 [WholeCharacterProcessor]::MakeComparison(
   $OutputDirectory,
-  (Join-Path $OutputDirectory 'review\comparison.png')
+  (Join-Path $reviewDirectory 'comparison.png')
 )
 
 [WholeCharacterProcessor]::MakeSizeCheck(
   $OutputDirectory,
-  (Join-Path $OutputDirectory 'review\size-check.png')
+  (Join-Path $reviewDirectory 'size-check.png')
 )
 
 Write-Output "Wrote whole-character Style A assets to $OutputDirectory"
+Write-Output "Wrote review sheets to $reviewDirectory"

@@ -51,6 +51,10 @@ scripts/name-order-alias-audit.json
 scripts/romanized-title-audit.json
 scripts/spoil-sim-*.json
 
+# Local scratch / generated secrets (never commit)
+tmp/
+tmp-secret-query.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

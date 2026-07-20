@@ -26,6 +26,9 @@ const SettingsPage = lazy(() =>
 const ShopPage = lazy(() =>
   import('./pages/ShopPage').then((m) => ({ default: m.ShopPage })),
 )
+const LeaderboardPage = lazy(() =>
+  import('./pages/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })),
+)
 const AnimationCreatorPage = lazy(() =>
   import('./pages/AnimationCreatorPage').then((m) => ({ default: m.AnimationCreatorPage })),
 )
@@ -115,6 +118,14 @@ function App() {
                 element={
                   <Suspense fallback={<RouteFallback />}>
                     <ShopPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="leaderboard"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <LeaderboardPage />
                   </Suspense>
                 }
               />
