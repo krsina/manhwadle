@@ -165,14 +165,20 @@ function isCharacterEnabledForGuess(character) {
   return character.useForGuess !== false
 }
 
-export function guessableCharacters(manhwa) {
-  return (manhwa.characters || []).filter(
-    (c) => isCharacterEnabledForGuess(c) && Boolean(characterImageUrl(c)),
-  )
+/**
+ * Cast members eligible for Character mode.
+ * `mainOnly` matches client normal-mode play (AniList MAIN roles).
+ */
+export function guessableCharacters(manhwa, { mainOnly = false } = {}) {
+  return (manhwa.characters || []).filter((c) => {
+    if (!isCharacterEnabledForGuess(c) || !characterImageUrl(c)) return false
+    if (mainOnly && c.role !== 'MAIN') return false
+    return true
+  })
 }
 
-export function manhwaHasGuessableCharacter(manhwa) {
-  return guessableCharacters(manhwa).length > 0
+export function manhwaHasGuessableCharacter(manhwa, options) {
+  return guessableCharacters(manhwa, options).length > 0
 }
 
 export function manhwaHasCover(manhwa) {
@@ -202,7 +208,7 @@ export function manhwaHasVocalSong(manhwa) {
   return VOCAL_SONG_MANHWA_IDS.has(manhwa.id)
 }
 
-export function buildRows(manhwa, blurbIds, cropIds) {
+export function buildRows(manhwa, blurbIds, _cropIds = new Set()) {
   const rows = []
   for (const mode of MODES) {
     for (const taste of TASTES) {
@@ -212,8 +218,11 @@ export function buildRows(manhwa, blurbIds, cropIds) {
         playable = tastePool.filter((m) => blurbIds.has(m.id))
         if (playable.length === 0) playable = tastePool
       } else if (mode === 'character') {
-        playable = tastePool.filter(
-          (m) => manhwaHasGuessableCharacter(m) || cropIds.has(m.id),
+        // Normal Character mode requires MAIN cast with images (hard mode
+        // still uses the same titles, then expands roles client-side).
+        // Crop-file-only titles without MAIN are not playable.
+        playable = tastePool.filter((m) =>
+          manhwaHasGuessableCharacter(m, { mainOnly: true }),
         )
       } else if (mode === 'heardle') {
         playable = tastePool.filter(manhwaHasVocalSong)
@@ -222,7 +231,10 @@ export function buildRows(manhwa, blurbIds, cropIds) {
       }
 
       playable.forEach((m, position) => {
-        const eligible = guessableCharacters(m).map((c) => c.id)
+        const eligible =
+          mode === 'character'
+            ? guessableCharacters(m, { mainOnly: true }).map((c) => c.id)
+            : []
         rows.push({
           mode,
           taste,

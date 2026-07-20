@@ -8,6 +8,8 @@ import {
   isAfterLeaderboardCursor,
   parseLeaderboardPage,
 } from './leaderboard'
+import { DEFAULT_AVATAR_ID } from './avatarComposition'
+import { DEFAULT_STAGE_ID } from './avatarStages'
 
 describe('clampLeaderboardLimit', () => {
   it('defaults and caps', () => {
@@ -81,13 +83,24 @@ describe('parseLeaderboardPage', () => {
     const page = parseLeaderboardPage({
       board: 'all_mode_streak',
       entries: [
-        { rank: 1, username: 'Neo', value: 4, public_id: 'p_neo' },
+        {
+          rank: 1,
+          username: 'Neo',
+          value: 4,
+          public_id: 'p_neo',
+          equipped_avatar_id: 'avatar_shadow_hunter',
+          equipped_stage_id: 'stage_dusk_plaza',
+        },
         { rank: 2, username: 'Trinity', value: 3, public_id: 'p_tr' },
       ],
       next_cursor: 'abc',
       has_more: true,
     })
     expect(page?.entries).toHaveLength(2)
+    expect(page?.entries[0]?.equippedAvatarId).toBe('avatar_shadow_hunter')
+    expect(page?.entries[0]?.equippedStageId).toBe('stage_dusk_plaza')
+    expect(page?.entries[1]?.equippedAvatarId).toBe(DEFAULT_AVATAR_ID)
+    expect(page?.entries[1]?.equippedStageId).toBe(DEFAULT_STAGE_ID)
     expect(page?.nextCursor).toBe('abc')
 
     expect(

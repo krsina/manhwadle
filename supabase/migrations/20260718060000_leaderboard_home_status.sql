@@ -267,7 +267,7 @@ values
   ('any_streak_7', 1, 'Week of play',
    'Reach a 7-day any-mode streak.', 'streak', 'any_max_streak', 7),
   ('all_mode_day', 1, 'Full clear',
-   'Finish every required mode on a single UTC day.', 'all_mode', 'all_complete_days', 1),
+   'Finish every required mode on a single day.', 'all_mode', 'all_complete_days', 1),
   ('all_mode_streak_3', 1, 'Triple full clear',
    'Reach a 3-day all-mode streak.', 'all_mode', 'all_max_streak', 3)
 on conflict (id) do nothing;

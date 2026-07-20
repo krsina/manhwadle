@@ -25,6 +25,8 @@ export interface DialogProps {
   /** Extra class on the dialog panel (merged with `modal`). */
   panelClassName?: string
   closeOnBackdrop?: boolean
+  /** When false, Escape does not dismiss the dialog. Default true. */
+  closeOnEscape?: boolean
   /** Prefer this element for initial focus when the dialog opens. */
   initialFocusRef?: RefObject<HTMLElement | null>
   /** Content rendered inside the backdrop but outside the dialog panel (e.g. confetti). */
@@ -53,6 +55,7 @@ export function Dialog({
   backdropClassName = '',
   panelClassName = '',
   closeOnBackdrop = true,
+  closeOnEscape = true,
   initialFocusRef,
   backdropChildren,
   shellClassName,
@@ -74,8 +77,16 @@ export function Dialog({
       id: dialogId,
       setInert: (inert) => {
         if (!panel) return
+        // `inert` can reset scrollTop in Chromium; keep nested panels in place.
+        const { scrollTop, scrollLeft } = panel
         if (inert) panel.setAttribute('inert', '')
         else panel.removeAttribute('inert')
+        panel.scrollTop = scrollTop
+        panel.scrollLeft = scrollLeft
+        window.requestAnimationFrame(() => {
+          panel.scrollTop = scrollTop
+          panel.scrollLeft = scrollLeft
+        })
       },
     })
 
@@ -87,7 +98,7 @@ export function Dialog({
 
     // Defer so portal content is mounted.
     const frame = window.requestAnimationFrame(() => {
-      focusTarget?.focus()
+      focusTarget?.focus({ preventScroll: true })
     })
 
     function onKeyDown(event: KeyboardEvent) {
@@ -95,6 +106,8 @@ export function Dialog({
       if (!isTopDialog(dialogId)) return
       event.preventDefault()
       event.stopPropagation()
+      if (!closeOnEscape) return
+      window.dispatchEvent(new Event('manhwadle:dialog-escape'))
       onClose()
     }
 
@@ -106,10 +119,10 @@ export function Dialog({
       unregister()
       const restore = previouslyFocused.current
       if (restore && document.contains(restore)) {
-        restore.focus()
+        restore.focus({ preventScroll: true })
       }
     }
-  }, [open, onClose, dialogId, initialFocusRef])
+  }, [open, onClose, dialogId, initialFocusRef, closeOnEscape])
 
   if (!open) return null
 
@@ -124,7 +137,10 @@ export function Dialog({
     if (event.key === 'Escape' && isTopDialog(dialogId)) {
       event.preventDefault()
       event.stopPropagation()
-      onClose()
+      if (closeOnEscape) {
+        window.dispatchEvent(new Event('manhwadle:dialog-escape'))
+        onClose()
+      }
       return
     }
     if (event.key !== 'Tab' || !panelRef.current) return

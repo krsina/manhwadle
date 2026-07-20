@@ -74,6 +74,7 @@ Deno.serve(async (req: Request) => {
         playerStats,
         dayProgress,
         dailyCompletions,
+        shop,
       ] = await Promise.all([
         admin
           .from("public_profiles")
@@ -88,7 +89,15 @@ Deno.serve(async (req: Request) => {
         admin.from("player_stats").select("*").eq("user_id", userId),
         admin.from("day_progress").select("*").eq("user_id", userId),
         admin.from("daily_completions").select("*").eq("user_id", userId),
+        admin.rpc("export_shop_account", { p_user_id: userId }),
       ]);
+
+      if (shop.error) {
+        return jsonResponse(
+          { error: `Shop data export failed: ${shop.error.message}` },
+          500,
+        );
+      }
 
       return jsonResponse({
         exportedAt: new Date().toISOString(),
@@ -98,6 +107,13 @@ Deno.serve(async (req: Request) => {
         playerStats: playerStats.data ?? [],
         dayProgress: dayProgress.data ?? [],
         dailyCompletions: dailyCompletions.data ?? [],
+        shop: shop.data ?? {
+          wallet: null,
+          entitlements: [],
+          avatar_profile: null,
+          avatar_loadout: null,
+          point_transactions: [],
+        },
       });
     }
 

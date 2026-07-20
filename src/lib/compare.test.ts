@@ -5,6 +5,7 @@ import {
   comparePublisher,
   compareYear,
   formatGuessScore,
+  isCompleteMiss,
 } from './compare'
 import { makeManhwa } from './testFixtures'
 
@@ -61,6 +62,36 @@ describe('compareGuess', () => {
     expect(compareGuess(same, answer).publisher.tone).toBe('correct')
     expect(compareGuess(miss, answer).publisher.tone).toBe('incorrect')
     expect(compareGuess(miss, answer).publisher.publisher).toBe('Tapas')
+  })
+
+  it('detects a complete miss when every feedback tile is incorrect', () => {
+    const answer = makeManhwa({
+      id: 1,
+      genres: ['Action', 'Fantasy'],
+      tags: ['Isekai'],
+      status: 'Ongoing',
+      publisher: 'WEBTOON',
+      startDate: { year: 2020, month: null, day: null },
+    })
+    const totalMiss = makeManhwa({
+      id: 2,
+      genres: ['Romance'],
+      tags: ['School'],
+      status: 'Completed',
+      publisher: 'Tapas',
+      startDate: { year: 2010, month: null, day: null },
+    })
+    const genreOnlyMiss = makeManhwa({
+      id: 3,
+      genres: ['Romance'],
+      tags: ['Isekai'],
+      status: 'Ongoing',
+      publisher: 'WEBTOON',
+      startDate: { year: 2020, month: null, day: null },
+    })
+    expect(isCompleteMiss(compareGuess(totalMiss, answer))).toBe(true)
+    expect(isCompleteMiss(compareGuess(genreOnlyMiss, answer))).toBe(false)
+    expect(isCompleteMiss(compareGuess(answer, answer))).toBe(false)
   })
 })
 

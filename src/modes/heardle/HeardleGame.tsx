@@ -31,10 +31,12 @@ import {
   clueProgress,
 } from '../../lib/clueProgress'
 import { applyGuess } from '../../lib/guessLoop'
+import { reportWrongGenreIfCompleteMiss } from '../../lib/secretEvents'
 import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
 import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
 import {
   isSurrenderedLoss,
+  queueBonusNameReward,
   queueVerifiedDailyCompletion,
 } from '../../lib/ranked'
 import { recordBonusResult, recordDailyResult } from '../../lib/stats'
@@ -45,7 +47,6 @@ import {
   filterPoolBySongs,
   pickSongForDay,
 } from '../../lib/songs'
-import { useRoundTelemetry } from '../../lib/useRoundTelemetry'
 import type { GameModeProps } from '../types'
 import { heardleModeMeta } from './config'
 
@@ -215,18 +216,6 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
   const surrendered =
     dayState.status === 'lost' && dayState.guessIds.length < maxGuesses
 
-  const roundTelemetry = useRoundTelemetry({
-    mode: 'heardle',
-    taste,
-    dateKey,
-    hardMode,
-    isPractice,
-    isArchive,
-    active: answerReady && hasSongs,
-    status: dayState.status,
-    guessCount: dayState.guessIds.length,
-    hintsUsed: dayState.hintsUsed ?? 0,
-  })
 
   const progress = clueProgress(dayState)
   const maxClueStep = Math.max(0, maxGuesses - 1)
@@ -312,13 +301,6 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       surrendered,
       dateKey,
     })
-    roundTelemetry.trackCompleted({
-      won,
-      surrendered,
-      guessCount: next.guessIds.length,
-      hintsUsed: next.hintsUsed ?? 0,
-      hardMode: Boolean(next.hardMode ?? hardMode),
-    })
   }
 
   function handleRevealMore() {
@@ -346,6 +328,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
     if (!answerReady || !hasSongs) return
     const transition = applyGuess(dayState, manhwa.id, answer.id, maxGuesses)
     if (!transition) return
+    reportWrongGenreIfCompleteMiss(manhwa, answer)
     const priorLabels = dayState.guessLabels ?? []
     const guessLabels = [
       ...dayState.guessIds.map((_, i) => priorLabels[i] || ''),
@@ -383,7 +366,6 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
     )
     setShowResult(false)
     setShowSurrender(false)
-    roundTelemetry.trackNextRound()
   }
 
   function handleBonusNameAnswer(result: { guess: string; correct: boolean }) {
@@ -411,7 +393,16 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
           doubleSolve: isDoubleSolve,
         })
         sync.stats('heardle', taste)
-        roundTelemetry.trackBonus(result.correct)
+        queueBonusNameReward({
+          userId: user?.id,
+          isPractice,
+          isArchive,
+          mode: 'heardle',
+          taste,
+          correct: result.correct,
+          firstTry,
+          dateKey,
+        })
       }
     }
   }

@@ -24,8 +24,6 @@ Library / character-image tools use `vite.tools.config.ts` and must not ship in 
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY` (publishable / anon only)
-- Optional: `VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST` (default EU)
-- Optional: `VITE_CF_WEB_ANALYTICS_TOKEN`
 - Optional: `VITE_SENTRY_DSN` (no replay; only when monitoring is justified)
 
 Never set `SUPABASE_SERVICE_ROLE_KEY` in Vite / Pages browser env.

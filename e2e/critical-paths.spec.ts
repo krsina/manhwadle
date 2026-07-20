@@ -31,17 +31,40 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('link', { name: /Manhwadle/i }).first()).toBeVisible()
   })
 
+  test('avatar shop exposes the guest catalog and reward rules', async ({ page }) => {
+    await page.goto('/shop')
+    await expect(page.getByRole('heading', { name: 'Avatar Shop' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Sign in to unlock and equip' })).toBeVisible()
+
+    const shadowHunter = page.getByRole('button').filter({ hasText: 'Shadow Hunter' })
+    await expect(shadowHunter).toBeVisible()
+    await shadowHunter.click()
+    await expect(shadowHunter).toHaveAttribute('aria-pressed', 'true')
+
+    const defaultMale = page.getByRole('button').filter({ hasText: 'Default (Male)' })
+    await expect(defaultMale).toBeVisible()
+
+    await expect(page.getByText('Win +10')).toBeVisible()
+    await expect(page.getByText('Full loss +3')).toBeVisible()
+    await expect(page.getByText('Surrender +0')).toBeVisible()
+    const signIn = page.getByRole('button', { name: 'Sign in to unlock' })
+    if (await signIn.isVisible().catch(() => false)) {
+      await signIn.click()
+      await expect(page.getByRole('heading', { name: 'Sign in', exact: true })).toBeVisible()
+    }
+  })
+
+  test('avatar shop remains usable on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/shop')
+    await expect(page.getByRole('heading', { name: 'Avatar Shop' })).toBeVisible()
+    await expect(page.locator('.avatar-shop-preview .pixel-avatar')).toBeVisible()
+    await expect(page.getByRole('button').filter({ hasText: 'Skybreaker Monk' })).toBeVisible()
+  })
+
   test('how-to dialog is keyboard dismissible', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem('manhwadle:readerTaste', 'both')
-      localStorage.setItem(
-        'manhwadle:consent:product_analytics',
-        JSON.stringify({
-          decision: 'denied',
-          version: 1,
-          updatedAt: new Date().toISOString(),
-        }),
-      )
       for (const key of Object.keys(localStorage)) {
         if (key.startsWith('manhwadle:howto:seen:')) localStorage.removeItem(key)
       }
@@ -51,18 +74,6 @@ test.describe('critical paths', () => {
     await expect(page.locator('#howto-title')).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(page.locator('#howto-title')).toHaveCount(0)
-  })
-
-  test('consent banner can be dismissed', async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.clear()
-    })
-    await page.goto('/')
-    const deny = page.getByRole('button', { name: /No thanks/i })
-    if (await deny.isVisible().catch(() => false)) {
-      await deny.click()
-      await expect(deny).toHaveCount(0)
-    }
   })
 
   test('homepage has no serious axe violations', async ({ page }) => {

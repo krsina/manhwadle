@@ -5,8 +5,6 @@ import {
   statusLabel,
   type ModeCompletionStatus,
 } from '../lib/modeCompletion'
-import { noteModeEntrySource } from '../lib/telemetry'
-
 interface ModeRowProps {
   mode: GameModeDefinition
   status: ModeCompletionStatus
@@ -22,7 +20,7 @@ export function ModeRow({
 }: ModeRowProps) {
   const completed = status === 'completed'
   const actionLabel =
-    completed || status === 'in_progress' ? 'Continue' : 'Play Game'
+    completed || status === 'in_progress' ? 'Continue' : 'Play'
   const action = !available ? 'Unavailable' : actionLabel
 
   const className = [
@@ -53,11 +51,6 @@ export function ModeRow({
           <p className="mode-row-outage">{unavailableMessage}</p>
         )}
       </div>
-      {available && (
-        <span className="mode-row-action" aria-hidden="true">
-          {actionLabel}
-        </span>
-      )}
     </>
   )
 
@@ -78,7 +71,6 @@ export function ModeRow({
       className={className}
       to={playPath(mode.id)}
       aria-label={`${action} ${mode.name}`}
-      onClick={() => noteModeEntrySource('home')}
     >
       {body}
     </Link>

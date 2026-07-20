@@ -1,3 +1,10 @@
+import {
+  AVATAR_AWAKENINGS_ENABLED,
+  normalizeAwakeningLevel,
+  type AwakeningLevel,
+} from './avatarAwakening'
+import { DEFAULT_AVATAR_ID, normalizeEquippedAvatarId } from './avatarComposition'
+import { DEFAULT_STAGE_ID, normalizeEquippedStageId } from './avatarStages'
 import type { ReaderTaste } from './readerTaste'
 import { isReaderTaste } from './readerTaste'
 import { supabase } from './supabase'
@@ -20,6 +27,13 @@ export interface AccountSnapshot {
   cloudBanned: boolean
   leaderboardExcluded: boolean
   canAppearPublicly: boolean
+  pointsBalance: number
+  /** Lifetime shop XP (points earned). Used for player level; not reduced by spends. */
+  lifetimeEarned: number
+  equippedAvatarId: string
+  equippedStageId: string
+  /** Awakening tier for the currently equipped avatar (0 = static). */
+  equippedAwakeningLevel: AwakeningLevel
 }
 
 export type AccountMutationResult =
@@ -59,6 +73,19 @@ export function parseAccountSnapshot(raw: unknown): AccountSnapshot | null {
     cloudBanned: asBool(row.cloud_banned),
     leaderboardExcluded: asBool(row.leaderboard_excluded),
     canAppearPublicly: asBool(row.can_appear_publicly, true),
+    pointsBalance:
+      typeof row.points_balance === 'number'
+        ? Math.max(0, Math.floor(row.points_balance))
+        : 0,
+    lifetimeEarned:
+      typeof row.lifetime_earned === 'number'
+        ? Math.max(0, Math.floor(row.lifetime_earned))
+        : 0,
+    equippedAvatarId: normalizeEquippedAvatarId(row.equipped_avatar_id ?? DEFAULT_AVATAR_ID),
+    equippedStageId: normalizeEquippedStageId(row.equipped_stage_id ?? DEFAULT_STAGE_ID),
+    equippedAwakeningLevel: AVATAR_AWAKENINGS_ENABLED
+      ? normalizeAwakeningLevel(row.equipped_awakening_level)
+      : 0,
   }
 }
 
@@ -158,6 +185,12 @@ export interface AccountExportPayload {
   playerStats: unknown[]
   dayProgress: unknown[]
   dailyCompletions: unknown[]
+  shop: {
+    wallet: Record<string, unknown> | null
+    entitlements: unknown[]
+    avatar_profile: Record<string, unknown> | null
+    point_transactions: unknown[]
+  }
 }
 
 async function invokeAccountData(

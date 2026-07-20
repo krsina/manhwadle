@@ -19,12 +19,28 @@ function yearLabel(row: GuessFeedback): string {
   return String(year)
 }
 
-function genreLabel(row: GuessFeedback): string {
-  if (row.genres.tone === 'correct') return 'All match'
-  if (row.genres.tone === 'close') {
-    return row.genres.shared.slice(0, 3).join(', ') || 'Partial'
+function GenreValue({ row }: { row: GuessFeedback }) {
+  if (row.genres.tone === 'incorrect') {
+    return <span className="tile-value">None</span>
   }
-  return 'None'
+
+  const genres =
+    row.genres.tone === 'correct' ? row.genres.guessed : row.genres.shared
+  if (genres.length === 0) {
+    return <span className="tile-value">{row.genres.tone === 'close' ? 'Partial' : 'None'}</span>
+  }
+
+  return (
+    <div className="tile-scroll" tabIndex={0} role="region" aria-label="Guess genres">
+      <ul className="genre-chips">
+        {genres.map((genre) => (
+          <li key={genre} className="genre-chip">
+            {genre}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }
 
 function TagValue({ row }: { row: GuessFeedback }) {
@@ -154,7 +170,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
                 title={row.genres.guessed.join(', ')}
               >
                 <span className="tile-label">Genres</span>
-                <span className="tile-value">{genreLabel(row)}</span>
+                <GenreValue row={row} />
               </FlipCell>
               <FlipCell
                 animate={animate}

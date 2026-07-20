@@ -1,8 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
-import { listModes } from '../modes'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+  ArchiveButton,
+  ArchiveCalendarModal,
+} from '../components/ArchiveCalendarModal'
+import { listModes, resolveActiveMode } from '../modes'
 import { ModeRow } from '../components/ModeRow'
 import { LeaderboardPanel } from '../components/LeaderboardPanel'
+import { CharacterPanel } from '../components/CharacterPanel'
 import { AchievementBadges } from '../components/AchievementBadges'
+import { AchievementTestLauncher } from '../components/AchievementTestModal'
+import { SolveSoundTestLauncher } from '../components/SolveSoundTestModal'
+import { AchievementUnlockModal } from '../components/AchievementUnlockModal'
 import { useAuth } from '../components/AuthProvider'
 import {
   fetchMyAchievements,
@@ -10,23 +19,30 @@ import {
   fetchPublicSiteStatus,
   type PublicSiteStatus,
 } from '../lib/leaderboardApi'
+import { ACHIEVEMENTS_CHANGED_EVENT } from '../lib/achievementUnlocks'
 import { DEV_LEADERBOARD_EVENT } from '../lib/leaderboardDevFake'
+import { getTodayKey } from '../lib/daily'
 import { buildModeRowStatuses } from '../lib/modeCompletion'
 import type { AchievementAward } from '../lib/achievements'
 import type { ReaderTaste } from '../lib/readerTaste'
-
+import { MILESTONES_PATH, playPath } from '../lib/routes'
+import { createHomeIdleTracker, reportSecretEvent } from '../lib/secretEvents'
 interface HomePageProps {
   taste: ReaderTaste | null
 }
 
 export function HomePage({ taste }: HomePageProps) {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [siteStatus, setSiteStatus] = useState<PublicSiteStatus | null>(null)
   const [serverModes, setServerModes] = useState<string[] | null>(null)
   const [awards, setAwards] = useState<AchievementAward[]>([])
   const [awardsLoading, setAwardsLoading] = useState(false)
   const [awardsError, setAwardsError] = useState<string | null>(null)
   const [awardsReloadToken, setAwardsReloadToken] = useState(0)
+  const [testPreview, setTestPreview] = useState<AchievementAward | null>(null)
+  const [showArchive, setShowArchive] = useState(false)
+  const todayKey = getTodayKey()
 
   useEffect(() => {
     let cancelled = false
@@ -69,13 +85,37 @@ export function HomePage({ taste }: HomePageProps) {
   }, [user, awardsReloadToken])
 
   useEffect(() => {
-    if (!import.meta.env.DEV) return
+    function onAchievementsChanged() {
+      setAwardsReloadToken((n) => n + 1)
+    }
+    window.addEventListener(ACHIEVEMENTS_CHANGED_EVENT, onAchievementsChanged)
+    if (!import.meta.env.DEV) {
+      return () => window.removeEventListener(ACHIEVEMENTS_CHANGED_EVENT, onAchievementsChanged)
+    }
     function onDevChange() {
       setAwardsReloadToken((n) => n + 1)
     }
     window.addEventListener(DEV_LEADERBOARD_EVENT, onDevChange)
-    return () => window.removeEventListener(DEV_LEADERBOARD_EVENT, onDevChange)
+    return () => {
+      window.removeEventListener(ACHIEVEMENTS_CHANGED_EVENT, onAchievementsChanged)
+      window.removeEventListener(DEV_LEADERBOARD_EVENT, onDevChange)
+    }
   }, [])
+
+  // Hush-Hush: home-only secret listeners (idle dwell + refresh ritual).
+  // Konami is registered site-wide in AppLayout.
+  useEffect(() => {
+    if (!user) return
+    void reportSecretEvent('home_refresh')
+
+    const stopIdle = createHomeIdleTracker(() => {
+      void reportSecretEvent('idle_home')
+    })
+
+    return () => {
+      stopIdle()
+    }
+  }, [user])
 
   const unavailable = useMemo(() => {
     const set = new Set<string>()
@@ -113,10 +153,20 @@ export function HomePage({ taste }: HomePageProps) {
             <h1 id="home-modes-heading" className="home-section-title">
               Today&apos;s modes
             </h1>
-            <p className="home-section-blurb">
-              Four daily puzzles. Pick a mode to play — preference is only asked when you
-              start.
-            </p>
+            <div className="home-section-blurb-row">
+              <p className="home-section-blurb">
+                Four daily puzzles, give it your best shot!
+              </p>
+              <div className="home-archive-actions">
+                <span className="home-archive-label">Archive</span>
+                <ArchiveButton
+                  onClick={() => {
+                    if (!taste) return
+                    setShowArchive(true)
+                  }}
+                />
+              </div>
+            </div>
           </div>
           <div className="mode-row-list" role="list">
             {modes.map((mode) => {
@@ -136,27 +186,64 @@ export function HomePage({ taste }: HomePageProps) {
           </div>
         </section>
 
-        <LeaderboardPanel />
+        <aside className="home-side" aria-label="Character and rankings">
+          <CharacterPanel />
+          <LeaderboardPanel />
+        </aside>
       </div>
 
       <section className="home-achievements" aria-labelledby="home-achievements-heading">
-        <h2 id="home-achievements-heading" className="home-section-title">
-          Milestones
-        </h2>
-        <p className="home-section-blurb">
-          Little trophies for sticking with the daily grind.
-        </p>
-          <AchievementBadges
-            awards={awards}
-            loading={Boolean(user) && awardsLoading}
-            error={user ? awardsError : null}
-            emptyLabel={
-              user
-                ? 'No milestones yet — finish today’s puzzles to start collecting.'
-                : 'Sign in to track verified milestones across devices.'
-            }
-          />
+        <div className="home-achievements-head">
+          <div>
+            <h2 id="home-achievements-heading" className="home-section-title">
+              Milestones
+            </h2>
+            <p className="home-section-blurb">
+              Little seals for sticking with the daily grind.
+            </p>
+          </div>
+          <div className="home-achievements-actions">
+            <Link to={MILESTONES_PATH} className="home-achievements-all">
+              All milestones
+            </Link>
+            <AchievementTestLauncher onPreview={setTestPreview} />
+            <SolveSoundTestLauncher />
+          </div>
+        </div>
+        <AchievementBadges
+          awards={awards}
+          loading={Boolean(user) && awardsLoading}
+          error={user ? awardsError : null}
+          emptyLabel={
+            user
+              ? 'No milestones yet. Finish today’s puzzles or just stop by to start collecting.'
+              : 'Sign in to track verified milestones across devices.'
+          }
+        />
       </section>
+
+      <AchievementUnlockModal
+        award={testPreview}
+        onClose={() => setTestPreview(null)}
+      />
+
+      {taste && (
+        <ArchiveCalendarModal
+          open={showArchive}
+          taste={taste}
+          selectedDateKey={todayKey}
+          onSelectDate={(next) => {
+            setShowArchive(false)
+            navigate(
+              playPath(
+                resolveActiveMode().id,
+                next === todayKey ? null : next,
+              ),
+            )
+          }}
+          onClose={() => setShowArchive(false)}
+        />
+      )}
     </div>
   )
 }

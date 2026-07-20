@@ -30,7 +30,8 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
     const handle = window.setTimeout(() => {
       const next = searchManhwa(pool, query, 10).filter((h) => !excludedIds.has(h.manhwa.id))
       setHits(next)
-      setNoResults(next.length === 0)
+      const empty = next.length === 0
+      setNoResults(empty)
       setOpen(true)
       setActiveIndex(0)
     }, 120)

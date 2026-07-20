@@ -6,6 +6,7 @@ import {
   toggleTheme,
   type Theme,
 } from '../lib/theme'
+import { reportSecretEvent } from '../lib/secretEvents'
 
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -20,7 +21,12 @@ export function useTheme() {
   }, [theme])
 
   function cycleTheme() {
-    setTheme((prev) => toggleTheme(prev))
+    setTheme((prev) => {
+      const next = toggleTheme(prev)
+      if (next === 'dark') void reportSecretEvent('dark_theme')
+      if (next === 'light') void reportSecretEvent('light_theme')
+      return next
+    })
   }
 
   return { theme, cycleTheme }

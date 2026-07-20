@@ -164,6 +164,38 @@ export async function fetchMyLeaderboardStanding(): Promise<
   return { ok: true, standing }
 }
 
+/** Own dense rank by lifetime XP among eligible players (Character panel). */
+export interface MyLevelRank {
+  eligible: boolean
+  lifetimeEarned: number
+  rank: number | null
+}
+
+export function parseMyLevelRank(raw: unknown): MyLevelRank | null {
+  if (!raw || typeof raw !== 'object') return null
+  const row = raw as Record<string, unknown>
+  if (row.ok !== true) return null
+  return {
+    eligible: row.eligible === true,
+    lifetimeEarned:
+      typeof row.lifetime_earned === 'number' ? Math.max(0, Math.floor(row.lifetime_earned)) : 0,
+    rank: typeof row.rank === 'number' && row.rank > 0 ? Math.floor(row.rank) : null,
+  }
+}
+
+export async function fetchMyLevelRank(): Promise<
+  { ok: true; standing: MyLevelRank } | { ok: false; error: string }
+> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { ok: false, error: 'unconfigured' }
+  }
+  const { data, error } = await supabase.rpc('get_my_level_rank')
+  if (error) return { ok: false, error: error.message }
+  const standing = parseMyLevelRank(data)
+  if (!standing) return { ok: false, error: 'unexpected_response' }
+  return { ok: true, standing }
+}
+
 export async function fetchMyAchievements(): Promise<
   { ok: true; awards: AchievementAward[] } | { ok: false; error: string }
 > {
@@ -176,6 +208,30 @@ export async function fetchMyAchievements(): Promise<
   const { data, error } = await supabase.rpc('get_my_achievements')
   if (error) return { ok: false, error: error.message }
   return { ok: true, awards: parseAchievementAwards(data) }
+}
+
+/** Idempotent daily visit ping for return-arc milestones. */
+export async function recordDailyVisit(): Promise<
+  { ok: true; dateKey: string; recorded: boolean } | { ok: false; error: string }
+> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { ok: false, error: 'unconfigured' }
+  }
+  const { data, error } = await supabase.rpc('record_daily_visit')
+  if (error) return { ok: false, error: error.message }
+  if (!data || typeof data !== 'object') return { ok: false, error: 'unexpected_response' }
+  const row = data as Record<string, unknown>
+  if (row.ok !== true) {
+    return {
+      ok: false,
+      error: typeof row.error === 'string' ? row.error : 'unexpected_response',
+    }
+  }
+  return {
+    ok: true,
+    dateKey: typeof row.date_key === 'string' ? row.date_key : '',
+    recorded: row.recorded === true,
+  }
 }
 
 export async function fetchMyTodayModeCompletions(): Promise<

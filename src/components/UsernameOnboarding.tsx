@@ -58,7 +58,7 @@ export function UsernameOnboarding() {
           </>
         ) : (
           <>
-            Pick a public name for Top Rankings and community features. You can change it
+            Pick a public name for the Leaderboard and community features. You can change it
             later from Settings (once every 30 days).
           </>
         )}

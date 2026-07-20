@@ -12,7 +12,6 @@
 | --- | --- | --- |
 | Supabase service role | Edge Functions / CI secrets only | Leak suspicion, staff offboarding |
 | Supabase anon / publishable | Pages env (`VITE_*`) | Project rebuild / compromise |
-| PostHog project key | Pages env | Project reset |
 | OAuth client secrets | Supabase Auth providers | Provider rotation policy |
 | Cloudflare API tokens | Account dashboard | Least privilege; rotate on leave |
 

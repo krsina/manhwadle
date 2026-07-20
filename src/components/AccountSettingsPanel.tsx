@@ -3,12 +3,6 @@ import { Link } from 'react-router-dom'
 import { useAuth } from './AuthProvider'
 import { deleteMyAccount, exportMyAccountData } from '../lib/profileApi'
 import {
-  hasGlobalPrivacyControl,
-  isProductAnalyticsAllowed,
-  setProductAnalyticsConsent,
-} from '../lib/consent'
-import { shutdownProductTelemetry, syncTelemetryWithConsent } from '../lib/telemetry'
-import {
   USERNAME_MAX,
   USERNAME_MIN,
   formatNextChangeAt,
@@ -44,10 +38,6 @@ export function AccountSettingsPanel() {
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleteBusy, setDeleteBusy] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [productAnalytics, setProductAnalytics] = useState(() =>
-    isProductAnalyticsAllowed(),
-  )
-  const gpcActive = hasGlobalPrivacyControl()
 
   useEffect(() => {
     setUsernameDraft('')
@@ -57,7 +47,6 @@ export function AccountSettingsPanel() {
     setDeleteOpen(false)
     setDeleteConfirm('')
     setDeleteError(null)
-    setProductAnalytics(isProductAnalyticsAllowed())
     if (user) void refreshAccountRef.current()
   }, [user])
 
@@ -65,14 +54,6 @@ export function AccountSettingsPanel() {
 
   const nextChangeLabel = formatNextChangeAt(account?.nextChangeAt)
   const canChange = Boolean(account?.canChangeUsername)
-
-  function handleProductAnalyticsToggle(next: boolean) {
-    if (gpcActive) return
-    const decision = setProductAnalyticsConsent(next)
-    setProductAnalytics(decision === 'granted')
-    if (decision === 'granted') syncTelemetryWithConsent()
-    else shutdownProductTelemetry()
-  }
 
   async function handleUsernameSubmit(event: FormEvent) {
     event.preventDefault()
@@ -201,23 +182,8 @@ export function AccountSettingsPanel() {
           Privacy
         </h2>
         <p className="settings-muted">
-          Product analytics are sparse allowlisted milestones (PostHog EU). Cookieless
-          Cloudflare traffic metrics are separate when configured.
-        </p>
-        <label className="settings-toggle">
-          <input
-            type="checkbox"
-            checked={productAnalytics && !gpcActive}
-            disabled={gpcActive}
-            onChange={(e) => handleProductAnalyticsToggle(e.target.checked)}
-            aria-describedby="settings-analytics-help"
-          />
-          <span>Allow product analytics</span>
-        </label>
-        <p id="settings-analytics-help" className="settings-muted">
-          {gpcActive
-            ? 'Global Privacy Control is on in your browser, so product analytics stay off.'
-            : 'You can withdraw anytime. We never send emails, guesses, titles, or account ids.'}{' '}
+          Manhwadle does not run product-analytics trackers. Game progress for signed-in
+          accounts is stored in Supabase so levels, streaks, and the shop work.{' '}
           <Link to={PRIVACY_PATH}>Privacy</Link>
           {' · '}
           <Link to={TERMS_PATH}>Terms</Link>

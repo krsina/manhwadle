@@ -15,6 +15,8 @@ import {
   type LeaderboardEntry,
   type LeaderboardPage,
 } from './leaderboard'
+import { DEFAULT_AVATAR_ID } from './avatarComposition'
+import { DEFAULT_STAGE_ID } from './avatarStages'
 import type { MyLeaderboardStanding } from './leaderboardApi'
 
 export const DEV_LEADERBOARD_EVENT = 'manhwadle:dev-leaderboard'
@@ -83,6 +85,14 @@ function parseEntry(raw: unknown): LeaderboardEntry | null {
     username: row.username,
     value: clampNonNeg(row.value),
     publicId: row.publicId,
+    equippedAvatarId:
+      typeof row.equippedAvatarId === 'string' && row.equippedAvatarId
+        ? row.equippedAvatarId
+        : DEFAULT_AVATAR_ID,
+    equippedStageId:
+      typeof row.equippedStageId === 'string' && row.equippedStageId
+        ? row.equippedStageId
+        : DEFAULT_STAGE_ID,
   }
 }
 
@@ -164,11 +174,13 @@ function rerank(entries: LeaderboardEntry[]): LeaderboardEntry[] {
     if (a.value !== b.value) return b.value - a.value
     return a.username.localeCompare(b.username)
   })
-  return assignDenseRanks(sorted).map(({ rank, username, value, publicId }) => ({
+  return assignDenseRanks(sorted).map(({ rank, username, value, publicId, equippedAvatarId, equippedStageId }) => ({
     rank,
     username,
     value,
     publicId,
+    equippedAvatarId: equippedAvatarId || DEFAULT_AVATAR_ID,
+    equippedStageId: equippedStageId || DEFAULT_STAGE_ID,
   }))
 }
 
@@ -193,16 +205,25 @@ export function updateDevStanding(patch: Partial<DevStandingDraft>): void {
 export function seedSampleDevRankings(): void {
   const state = loadDevLeaderboardState()
   const youId = 'dev-you'
-  const samples: Array<{ username: string; publicId: string; current: number; longest: number; allMode: number }> =
-    [
-      { username: 'StreakQueen', publicId: 'dev-1', current: 14, longest: 21, allMode: 9 },
-      { username: 'PanelHopper', publicId: 'dev-2', current: 9, longest: 12, allMode: 5 },
-      { username: 'InkNight', publicId: 'dev-3', current: 6, longest: 11, allMode: 4 },
-      { username: 'DailyDose', publicId: 'dev-4', current: 4, longest: 8, allMode: 2 },
-      { username: 'Cliffhanger', publicId: 'dev-5', current: 2, longest: 15, allMode: 7 },
+  const samples: Array<{
+    username: string
+    publicId: string
+    avatarId: string
+    stageId: string
+    current: number
+    longest: number
+    allMode: number
+  }> = [
+      { username: 'StreakQueen', publicId: 'dev-1', avatarId: 'avatar_shadow_hunter', stageId: 'stage_dusk_plaza', current: 14, longest: 21, allMode: 9 },
+      { username: 'PanelHopper', publicId: 'dev-2', avatarId: 'avatar_villainess_rose', stageId: 'stage_blossom_courtyard', current: 9, longest: 12, allMode: 5 },
+      { username: 'InkNight', publicId: 'dev-3', avatarId: 'avatar_heavenly_demon', stageId: 'stage_sky_meadow', current: 6, longest: 11, allMode: 4 },
+      { username: 'DailyDose', publicId: 'dev-4', avatarId: 'avatar_tower_ranker', stageId: 'stage_dusk_plaza', current: 4, longest: 8, allMode: 2 },
+      { username: 'Cliffhanger', publicId: 'dev-5', avatarId: 'avatar_plum_blossom_blade', stageId: 'stage_sky_meadow', current: 2, longest: 15, allMode: 7 },
       {
         username: state.standing.username,
         publicId: youId,
+        avatarId: DEFAULT_AVATAR_ID,
+        stageId: DEFAULT_STAGE_ID,
         current: state.standing.anyCurrentStreak,
         longest: state.standing.anyMaxStreak,
         allMode: state.standing.allMaxStreak,
@@ -218,18 +239,24 @@ export function seedSampleDevRankings(): void {
         username: s.username,
         value: s.current,
         publicId: s.publicId,
+        equippedAvatarId: s.avatarId,
+        equippedStageId: s.stageId,
       })),
       longest_streak: samples.map((s) => ({
         rank: 0,
         username: s.username,
         value: s.longest,
         publicId: s.publicId,
+        equippedAvatarId: s.avatarId,
+        equippedStageId: s.stageId,
       })),
       all_mode_streak: samples.map((s) => ({
         rank: 0,
         username: s.username,
         value: s.allMode,
         publicId: s.publicId,
+        equippedAvatarId: s.avatarId,
+        equippedStageId: s.stageId,
       })),
     },
   })
@@ -259,6 +286,8 @@ export function syncDevYouOnBoards(): void {
       username: state.standing.username,
       value,
       publicId: youId,
+      equippedAvatarId: DEFAULT_AVATAR_ID,
+      equippedStageId: DEFAULT_STAGE_ID,
     })
     return rest
   }
@@ -305,7 +334,7 @@ export function getDevMyStanding(): MyLeaderboardStanding | null {
     )
     if (hit) return hit.rank
     const ranked = assignDenseRanks(
-      [...boards[board], { value, username: standing.username, publicId: 'dev-you' }],
+      [...boards[board], { value, username: standing.username, publicId: 'dev-you', equippedAvatarId: DEFAULT_AVATAR_ID, equippedStageId: DEFAULT_STAGE_ID }],
     )
     return ranked.find((e) => e.publicId === 'dev-you')?.rank ?? null
   }
@@ -354,5 +383,6 @@ export function getDevAchievements(): AchievementAward[] | null {
     description: def.description,
     category: def.category,
     awardedAt: now,
+    pointReward: def.pointReward,
   }))
 }

@@ -1,0 +1,53 @@
+-- Wave-1 Style A whole-character shop expansion (12 manhwa-inspired originals).
+-- Additive only: does NOT deactivate existing avatars or re-run whitelist cuts.
+
+insert into public.shop_items
+  (id, item_type, slot, name, description, price, rarity, asset_key, sort_order, active)
+values
+  ('avatar_plum_blossom_blade', 'avatar', null, 'Plum Blossom Blade',
+   'White murim robes, pink plum petals, and a long gleaming sword.',
+   150, 'rare', 'avatar_plum_blossom_blade', 50, true),
+  ('avatar_tower_ranker', 'avatar', null, 'Tower Ranker',
+   'Long blue coat, black hair, and a compact pocket-glow aura.',
+   150, 'rare', 'avatar_tower_ranker', 60, true),
+  ('avatar_fourth_wall_reader', 'avatar', null, 'Fourth-wall Reader',
+   'White coat, black hair, and a subtle crack-ink aura.',
+   150, 'rare', 'avatar_fourth_wall_reader', 70, true),
+  ('avatar_absolute_regressor', 'avatar', null, 'Absolute Regressor',
+   'Black coat, red time-fracture aura, and a single sword.',
+   150, 'rare', 'avatar_absolute_regressor', 80, true),
+  ('avatar_ice_sovereign', 'avatar', null, 'Ice Sovereign',
+   'White-blue hair, crystalline dress, and an ice spear.',
+   250, 'epic', 'avatar_ice_sovereign', 90, true),
+  ('avatar_flame_returnee', 'avatar', null, 'Flame Returnee',
+   'Ash-black hair, ember coat, and fire gauntlets.',
+   150, 'rare', 'avatar_flame_returnee', 100, true),
+  ('avatar_blood_contract', 'avatar', null, 'Blood Contract',
+   'Crimson eyes, dark cape, and floating blood orbs.',
+   150, 'rare', 'avatar_blood_contract', 110, true),
+  ('avatar_heavenly_demon', 'avatar', null, 'Heavenly Demon',
+   'Black-red martial robes, demonic qi aura, and a saber.',
+   250, 'epic', 'avatar_heavenly_demon', 120, true),
+  ('avatar_academy_prodigy', 'avatar', null, 'Academy Prodigy',
+   'Academy uniform, cloak, and a glowing tome.',
+   150, 'rare', 'avatar_academy_prodigy', 130, true),
+  ('avatar_undead_marshal', 'avatar', null, 'Undead Marshal',
+   'Bone crown accents, dark armor, and a mini skull familiar.',
+   250, 'epic', 'avatar_undead_marshal', 140, true),
+  ('avatar_beast_pact_hunter', 'avatar', null, 'Beast Pact Hunter',
+   'Hunter cloak, beast-mark eyes, and an oversized bow.',
+   150, 'rare', 'avatar_beast_pact_hunter', 150, true),
+  ('avatar_villainess_rose', 'avatar', null, 'Villainess Rose',
+   'Ornate gown, rose fan, and a readable smug smile.',
+   150, 'rare', 'avatar_villainess_rose', 160, true)
+on conflict (id) do update set
+  item_type = excluded.item_type,
+  slot = excluded.slot,
+  name = excluded.name,
+  description = excluded.description,
+  price = excluded.price,
+  rarity = excluded.rarity,
+  asset_key = excluded.asset_key,
+  sort_order = excluded.sort_order,
+  active = excluded.active,
+  updated_at = timezone('utc', now());

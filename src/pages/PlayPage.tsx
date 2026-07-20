@@ -23,13 +23,7 @@ import type { StatsModeId } from '../lib/stats'
 import { resolveActiveMode } from '../modes'
 import { parsePlayModeParam, playPath } from '../lib/routes'
 import { fetchPublicSiteStatus } from '../lib/leaderboardApi'
-import {
-  clearModeEntrySource,
-  noteModeEntrySource,
-  peekModeEntrySource,
-  telemetry,
-  type TelemetryMode,
-} from '../lib/telemetry'
+import { noteSecretRoundStart, reportSecretEvent } from '../lib/secretEvents'
 
 interface PlayPageProps {
   taste: ReaderTaste | null
@@ -75,9 +69,6 @@ export function PlayPage({ taste, setTaste }: PlayPageProps) {
       return
     }
     saveStoredModeId(parsed)
-    const source = peekModeEntrySource('direct')
-    telemetry.modeSelected(parsed as TelemetryMode, source, `mode_selected:${parsed}`)
-    queueMicrotask(() => clearModeEntrySource())
   }, [modeParam, navigate, dateFromUrl])
 
   useEffect(() => {
@@ -99,13 +90,19 @@ export function PlayPage({ taste, setTaste }: PlayPageProps) {
   }, [mode.id])
 
   const archive = isArchiveDate(dateKey)
+
+  useEffect(() => {
+    if (!user || archive) return
+    void reportSecretEvent('mode_open', { mode: mode.id })
+    noteSecretRoundStart(mode.id, dateKey)
+  }, [user, archive, mode.id, dateKey])
+
   const answerPool = useMemo(() => {
     if (!fullPool) return []
     return taste ? filterPoolByTaste(fullPool, taste) : fullPool
   }, [taste, fullPool])
 
   function handleModeChange(nextId: string) {
-    noteModeEntrySource('switcher')
     saveStoredModeId(nextId)
     navigate(playPath(nextId, archive ? dateKey : null))
   }
@@ -125,9 +122,10 @@ export function PlayPage({ taste, setTaste }: PlayPageProps) {
   return (
     <div className="play-page">
       <div className="play-toolbar">
-        <Link to="/" className="play-back-link">
-          ← Home
-        </Link>
+        <div className="site-nav play-mode-nav">
+          <span className="site-nav-label">Game mode</span>
+          <ModeSwitcher activeId={mode.id} onChange={handleModeChange} />
+        </div>
         <div className="play-toolbar-actions">
           {taste && <HowToPlay modeId={mode.id} guide={mode.howTo} />}
           {taste && (
@@ -144,11 +142,6 @@ export function PlayPage({ taste, setTaste }: PlayPageProps) {
             }}
           />
         </div>
-      </div>
-
-      <div className="site-nav play-mode-nav">
-        <span className="site-nav-label">Game mode</span>
-        <ModeSwitcher activeId={mode.id} onChange={handleModeChange} />
       </div>
 
       <header className="play-mode-hero">

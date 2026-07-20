@@ -1,0 +1,39 @@
+﻿{
+  "id": "style-c-female-base",
+  "approvalStatus": "approved",
+  "approvalDate": "2026-07-18",
+  "canvas": {"width":256,"height":256,"format":"Format32bppArgb","origin":"top-left"},
+  "canvasCenter": {"x":128,"y":128},
+  "anchors": {
+    "headCenter": {"x":127,"y":84},
+    "faceCenter": {"x":127,"y":88},
+    "eyeLineY": 93,
+    "hairlineY": 47,
+    "earLeft": {"x":77,"y":93},
+    "earRight": {"x":177,"y":93},
+    "neck": {"x":127,"y":131},
+    "shoulderLeft": {"x":103,"y":142},
+    "shoulderRight": {"x":152,"y":142},
+    "elbowLeft": {"x":96,"y":163},
+    "elbowRight": {"x":158,"y":163},
+    "wristLeft": {"x":95,"y":185},
+    "wristRight": {"x":159,"y":185},
+    "waist": {"x":127,"y":162},
+    "hipLeft": {"x":105,"y":178},
+    "hipRight": {"x":150,"y":178},
+    "kneeLeft": {"x":116,"y":196},
+    "kneeRight": {"x":139,"y":196},
+    "ankleLeft": {"x":116,"y":203},
+    "ankleRight": {"x":139,"y":203},
+    "soleLeft": {"x":112,"y":224},
+    "soleRight": {"x":142,"y":224}
+  },
+  "bounds": {
+    "face": {"left":83,"top":49,"right":171,"bottom":128,"width":89,"height":80},
+    "silhouette": {"left":73,"top":38,"right":181,"bottom":224,"width":109,"height":187},
+    "underlayer": {"left":105,"top":145,"right":161,"bottom":189,"width":57,"height":45}
+  },
+  "groundBaselineY": 224,
+  "ears": "human",
+  "notes": "Coordinates are the approved production anchor contract on the 256x256 master canvas. Origin top-left."
+}

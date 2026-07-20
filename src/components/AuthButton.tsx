@@ -1,11 +1,12 @@
-import { useId, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth, type AuthOAuthProvider } from './AuthProvider'
 import { Dialog } from './Dialog'
 import { ModerationDashboard } from './ModerationDashboard'
 import { canUseModerationUi } from '../lib/moderationApi'
 import { SETTINGS_PATH } from '../lib/routes'
-import { telemetry } from '../lib/telemetry'
+import { PixelAvatar } from './PixelAvatar'
+import { DIALOG_ESCAPE_EVENT, reportAccountMenuPress } from '../lib/secretEvents'
 
 const OAUTH_PROVIDERS: {
   id: AuthOAuthProvider
@@ -39,45 +40,22 @@ export function AuthButton() {
     const label = account?.username || 'Account'
     return (
       <>
-        <button
-          type="button"
-          className="auth-chip auth-chip-signed auth-chip-trigger"
-          onClick={() => setOpen(true)}
-          aria-haspopup="dialog"
-          aria-expanded={open}
+        <AccountMenu
+          label={label}
+          email={user.email ?? null}
+          username={account?.username ?? null}
+          staffRole={account?.staffRole ?? null}
+          cloudBanned={Boolean(account?.cloudBanned)}
+          equippedAvatarId={account?.equippedAvatarId}
           title={account?.username ? `@${account.username}` : (user.email ?? 'Account')}
-        >
-          <span className="auth-avatar" aria-hidden="true">
-            {label.charAt(0).toUpperCase()}
-          </span>
-          <span className="auth-chip-label">{label}</span>
-          <ChevronIcon />
-        </button>
-        {open && (
-          <AccountModal
-            email={user.email ?? null}
-            username={account?.username ?? null}
-            staffRole={account?.staffRole ?? null}
-            cloudBanned={Boolean(account?.cloudBanned)}
-            onClose={() => setOpen(false)}
-            onOpenSettings={() => {
-              setOpen(false)
-              navigate(SETTINGS_PATH)
-            }}
-            onOpenModeration={
-              canUseModerationUi(account?.staffRole)
-                ? () => {
-                    setOpen(false)
-                    setModerationOpen(true)
-                  }
-                : undefined
-            }
-            onSignOut={async () => {
-              await signOut()
-              setOpen(false)
-            }}
-          />
-        )}
+          onOpenSettings={() => navigate(SETTINGS_PATH)}
+          onOpenModeration={
+            canUseModerationUi(account?.staffRole)
+              ? () => setModerationOpen(true)
+              : undefined
+          }
+          onSignOut={() => signOut()}
+        />
         <ModerationDashboard
           open={moderationOpen}
           onClose={() => setModerationOpen(false)}
@@ -89,10 +67,10 @@ export function AuthButton() {
   return (
     <>
       <button
+        id="site-auth-button"
         type="button"
         className="auth-chip-btn"
         onClick={() => {
-          telemetry.authPrompt('unknown')
           setOpen(true)
         }}
         aria-haspopup="dialog"
@@ -170,7 +148,6 @@ function SignInModal({
 
     setBusy(true)
     setError(null)
-    telemetry.authStart('email')
     const { error: nextError } = await onSignIn(trimmed)
     setBusy(false)
     if (nextError) {
@@ -183,7 +160,6 @@ function SignInModal({
   async function handleOAuth(provider: AuthOAuthProvider) {
     setOauthBusy(provider)
     setError(null)
-    telemetry.authStart('oauth')
     const { error: nextError } = await onOAuth(provider)
     // On success the browser redirects away; only clear busy on failure.
     if (nextError) {
@@ -307,101 +283,156 @@ function SignInModal({
   )
 }
 
-function AccountModal({
+function AccountMenu({
+  label,
   email,
   username,
   staffRole,
   cloudBanned,
-  onClose,
+  equippedAvatarId,
+  title,
   onOpenSettings,
   onOpenModeration,
   onSignOut,
 }: {
+  label: string
   email: string | null
   username: string | null
   staffRole: string | null
   cloudBanned: boolean
-  onClose: () => void
+  equippedAvatarId: string | null | undefined
+  title: string
   onOpenSettings: () => void
   onOpenModeration?: () => void
   onSignOut: () => Promise<void>
 }) {
-  const titleId = useId()
+  const menuId = useId()
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
 
+  useEffect(() => {
+    if (!open) return
+
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target as Node | null
+      if (target && wrapRef.current?.contains(target)) return
+      setOpen(false)
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      window.dispatchEvent(new Event(DIALOG_ESCAPE_EVENT))
+      setOpen(false)
+    }
+
+    document.addEventListener('pointerdown', onPointerDown, true)
+    document.addEventListener('keydown', onKeyDown, true)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true)
+      document.removeEventListener('keydown', onKeyDown, true)
+    }
+  }, [open])
+
   return (
-    <Dialog
-      open
-      onClose={onClose}
-      titleId={titleId}
-      descriptionId="auth-account-desc"
-      backdropClassName="auth-backdrop"
-      panelClassName="auth-modal"
-    >
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
-          <span aria-hidden="true">×</span>
-        </button>
-        <p className="modal-kicker">Account</p>
-        <h2 id={titleId} className="modal-title">
-          Signed in
-        </h2>
-        <p className="auth-modal-intro">
-          {username ? (
-            <>
-              Playing as <strong className="auth-email-highlight">{username}</strong>
-              {email ? (
-                <>
-                  {' '}
-                  ({email}).
-                </>
-              ) : (
-                '.'
-              )}{' '}
-              Progress stays synced while you&apos;re signed in.
-            </>
-          ) : email ? (
-            <>
-              You&apos;re signed in as{' '}
-              <strong className="auth-email-highlight">{email}</strong>. Finish choosing a
-              username to join public features.
-            </>
-          ) : (
-            'Your progress stays synced while you are signed in.'
-          )}
-        </p>
-        {cloudBanned && (
-          <p className="auth-modal-error" role="status">
-            Cloud sync writes are disabled for this account. You can still play locally and
-            read existing synced data.
+    <div className="auth-menu" ref={wrapRef}>
+      <button
+        type="button"
+        className="auth-chip auth-chip-signed auth-chip-trigger"
+        onPointerDown={(event) => {
+          // pointerdown survives rapid mash better than click; primary button only.
+          if (event.button !== 0) return
+          void reportAccountMenuPress()
+        }}
+        onClick={() => {
+          setOpen((value) => !value)
+        }}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+        title={title}
+      >
+        <span className="auth-avatar" aria-hidden="true">
+          <PixelAvatar characterId={equippedAvatarId} size="sm" decorative />
+        </span>
+        <span className="auth-chip-label">{label}</span>
+        <ChevronIcon />
+      </button>
+      {open && (
+        <div
+          id={menuId}
+          className="auth-menu-panel"
+          role="menu"
+          aria-label="Account menu"
+        >
+          <p className="auth-menu-kicker">Account</p>
+          <p className="auth-menu-intro">
+            {username ? (
+              <>
+                Playing as <strong className="auth-email-highlight">{username}</strong>
+                {email ? <> ({email})</> : null}.
+              </>
+            ) : email ? (
+              <>
+                Signed in as <strong className="auth-email-highlight">{email}</strong>.
+              </>
+            ) : (
+              'Your progress stays synced while you are signed in.'
+            )}
           </p>
-        )}
-        <div className="modal-actions auth-modal-actions">
-          <button type="button" className="btn btn-ghost" onClick={onOpenSettings} disabled={busy}>
-            Account settings
-          </button>
-          {onOpenModeration && (
+          {cloudBanned && (
+            <p className="auth-modal-error" role="status">
+              Cloud sync writes are disabled for this account. You can still play locally and
+              read existing synced data.
+            </p>
+          )}
+          <div className="auth-menu-actions">
             <button
               type="button"
               className="btn btn-ghost"
-              onClick={onOpenModeration}
+              role="menuitem"
+              onClick={() => {
+                setOpen(false)
+                onOpenSettings()
+              }}
               disabled={busy}
             >
-              Moderation{staffRole ? ` (${staffRole})` : ''}
+              Account settings
             </button>
-          )}
-          <button
-            type="button"
-            className="btn btn-ghost auth-sign-out-btn"
-            disabled={busy}
-            onClick={() => {
-              setBusy(true)
-              void onSignOut().finally(() => setBusy(false))
-            }}
-          >
-            {busy ? 'Signing out…' : 'Sign out'}
-          </button>
+            {onOpenModeration && (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false)
+                  onOpenModeration()
+                }}
+                disabled={busy}
+              >
+                Moderation{staffRole ? ` (${staffRole})` : ''}
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn btn-ghost auth-sign-out-btn"
+              role="menuitem"
+              disabled={busy}
+              onClick={() => {
+                setBusy(true)
+                void onSignOut().finally(() => {
+                  setBusy(false)
+                  setOpen(false)
+                })
+              }}
+            >
+              {busy ? 'Signing out…' : 'Sign out'}
+            </button>
+          </div>
         </div>
-    </Dialog>
+      )}
+    </div>
   )
 }
 

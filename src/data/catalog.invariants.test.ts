@@ -78,15 +78,12 @@ describe('catalog invariants', () => {
     }
   })
 
-  it('character-mode eligibility matches guessables or crop entries', () => {
-    const cropIds = new Set((crops.entries || []).map((e) => e.manhwaId))
+  it('character-mode pool eligibility requires MAIN cast with images', () => {
     for (const title of manhwa) {
-      const playable =
-        manhwaHasGuessableCharacter(title) || cropIds.has(title.id)
-      if (playable) {
-        expect(
-          guessableCharacters(title).length > 0 || cropIds.has(title.id),
-        ).toBe(true)
+      if (manhwaHasGuessableCharacter(title, { mainOnly: true })) {
+        expect(guessableCharacters(title, { mainOnly: true }).length).toBeGreaterThan(
+          0,
+        )
       }
     }
   })
@@ -147,11 +144,11 @@ describe('catalog invariants', () => {
     for (const row of characterRows) {
       const title = manhwa.find((m) => m.id === row.manhwa_id)
       expect(title).toBeTruthy()
-      expect(
-        manhwaHasGuessableCharacter(title!) || cropIds.has(row.manhwa_id),
-      ).toBe(true)
+      expect(manhwaHasGuessableCharacter(title!, { mainOnly: true })).toBe(true)
       if (row.meta?.eligible_character_ids) {
-        const eligible = new Set(guessableCharacters(title!).map((c) => c.id))
+        const eligible = new Set(
+          guessableCharacters(title!, { mainOnly: true }).map((c) => c.id),
+        )
         for (const id of row.meta.eligible_character_ids as number[]) {
           expect(eligible.has(id)).toBe(true)
         }

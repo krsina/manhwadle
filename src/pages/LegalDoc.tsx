@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import {
   CONTACT_EMAIL,
   CONTACT_EMAIL_IS_PLACEHOLDER,
   contactMailto,
 } from '../lib/siteContact'
+import { useLegalSecretPing } from '../lib/useSecretPagePings'
 
-/** Shared legal page shell — disclosures are informational, not legal advice. */
+/** Shared legal page shell. Disclosures are informational, not legal advice. */
 export function LegalDoc({
   title,
   children,
@@ -14,11 +14,10 @@ export function LegalDoc({
   title: string
   children: ReactNode
 }) {
+  useLegalSecretPing()
+
   return (
     <article className="legal-page">
-      <p className="legal-kicker">
-        <Link to="/">Home</Link>
-      </p>
       <h1 className="legal-title">{title}</h1>
       <p className="legal-disclaimer">
         This page describes how Manhwadle works today. It is not legal advice. Policies may

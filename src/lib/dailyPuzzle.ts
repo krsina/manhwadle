@@ -52,7 +52,10 @@ export async function getTodaysPuzzle(
 
   const row = await fetchDailyPuzzleRow(mode, taste, dateKey)
   if (row) {
-    const remote = findById(fallbackPool, row.answer_id) || findById(pool, row.answer_id)
+    // Only accept remote answers that pass this mode's playable filter
+    // (e.g. Character MAIN cast). Never widen to fallbackPool — that allowed
+    // supporting-only titles into Character mode and blanked the clue.
+    const remote = findById(pool, row.answer_id)
     if (remote) {
       return {
         answer: remote,

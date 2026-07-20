@@ -12,7 +12,15 @@ import { ConfettiBurst } from './ConfettiBurst'
 import { Dialog } from './Dialog'
 import { ElectricBorder } from './ElectricBorder'
 import { MediaImage } from './MediaImage'
-import { telemetry } from '../lib/telemetry'
+import { playSolveCelebrationSound } from '../lib/solveCelebrationSounds'
+import { playerLevelFromXp } from '../lib/playerLevel'
+import {
+  POINTS_AWARDED_EVENT,
+  getLastPointsAwarded,
+  type PointsAwardedDetail,
+} from '../lib/ranked'
+import { useAuth } from './AuthProvider'
+import { reportSecretEvent } from '../lib/secretEvents'
 
 interface BonusNameResult {
   guess: string
@@ -109,9 +117,13 @@ export function ResultModal({
   isArchive = false,
   surrendered = false,
 }: ResultModalProps) {
+  const { account } = useAuth()
   const [localBonus, setLocalBonus] = useState<BonusNameResult | null>(null)
   const [countdownMs, setCountdownMs] = useState(() => msUntilNextUtcMidnight())
   const [shareFeedback, setShareFeedback] = useState<ShareFeedback>('idle')
+  const [pointsAwarded, setPointsAwarded] = useState<number | null>(null)
+  const [playXpAwarded, setPlayXpAwarded] = useState<number | null>(null)
+  const [leveledUpTo, setLeveledUpTo] = useState<number | null>(null)
 
   const scoreLabel = formatGuessScore({
     won,
@@ -168,8 +180,37 @@ export function ResultModal({
     if (!open) {
       setLocalBonus(null)
       setShareFeedback('idle')
+      setPointsAwarded(null)
+      setPlayXpAwarded(null)
+      setLeveledUpTo(null)
     }
   }, [open])
+
+  useEffect(() => {
+    if (!open || isArchive) return
+    const latest = getLastPointsAwarded()
+    if (latest) {
+      setPointsAwarded(latest.delta)
+      setPlayXpAwarded(latest.playPointDelta ?? latest.delta)
+    }
+    function onPoints(event: Event) {
+      const detail = (event as CustomEvent<PointsAwardedDetail>).detail
+      setPointsAwarded(detail?.delta ?? 0)
+      setPlayXpAwarded(detail?.playPointDelta ?? detail?.delta ?? 0)
+    }
+    window.addEventListener(POINTS_AWARDED_EVENT, onPoints)
+    return () => window.removeEventListener(POINTS_AWARDED_EVENT, onPoints)
+  }, [open, isArchive])
+
+  useEffect(() => {
+    if (!open || isArchive || pointsAwarded == null || pointsAwarded <= 0) return
+    if (account?.lifetimeEarned == null) return
+    const after = playerLevelFromXp(account.lifetimeEarned).level
+    const before = playerLevelFromXp(
+      Math.max(0, account.lifetimeEarned - pointsAwarded),
+    ).level
+    if (after > before) setLeveledUpTo(after)
+  }, [open, isArchive, pointsAwarded, account?.lifetimeEarned])
 
   useEffect(() => {
     if (!open || isArchive) return
@@ -185,6 +226,17 @@ export function ResultModal({
     const id = window.setTimeout(() => setShareFeedback('idle'), 1800)
     return () => window.clearTimeout(id)
   }, [shareFeedback])
+
+  useEffect(() => {
+    if (!open || !won) return
+    if (doubleSolve) {
+      void playSolveCelebrationSound('double-solve')
+      return
+    }
+    if (firstTry) {
+      void playSolveCelebrationSound('first-try')
+    }
+  }, [open, won, firstTry, doubleSolve])
 
   if (!open) return null
 
@@ -216,7 +268,7 @@ export function ResultModal({
     const copied = await copyToClipboard()
     if (copied) {
       setShareFeedback('copied')
-      telemetry.resultShare(true, 'clipboard')
+      void reportSecretEvent('share_result')
       return
     }
 
@@ -224,7 +276,7 @@ export function ResultModal({
       try {
         await navigator.share({ text: shareText })
         setShareFeedback('shared')
-        telemetry.resultShare(true, 'share')
+        void reportSecretEvent('share_result')
         return
       } catch {
         /* user cancelled or share failed */
@@ -232,7 +284,6 @@ export function ResultModal({
     }
 
     setShareFeedback('copied')
-    telemetry.resultShare(false, 'unknown')
   }
 
   const toastLabel =
@@ -309,6 +360,28 @@ export function ResultModal({
           {firstTry && (
             <p className="modal-score">
               <span className="modal-first-try-note">Nailed it on the opening guess</span>
+            </p>
+          )}
+          {pointsAwarded !== null && (
+            <p className={`result-points${pointsAwarded > 0 ? ' is-earned' : ''}`} role="status">
+              {pointsAwarded > 0
+                ? `+${pointsAwarded} shop points${
+                    playXpAwarded != null && playXpAwarded > 0 && playXpAwarded !== pointsAwarded
+                      ? ` (${playXpAwarded} play XP)`
+                      : firstTry && playXpAwarded != null && playXpAwarded > 0
+                        ? ' · first-try bonus'
+                        : ''
+                  }`
+                : surrendered
+                  ? 'No shop points for surrendering'
+                  : won
+                    ? 'No new shop points'
+                    : 'XP only for correct answers'}
+            </p>
+          )}
+          {leveledUpTo != null && (
+            <p className="result-level-up" role="status">
+              Level up! You reached level {leveledUpTo}
             </p>
           )}
 

@@ -13,26 +13,35 @@ export function PrivacyPage() {
       <section>
         <h2>Local storage</h2>
         <p>
-          We store game progress, reading preference, theme, and consent choices in{' '}
-          <code>localStorage</code> on your device so daily play works offline and without an
-          account.
+          We store game progress, reading preference, and theme in <code>localStorage</code> on
+          your device so daily play works offline and without an account.
         </p>
       </section>
       <section>
         <h2>Accounts (Supabase)</h2>
         <p>
           If you sign in (magic link or OAuth), Supabase stores authentication data and synced
-          progress associated with your account. Public profiles expose the username you
-          choose and Top Rankings progress while signed in.
+          progress associated with your account — including completions, streaks, achievements,
+          shop balance, and avatar loadout. Public profiles expose the username you choose and
+          Leaderboard progress while signed in.
         </p>
       </section>
       <section>
         <h2>Analytics</h2>
         <p>
-          Cloudflare Web Analytics may measure cookieless traffic and Core Web Vitals when
-          configured. PostHog EU may receive sparse product events only after you grant product
-          analytics consent. Autocapture, session replay, heatmaps, and marketing/ad tracking are
-          not used. Global Privacy Control (GPC) forces product analytics off.
+          Manhwadle does not use product-analytics trackers. We do not collect
+          optional play-behavior events for marketing or product analytics. Operational game data
+          for signed-in accounts (described above) is stored only to run the product.
+        </p>
+      </section>
+      <section>
+        <h2>Advertising</h2>
+        <p>
+          When ads are enabled, we may show third-party display banners (Google AdSense and/or
+          Adsterra) and an optional user-initiated rewarded video for in-game points. Ad scripts
+          and creatives can set cookies or similar identifiers and collect device or usage data
+          under the ad partner&apos;s policies. We do not use pop-under or push-notification ad
+          formats.
         </p>
       </section>
       <section>
@@ -45,9 +54,8 @@ export function PrivacyPage() {
       <section>
         <h2>Retention, export, and deletion</h2>
         <p>
-          Product analytics events are intended for short retention (about 60–90 days). You can
-          export or delete account data from Settings when signed in. Local-only play can be
-          cleared by clearing site data in your browser.
+          You can export or delete account data from Settings when signed in. Local-only play can
+          be cleared by clearing site data in your browser.
         </p>
       </section>
       <section>

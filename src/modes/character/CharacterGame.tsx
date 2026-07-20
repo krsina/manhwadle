@@ -34,17 +34,18 @@ import {
   clueProgress,
 } from '../../lib/clueProgress'
 import { applyGuess } from '../../lib/guessLoop'
+import { reportWrongGenreIfCompleteMiss } from '../../lib/secretEvents'
 import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
 import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
 import {
   isSurrenderedLoss,
+  queueBonusNameReward,
   queueVerifiedDailyCompletion,
 } from '../../lib/ranked'
 import { recordBonusResult, recordDailyResult } from '../../lib/stats'
 import { syncAfterLocalChange } from '../../lib/sync'
 import { catalogSizePhrase } from '../../lib/catalogConfig'
 import { useDailyPuzzleAnswer } from '../../lib/useDailyPuzzleAnswer'
-import { useRoundTelemetry } from '../../lib/useRoundTelemetry'
 import type { GameModeProps } from '../types'
 import { characterModeMeta } from './config'
 
@@ -257,18 +258,6 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
   const surrendered =
     dayState.status === 'lost' && dayState.guessIds.length < maxGuesses
 
-  const roundTelemetry = useRoundTelemetry({
-    mode: 'character',
-    taste,
-    dateKey,
-    hardMode,
-    isPractice,
-    isArchive,
-    active: answerReady && hasCrops,
-    status: dayState.status,
-    guessCount: dayState.guessIds.length,
-    hintsUsed: dayState.hintsUsed ?? 0,
-  })
 
   const canUnlockColor = hardMode && !finished && remaining === 1
   const colorToggleLocked = hardMode && !canUnlockColor
@@ -349,13 +338,6 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
       surrendered,
       dateKey,
     })
-    roundTelemetry.trackCompleted({
-      won,
-      surrendered,
-      guessCount: next.guessIds.length,
-      hintsUsed: next.hintsUsed ?? 0,
-      hardMode: Boolean(next.hardMode ?? hardMode),
-    })
   }
 
   function handleRevealMore() {
@@ -383,6 +365,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
     if (!answerReady || !hasCrops) return
     const transition = applyGuess(dayState, manhwa.id, answer.id, maxGuesses)
     if (!transition) return
+    reportWrongGenreIfCompleteMiss(manhwa, answer)
     const priorLabels = dayState.guessLabels ?? []
     const guessLabels = [
       ...dayState.guessIds.map((_, i) => priorLabels[i] || ''),
@@ -419,7 +402,6 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
     setColorEnabled(false)
     setShowResult(false)
     setShowSurrender(false)
-    roundTelemetry.trackNextRound()
   }
 
   function handleBonusNameAnswer(result: { guess: string; correct: boolean }) {
@@ -447,7 +429,16 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
           doubleSolve: isDoubleSolve,
         })
         sync.stats('character', taste)
-        roundTelemetry.trackBonus(result.correct)
+        queueBonusNameReward({
+          userId: user?.id,
+          isPractice,
+          isArchive,
+          mode: 'character',
+          taste,
+          correct: result.correct,
+          firstTry,
+          dateKey,
+        })
       }
     }
   }

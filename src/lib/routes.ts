@@ -3,15 +3,23 @@ import { parseDateKey } from './archive'
 
 export const HOME_PATH = '/'
 export const SETTINGS_PATH = '/settings'
+export const MILESTONES_PATH = '/milestones'
+export const SHOP_PATH = '/shop'
+export const DEV_ANIMATIONS_PATH = '/dev/animations'
+export const DEV_ACTION_STRIP_PREVIEW_PATH = '/dev/action-strip-preview'
 export const PRIVACY_PATH = '/privacy'
 export const TERMS_PATH = '/terms'
 export const ATTRIBUTION_PATH = '/attribution'
 export const MODERATION_POLICY_PATH = '/moderation'
+export const ABOUT_PATH = '/about'
+export const HOW_IT_WORKS_PATH = '/how-it-works'
 export const PLAY_PATH_PREFIX = '/play'
 
 const MODE_IDS = new Set(['summary', 'character', 'cover', 'heardle'])
 
 export const LEGAL_PATHS = [
+  ABOUT_PATH,
+  HOW_IT_WORKS_PATH,
   PRIVACY_PATH,
   TERMS_PATH,
   ATTRIBUTION_PATH,

@@ -8,11 +8,13 @@ import {
   saveReaderTaste,
   type ReaderTaste,
 } from './lib/readerTaste'
-import { telemetry } from './lib/telemetry'
 import './styles.css'
 
 const HomePage = lazy(() =>
   import('./pages/HomePage').then((m) => ({ default: m.HomePage })),
+)
+const MilestonesPage = lazy(() =>
+  import('./pages/MilestonesPage').then((m) => ({ default: m.MilestonesPage })),
 )
 const PlayPage = lazy(() =>
   import('./pages/PlayPage').then((m) => ({ default: m.PlayPage })),
@@ -20,8 +22,23 @@ const PlayPage = lazy(() =>
 const SettingsPage = lazy(() =>
   import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 )
+const ShopPage = lazy(() =>
+  import('./pages/ShopPage').then((m) => ({ default: m.ShopPage })),
+)
+const AnimationCreatorPage = lazy(() =>
+  import('./pages/AnimationCreatorPage').then((m) => ({ default: m.AnimationCreatorPage })),
+)
+const ActionStripPreviewPage = lazy(() =>
+  import('./pages/ActionStripPreviewPage').then((m) => ({ default: m.ActionStripPreviewPage })),
+)
 const PrivacyPage = lazy(() =>
   import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
+)
+const AboutPage = lazy(() =>
+  import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })),
+)
+const HowItWorksPage = lazy(() =>
+  import('./pages/HowItWorksPage').then((m) => ({ default: m.HowItWorksPage })),
 )
 const TermsPage = lazy(() =>
   import('./pages/TermsPage').then((m) => ({ default: m.TermsPage })),
@@ -59,7 +76,6 @@ function App() {
   function handleTasteChange(next: ReaderTaste) {
     saveReaderTaste(next)
     setTaste(next)
-    telemetry.tasteSelected(next)
   }
 
   return (
@@ -77,6 +93,15 @@ function App() {
                 }
               />
               <Route
+                path="milestones"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <MilestonesPage />
+                  </Suspense>
+                }
+              />
+              <Route path="trophies" element={<Navigate to="/milestones" replace />} />
+              <Route
                 path="play/:mode"
                 element={
                   <Suspense fallback={<RouteFallback />}>
@@ -85,10 +110,58 @@ function App() {
                 }
               />
               <Route
+                path="shop"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <ShopPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="dev/animations"
+                element={
+                  import.meta.env.DEV ? (
+                    <Suspense fallback={<RouteFallback />}>
+                      <AnimationCreatorPage />
+                    </Suspense>
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route
+                path="dev/action-strip-preview"
+                element={
+                  import.meta.env.DEV ? (
+                    <Suspense fallback={<RouteFallback />}>
+                      <ActionStripPreviewPage />
+                    </Suspense>
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route
                 path="settings"
                 element={
                   <Suspense fallback={<RouteFallback />}>
                     <SettingsPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="about"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <AboutPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="how-it-works"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <HowItWorksPage />
                   </Suspense>
                 }
               />

@@ -4,7 +4,6 @@
 
 - Cloudflare Pages / DNS uptime for the site origin.
 - Optional Sentry (or similar) only when `VITE_SENTRY_DSN` is set — no session replay, no PII, low sample.
-- Product analytics (PostHog EU) is not an uptime signal.
 
 ## Severity
 
@@ -12,7 +11,7 @@
 | --- | --- | --- |
 | Critical | Site down, auth broken for all users, wrong daily answers for all 12 lanes | Page owner; roll back Pages deploy; disable ranked writes if needed |
 | High | Single mode broken, sync failing widely, moderation queue stuck | Fix forward or roll back within hours |
-| Medium | Partial CDN image failures, telemetry outage | Track; local play must keep working |
+| Medium | Partial CDN image failures | Track; local play must keep working |
 | Low | Copy / cosmetic | Next release |
 
 ## Immediate steps

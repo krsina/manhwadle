@@ -1,3 +1,6 @@
+import { DEFAULT_AVATAR_ID, normalizeEquippedAvatarId } from './avatarComposition'
+import { DEFAULT_STAGE_ID, normalizeEquippedStageId } from './avatarStages'
+
 /**
  * Community board helpers: dense ranks, opaque keyset cursors, board ids.
  * Server is source of truth; these mirror pagination/rank parsing for tests + UI.
@@ -20,6 +23,10 @@ export interface LeaderboardEntry {
   value: number
   /** Opaque public id — never an auth UUID */
   publicId: string
+  /** Equipped whole-character avatar id (public catalog). */
+  equippedAvatarId: string
+  /** Equipped stage backdrop id (public catalog). */
+  equippedStageId: string
 }
 
 export interface LeaderboardPage {
@@ -159,6 +166,12 @@ export function parseLeaderboardPage(raw: unknown): LeaderboardPage | null {
       username: e.username,
       value: e.value,
       publicId: e.public_id,
+      equippedAvatarId: normalizeEquippedAvatarId(
+        typeof e.equipped_avatar_id === 'string' ? e.equipped_avatar_id : DEFAULT_AVATAR_ID,
+      ),
+      equippedStageId: normalizeEquippedStageId(
+        typeof e.equipped_stage_id === 'string' ? e.equipped_stage_id : DEFAULT_STAGE_ID,
+      ),
     })
   }
   const nextCursor =
@@ -187,10 +200,10 @@ export function boardLabel(board: LeaderboardBoard): string {
 export function boardBlurb(board: LeaderboardBoard): string {
   switch (board) {
     case 'all_mode_streak':
-      return 'Days finishing every required mode in a row (UTC).'
+      return 'Longest run of finishing every mode in a day'
     case 'longest_streak':
-      return 'Best run of days with at least one mode finished.'
+      return 'Best any-mode streak of all time'
     case 'current_streak':
-      return 'Ongoing any-mode run — yesterday still counts if today is open.'
+      return 'Longest current any-mode streak'
   }
 }

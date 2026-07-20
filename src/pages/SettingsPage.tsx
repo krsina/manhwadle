@@ -1,4 +1,4 @@
-import { Link, Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { AccountSettingsPanel } from '../components/AccountSettingsPanel'
 import { useAuth } from '../components/AuthProvider'
 
@@ -12,9 +12,6 @@ export function SettingsPage() {
 
   return (
     <div className="settings-page">
-      <p className="settings-page-back">
-        <Link to="/">← Home</Link>
-      </p>
       <header className="settings-page-head">
         <h1 className="settings-page-title">Account settings</h1>
         <p className="settings-page-blurb">Username, privacy, and account data.</p>

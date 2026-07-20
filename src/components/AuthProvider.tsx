@@ -17,7 +17,15 @@ import {
 } from '../lib/profileApi'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { mergeLocalAndRemoteOnSignIn } from '../lib/sync'
-import { telemetry } from '../lib/telemetry'
+import { POINTS_AWARDED_EVENT } from '../lib/ranked'
+import { recordDailyVisit } from '../lib/leaderboardApi'
+import { notifyAchievementsChanged } from '../lib/achievementUnlocks'
+import {
+  consumePendingReauth,
+  markPendingReauth,
+  reportSecretEvent,
+  DIALOG_ESCAPE_EVENT,
+} from '../lib/secretEvents'
 
 export type AuthOAuthProvider = Extract<Provider, 'google' | 'discord'>
 
@@ -126,19 +134,47 @@ export function AuthProvider({
       if (event === 'SIGNED_OUT') {
         lastMergedUserIdRef.current = null
         setAccount(null)
+        markPendingReauth()
         return
       }
       if (event === 'SIGNED_IN' && next?.user) {
-        telemetry.authComplete()
         void syncUser(next.user.id)
+        if (consumePendingReauth()) {
+          void reportSecretEvent('reauth')
+        }
       }
     })
+
+    function onPointsAwarded() {
+      void refreshAccount()
+    }
+    function onDialogEscape() {
+      void reportSecretEvent('escape_modal')
+    }
+    window.addEventListener(POINTS_AWARDED_EVENT, onPointsAwarded)
+    window.addEventListener(DIALOG_ESCAPE_EVENT, onDialogEscape)
 
     return () => {
       cancelled = true
       sub.subscription.unsubscribe()
+      window.removeEventListener(POINTS_AWARDED_EVENT, onPointsAwarded)
+      window.removeEventListener(DIALOG_ESCAPE_EVENT, onDialogEscape)
     }
   }, [])
+
+  // Ping visit milestones once per session user (server is idempotent per UTC day).
+  useEffect(() => {
+    if (!session?.user || !configured) return
+    let cancelled = false
+    void recordDailyVisit().then((result) => {
+      if (cancelled || !result.ok || !result.recorded) return
+      void refreshAccount()
+      notifyAchievementsChanged()
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [session?.user?.id, configured])
 
   async function signInWithMagicLink(email: string) {
     if (!supabase) return { error: 'Supabase is not configured' }
@@ -166,6 +202,7 @@ export function AuthProvider({
     if (!supabase) return
     lastMergedUserIdRef.current = null
     setAccount(null)
+    markPendingReauth()
     await supabase.auth.signOut()
   }
 
@@ -182,6 +219,7 @@ export function AuthProvider({
       return { error: result.error, nextChangeAt: result.nextChangeAt }
     }
     await refreshAccount()
+    notifyAchievementsChanged()
     return { error: null, nextChangeAt: result.nextChangeAt }
   }
 

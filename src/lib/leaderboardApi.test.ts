@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   parseMyLeaderboardStanding,
+  parseMyLevelRank,
   parsePublicSiteStatus,
 } from './leaderboardApi'
 
@@ -43,6 +44,35 @@ describe('parseMyLeaderboardStanding', () => {
     expect(standing?.eligible).toBe(true)
     expect(standing?.boards.current_streak).toEqual({ value: 3, rank: 4 })
     expect(standing && 'user_id' in standing).toBe(false)
+  })
+})
+
+describe('parseMyLevelRank', () => {
+  it('maps lifetime XP dense rank', () => {
+    expect(
+      parseMyLevelRank({
+        ok: true,
+        eligible: true,
+        lifetime_earned: 120,
+        rank: 7,
+      }),
+    ).toEqual({ eligible: true, lifetimeEarned: 120, rank: 7 })
+  })
+
+  it('treats missing or non-positive rank as unranked', () => {
+    expect(
+      parseMyLevelRank({
+        ok: true,
+        eligible: false,
+        lifetime_earned: 0,
+        rank: null,
+      }),
+    ).toEqual({ eligible: false, lifetimeEarned: 0, rank: null })
+    expect(parseMyLevelRank({ ok: true, eligible: true, lifetime_earned: 5 })).toEqual({
+      eligible: true,
+      lifetimeEarned: 5,
+      rank: null,
+    })
   })
 })
 

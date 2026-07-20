@@ -1,7 +1,9 @@
 import { useEffect, useId, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Dialog } from './Dialog'
 import {
   clearDevLeaderboard,
+  isDevLeaderboardOverrideEnabled,
   loadDevLeaderboardState,
   seedSampleDevRankings,
   setDevLeaderboardEnabled,
@@ -9,8 +11,9 @@ import {
   updateDevStanding,
   type DevStandingDraft,
 } from '../lib/leaderboardDevFake'
-
-/** Floating DEV-only tools for Top Rankings + streak/milestones previews. */
+import { DEV_ANIMATIONS_PATH, DEV_ACTION_STRIP_PREVIEW_PATH } from '../lib/routes'
+import { STREAK_PRESETS, streakTier } from '../lib/streakIntensity'
+/** Floating DEV-only tools for Top Rankings + streak badge previews. */
 export function DevToolsLauncher() {
   const [open, setOpen] = useState(false)
   if (!import.meta.env.DEV) return null
@@ -23,7 +26,7 @@ export function DevToolsLauncher() {
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        Dev
+        Dev tools
       </button>
       <DevToolsModal open={open} onClose={() => setOpen(false)} />
     </>
@@ -46,10 +49,31 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
 
   if (!import.meta.env.DEV || !open) return null
 
-  function applyStanding() {
-    updateDevStanding(standing)
+  function ensureOverride() {
+    if (!isDevLeaderboardOverrideEnabled()) {
+      setDevLeaderboardEnabled(true)
+      setEnabled(true)
+    }
+  }
+
+  function applyStanding(nextStanding: DevStandingDraft = standing) {
+    updateDevStanding(nextStanding)
+    ensureOverride()
     syncDevYouOnBoards()
-    setNotice('Standing saved. Boards refreshed if override is on.')
+    const tier = streakTier(nextStanding.anyCurrentStreak)
+    setNotice(
+      `Header streak set to ${nextStanding.anyCurrentStreak} (${tier}). Check the badge beside Preferences.`,
+    )
+  }
+
+  function applyPreset(days: number) {
+    const next = {
+      ...standing,
+      anyCurrentStreak: days,
+      anyMaxStreak: Math.max(standing.anyMaxStreak, days),
+    }
+    setStanding(next)
+    applyStanding(next)
   }
 
   return (
@@ -58,8 +82,9 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
       onClose={onClose}
       titleId={titleId}
       descriptionId="dev-tools-desc"
-      backdropClassName="auth-backdrop"
-      panelClassName="auth-modal settings-modal dev-tools-modal"
+      backdropClassName="dev-tools-backdrop"
+      panelClassName="dev-tools-panel"
+      closeOnBackdrop
     >
       <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
         <span aria-hidden="true">×</span>
@@ -69,13 +94,80 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
         Dev tools
       </h2>
       <p id="dev-tools-desc" className="auth-modal-intro">
-        Override Top Rankings, your streak standing, and milestones in this browser. Nothing
-        is written to Supabase.
+        Test header streak intensity and Leaderboard without writing to Supabase. The page stays
+        visible behind this panel.
       </p>
 
-      <section className="settings-section" aria-labelledby="dev-override-heading">
-        <h3 id="dev-override-heading" className="settings-section-title">
-          Override
+      <section className="settings-section settings-section-first" aria-labelledby="dev-anim-heading">
+        <h3 id="dev-anim-heading" className="settings-section-title">
+          Animation Creator
+        </h3>
+        <p className="settings-muted">
+          Spec idle → action → return loops and export Cursor job packages for sequential frame
+          generation.
+        </p>
+        <Link className="btn btn-primary" to={DEV_ANIMATIONS_PATH} onClick={onClose}>
+          Open Animation Creator
+        </Link>
+        <Link
+          className="btn btn-ghost"
+          to={DEV_ACTION_STRIP_PREVIEW_PATH}
+          onClick={onClose}
+          style={{ marginLeft: '0.5rem' }}
+        >
+          Action strip preview
+        </Link>
+      </section>
+
+      <section className="settings-section" aria-labelledby="dev-streak-heading">
+        <h3 id="dev-streak-heading" className="settings-section-title">
+          Player streak badge
+        </h3>
+        <p className="settings-muted">
+          Current preview: <strong>{standing.anyCurrentStreak}</strong> (
+          {streakTier(standing.anyCurrentStreak)})
+        </p>
+        <div className="dev-streak-presets" role="group" aria-label="Streak presets">
+          {STREAK_PRESETS.map((days) => (
+            <button
+              key={days}
+              type="button"
+              className={`btn btn-ghost dev-streak-preset${
+                standing.anyCurrentStreak === days ? ' is-active' : ''
+              }`}
+              onClick={() => applyPreset(days)}
+            >
+              {days}
+            </button>
+          ))}
+        </div>
+        <label className="auth-field-label" htmlFor="dev-any-current">
+          Custom current streak
+        </label>
+        <div className="dev-streak-custom">
+          <input
+            id="dev-any-current"
+            type="number"
+            min={0}
+            className="auth-modal-input"
+            value={standing.anyCurrentStreak}
+            onChange={(e) =>
+              setStanding((s) => ({ ...s, anyCurrentStreak: Number(e.target.value) }))
+            }
+          />
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => applyStanding()}
+          >
+            Apply
+          </button>
+        </div>
+      </section>
+
+      <section className="settings-section" aria-labelledby="dev-rankings-heading">
+        <h3 id="dev-rankings-heading" className="settings-section-title">
+          Rankings data
         </h3>
         <label className="settings-toggle">
           <input
@@ -85,10 +177,14 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
               const next = e.target.checked
               setEnabled(next)
               setDevLeaderboardEnabled(next)
-              setNotice(next ? 'Override on — homepage uses local data.' : 'Override off.')
+              setNotice(
+                next
+                  ? 'Override on. Leaderboard and streak badge use local test data.'
+                  : 'Override off. Live / empty server data.',
+              )
             }}
           />
-          <span>Use local rankings / streak data</span>
+          <span>Use local test rankings / streak</span>
         </label>
         <div className="settings-actions">
           <button
@@ -99,10 +195,10 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
               const state = loadDevLeaderboardState()
               setEnabled(true)
               setStanding(state.standing)
-              setNotice('Seeded sample rankings (and turned override on).')
+              setNotice('Populated test rankings.')
             }}
           >
-            Seed sample rankings
+            Populate test rankings
           </button>
           <button
             type="button"
@@ -112,17 +208,17 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
               const state = loadDevLeaderboardState()
               setEnabled(false)
               setStanding(state.standing)
-              setNotice('Cleared local ranking overrides.')
+              setNotice('Cleared test data.')
             }}
           >
-            Clear overrides
+            Clear test data
           </button>
         </div>
       </section>
 
       <section className="settings-section" aria-labelledby="dev-standing-heading">
         <h3 id="dev-standing-heading" className="settings-section-title">
-          Account streak
+          Full standing
         </h3>
         <label className="auth-field-label" htmlFor="dev-username">
           Display name on boards
@@ -134,12 +230,6 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
           onChange={(e) => setStanding((s) => ({ ...s, username: e.target.value }))}
         />
         <div className="dev-tools-grid">
-          <NumberField
-            id="dev-any-current"
-            label="Current streak"
-            value={standing.anyCurrentStreak}
-            onChange={(n) => setStanding((s) => ({ ...s, anyCurrentStreak: n }))}
-          />
           <NumberField
             id="dev-any-max"
             label="Longest streak"
@@ -171,8 +261,8 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
             onChange={(n) => setStanding((s) => ({ ...s, allCompleteDays: n }))}
           />
         </div>
-        <button type="button" className="btn btn-primary" onClick={applyStanding}>
-          Save streak / sync boards
+        <button type="button" className="btn btn-primary" onClick={() => applyStanding()}>
+          Save standing / sync boards
         </button>
       </section>
 
@@ -181,12 +271,6 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
           {notice}
         </p>
       )}
-
-      <div className="modal-actions auth-modal-actions">
-        <button type="button" className="btn btn-ghost" onClick={onClose}>
-          Close
-        </button>
-      </div>
     </Dialog>
   )
 }

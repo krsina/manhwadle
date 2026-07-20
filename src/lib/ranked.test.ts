@@ -6,6 +6,7 @@ import {
   rankedSubmissionKey,
   resetRankedSubmissionCache,
   shouldSubmitRankedCompletion,
+  submitBonusNameReward,
   submitVerifiedDailyCompletion,
 } from './ranked'
 
@@ -122,6 +123,9 @@ describe('ranked completion helpers', () => {
         outcome: 'won',
         guess_count: 2,
         surrendered: false,
+        point_delta: 100,
+        play_point_delta: 100,
+        points_balance: 110,
       },
       error: null,
     })
@@ -144,9 +148,12 @@ describe('ranked completion helpers', () => {
     if (first.status === 'ok') {
       expect(first.inserted).toBe(true)
       expect(first.outcome).toBe('won')
+      expect(first.pointDelta).toBe(100)
+      expect(first.playPointDelta).toBe(100)
+      expect(first.pointsBalance).toBe(110)
     }
     expect(rpc).toHaveBeenCalledTimes(1)
-    expect(rpc).toHaveBeenCalledWith('complete_daily_mode', {
+    expect(rpc).toHaveBeenCalledWith('complete_daily_mode_with_reward', {
       p_mode: 'heardle',
       p_taste: 'romance',
       p_guess_ids: [5, 9],
@@ -197,6 +204,9 @@ describe('ranked completion helpers', () => {
         outcome: 'lost',
         guess_count: 6,
         surrendered: false,
+        point_delta: 0,
+        play_point_delta: 0,
+        points_balance: 0,
       },
       error: null,
     })
@@ -211,5 +221,127 @@ describe('ranked completion helpers', () => {
       dateKey: '2026-07-18',
     })
     expect(retry.status).toBe('ok')
+  })
+
+  it('falls back to the original completion RPC during rolling deploys', async () => {
+    rpc
+      .mockResolvedValueOnce({
+        data: null,
+        error: {
+          message:
+            'Could not find the function public.complete_daily_mode_with_reward in the schema cache',
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          ok: true,
+          inserted: true,
+          date_key: '2026-07-18',
+          mode: 'cover',
+          taste: 'action',
+          outcome: 'won',
+          guess_count: 1,
+          surrendered: false,
+        },
+        error: null,
+      })
+
+    const result = await submitVerifiedDailyCompletion({
+      userId: 'user-rolling',
+      isPractice: false,
+      isArchive: false,
+      mode: 'cover',
+      taste: 'action',
+      guessIds: [42],
+      surrendered: false,
+      dateKey: '2026-07-18',
+    })
+
+    expect(result.status).toBe('ok')
+    if (result.status === 'ok') expect(result.pointDelta).toBe(0)
+    expect(rpc.mock.calls.map(([name]) => name)).toEqual([
+      'complete_daily_mode_with_reward',
+      'complete_daily_mode',
+    ])
+  })
+
+  it('submits bonus-name XP only for a correct first-try', async () => {
+    expect(
+      await submitBonusNameReward({
+        userId: 'user-bonus',
+        isPractice: false,
+        isArchive: false,
+        mode: 'character',
+        taste: 'both',
+        correct: false,
+        firstTry: true,
+        dateKey: '2026-07-18',
+      }),
+    ).toEqual({ status: 'skipped', reason: 'incorrect' })
+
+    expect(
+      await submitBonusNameReward({
+        userId: 'user-bonus',
+        isPractice: false,
+        isArchive: false,
+        mode: 'character',
+        taste: 'both',
+        correct: true,
+        firstTry: false,
+        dateKey: '2026-07-18',
+      }),
+    ).toEqual({ status: 'skipped', reason: 'not_first_try' })
+
+    rpc.mockResolvedValue({
+      data: {
+        ok: true,
+        applied: true,
+        date_key: '2026-07-18',
+        mode: 'character',
+        taste: 'both',
+        point_delta: 3,
+        play_point_delta: 3,
+        points_balance: 25,
+      },
+      error: null,
+    })
+
+    const awarded = await submitBonusNameReward({
+      userId: 'user-bonus',
+      isPractice: false,
+      isArchive: false,
+      mode: 'character',
+      taste: 'both',
+      correct: true,
+      firstTry: true,
+      dateKey: '2026-07-18',
+    })
+    expect(awarded).toEqual({
+      status: 'ok',
+      applied: true,
+      dateKey: '2026-07-18',
+      mode: 'character',
+      taste: 'both',
+      pointDelta: 3,
+      playPointDelta: 3,
+      pointsBalance: 25,
+    })
+    expect(rpc).toHaveBeenCalledWith('complete_bonus_name_with_reward', {
+      p_mode: 'character',
+      p_taste: 'both',
+      p_correct: true,
+    })
+
+    const dup = await submitBonusNameReward({
+      userId: 'user-bonus',
+      isPractice: false,
+      isArchive: false,
+      mode: 'character',
+      taste: 'both',
+      correct: true,
+      firstTry: true,
+      dateKey: '2026-07-18',
+    })
+    expect(dup).toEqual({ status: 'skipped', reason: 'duplicate' })
   })
 })

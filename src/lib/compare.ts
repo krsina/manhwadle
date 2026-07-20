@@ -133,6 +133,18 @@ export function compareGuess(guess: Manhwa, answer: Manhwa): GuessFeedback {
   }
 }
 
+/** True when every feedback tile is incorrect (all-white share line). */
+export function isCompleteMiss(feedback: GuessFeedback): boolean {
+  if (feedback.isCorrect) return false
+  return (
+    feedback.genres.tone === 'incorrect' &&
+    feedback.year.tone === 'incorrect' &&
+    feedback.status.tone === 'incorrect' &&
+    feedback.publisher.tone === 'incorrect' &&
+    feedback.tags.tone === 'incorrect'
+  )
+}
+
 const TONE_EMOJI: Record<FeedbackTone, string> = {
   correct: '🟩',
   close: '🟨',

@@ -4,27 +4,37 @@ import { APP_NAME } from '../brand'
 import { AuthButton } from './AuthButton'
 import { ThemeToggle } from './ThemeToggle'
 import { PreferencesModal } from './PreferencesModal'
+import { StreakBadge } from './StreakBadge'
 import { UsernameOnboarding } from './UsernameOnboarding'
 import { StatusBanner } from './StatusBanner'
 import { DevToolsLauncher } from './DevToolsModal'
 import { catalogSizeLabel } from '../lib/catalogConfig'
 import {
+  ABOUT_PATH,
   ATTRIBUTION_PATH,
+  HOW_IT_WORKS_PATH,
   legacyPlayRedirectTarget,
   MODERATION_POLICY_PATH,
   PRIVACY_PATH,
-  SETTINGS_PATH,
   TERMS_PATH,
 } from '../lib/routes'
 import {
   fetchPublicSiteStatus,
   type PublicSiteStatus,
 } from '../lib/leaderboardApi'
-import { noteModeEntrySource } from '../lib/telemetry'
 import type { ReaderTaste } from '../lib/readerTaste'
-import { TelemetryBootstrap } from './TelemetryBootstrap'
 import { AppAnnouncer } from './AppAnnouncer'
 import { NetworkStatus } from './NetworkStatus'
+import { PointsBadge } from './PointsBadge'
+import { useAuth } from './AuthProvider'
+import {
+  createBackgroundCultivationTracker,
+  createKonamiListener,
+  createTabTwinTracker,
+  reportSecretEvent,
+} from '../lib/secretEvents'
+import { AchievementUnlockHost } from './AchievementUnlockHost'
+import { AdChrome } from './AdChrome'
 
 interface AppLayoutProps {
   taste: ReaderTaste | null
@@ -34,6 +44,7 @@ interface AppLayoutProps {
 export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [siteStatus, setSiteStatus] = useState<PublicSiteStatus | null>(null)
   const [prefsOpen, setPrefsOpen] = useState(false)
 
@@ -46,10 +57,27 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
     if (!target) return
     const current = `${location.pathname}${location.search}`
     if (target !== current) {
-      noteModeEntrySource('legacy')
       navigate(target, { replace: true })
     }
   }, [location.pathname, location.search, location.hash, navigate])
+
+  useEffect(() => {
+    if (!user) return
+    const stopBackground = createBackgroundCultivationTracker(() => {
+      void reportSecretEvent('tab_open_24h')
+    })
+    const stopTwin = createTabTwinTracker(() => {
+      void reportSecretEvent('tab_twin')
+    })
+    const stopKonami = createKonamiListener(() => {
+      void reportSecretEvent('konami')
+    })
+    return () => {
+      stopBackground()
+      stopTwin()
+      stopKonami()
+    }
+  }, [user])
 
   useEffect(() => {
     let cancelled = false
@@ -77,6 +105,8 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
             </div>
           </Link>
           <div className="site-actions">
+            <StreakBadge />
+            <PointsBadge />
             <button
               type="button"
               className="site-icon-btn site-settings-link"
@@ -102,7 +132,10 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
       <NetworkStatus />
       <AppAnnouncer />
 
-      <Outlet />
+      <div className="page-with-ads">
+        <Outlet />
+        <AdChrome />
+      </div>
 
       <footer className="footer">
         <p>
@@ -113,15 +146,16 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
           . {catalogSizeLabel()} Korean manhwa by popularity.
         </p>
         <nav className="footer-legal" aria-label="Legal">
+          <Link to={ABOUT_PATH}>About</Link>
+          <Link to={HOW_IT_WORKS_PATH}>How it works</Link>
           <Link to={PRIVACY_PATH}>Privacy</Link>
           <Link to={TERMS_PATH}>Terms</Link>
           <Link to={ATTRIBUTION_PATH}>Attribution</Link>
           <Link to={MODERATION_POLICY_PATH}>Moderation</Link>
-          <Link to={SETTINGS_PATH}>Account</Link>
         </nav>
       </footer>
       <UsernameOnboarding />
-      <TelemetryBootstrap />
+      <AchievementUnlockHost />
       <DevToolsLauncher />
       <PreferencesModal
         open={prefsOpen}
