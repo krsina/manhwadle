@@ -29,31 +29,32 @@ describe('shouldAwardAchievement', () => {
     )
   })
 
-  it('awards early streak and full-clear day thresholds', () => {
-    const prologue = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'any_streak_1')!
+  it('starts any-mode streak ladder at day 2 and keeps Clean Sweep', () => {
+    expect(ACHIEVEMENT_DEFINITIONS.some((a) => a.id === 'any_streak_1')).toBe(false)
+
     const actually = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'any_streak_2')!
-    expect(shouldAwardAchievement(prologue, { any_max_streak: 1 })).toBe(true)
     expect(shouldAwardAchievement(actually, { any_max_streak: 1 })).toBe(false)
     expect(shouldAwardAchievement(actually, { any_max_streak: 2 })).toBe(true)
     expect(actually.title).toBe('You came back!')
-    expect(actually.description).not.toContain('came back')
 
     const clean = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'all_mode_streak_1')!
     const double = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'all_mode_streak_2')!
     expect(shouldAwardAchievement(clean, { all_max_streak: 1 })).toBe(true)
     expect(shouldAwardAchievement(double, { all_max_streak: 2 })).toBe(true)
+    expect(clean.title).toBe('Clean Sweep')
   })
 
-  it('awards visit / comeback milestones from visit metrics', () => {
-    const footstep = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'visit_days_1')!
-    expect(shouldAwardAchievement(footstep, { total_visit_days: 0 })).toBe(false)
-    expect(shouldAwardAchievement(footstep, { total_visit_days: 1 })).toBe(true)
+  it('treats hiatus returns as hush-hush metric awards', () => {
+    expect(ACHIEVEMENT_DEFINITIONS.some((a) => a.id.startsWith('visit_days_'))).toBe(false)
+    expect(ACHIEVEMENT_DEFINITIONS.some((a) => a.id.startsWith('visit_streak_'))).toBe(false)
 
     const regression = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'visit_comeback_1')!
+    expect(regression.category).toBe('secret')
     expect(shouldAwardAchievement(regression, { visit_comebacks: 0 })).toBe(false)
     expect(shouldAwardAchievement(regression, { visit_comebacks: 1 })).toBe(true)
 
     const timeskip = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'visit_timeskip')!
+    expect(timeskip.category).toBe('secret')
     expect(shouldAwardAchievement(timeskip, { visit_long_comebacks: 0 })).toBe(false)
     expect(shouldAwardAchievement(timeskip, { visit_long_comebacks: 1 })).toBe(true)
   })
@@ -94,6 +95,23 @@ describe('parseAchievementAwards', () => {
     expect(awards[0]?.pointReward).toBe(25)
   })
 
+  it('prefers client catalog point rewards over stale server zeros', () => {
+    const awards = parseAchievementAwards({
+      achievements: [
+        {
+          id: 'secret_lurker',
+          version: 1,
+          title: 'Leaderboard Lurker',
+          description: '…',
+          category: 'secret',
+          awarded_at: '2026-07-20T00:00:00Z',
+          point_reward: 0,
+        },
+      ],
+    })
+    expect(awards[0]?.pointReward).toBe(50)
+  })
+
   it('keeps every catalog reward in the balanced tier set', () => {
     expect(
       ACHIEVEMENT_DEFINITIONS.every((definition) =>
@@ -102,11 +120,27 @@ describe('parseAchievementAwards', () => {
     ).toBe(true)
   })
 
-  it('includes Cascade for multi-unlock hush-hush', () => {
+  it('includes Cascade and Early Bird hush-hush seals', () => {
     const cascade = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'secret_cascade')!
     expect(cascade.title).toBe('Cascade')
     expect(cascade.category).toBe('secret')
     expect(cascade.pointReward).toBe(100)
     expect(cascade.description.includes('—')).toBe(false)
+
+    const earlyBird = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'secret_early_bird')!
+    expect(earlyBird.title).toBe('Early Bird')
+    expect(earlyBird.category).toBe('secret')
+    expect(earlyBird.pointReward).toBe(100)
+    expect(earlyBird.description.toLowerCase()).not.toContain('month')
+    expect(earlyBird.description.includes('—')).toBe(false)
+  })
+
+  it('bans em dashes across catalog copy', () => {
+    expect(
+      ACHIEVEMENT_DEFINITIONS.every(
+        (definition) =>
+          !definition.title.includes('—') && !definition.description.includes('—'),
+      ),
+    ).toBe(true)
   })
 })

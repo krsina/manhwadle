@@ -24,7 +24,6 @@ import {
 } from '../../lib/crops'
 import { isArchiveDate } from '../../lib/archive'
 import { displayTitle } from '../../lib/daily'
-import { hasSeenHowTo } from '../../lib/howto'
 import { useOwnerDevAccess } from '../../lib/useOwnerDevAccess'
 import { buildKnownInfo } from '../../lib/knowledge'
 import { randomPlayableIndex } from '../../lib/random'
@@ -92,7 +91,7 @@ function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): Gue
 
 /** Character mode: progressive zoom-out on a curated character still. */
 export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
-  const { id, name, seedPrefix, storagePrefix, maxGuesses, tagline } =
+  const { id: _id, name, seedPrefix, storagePrefix, maxGuesses, tagline } =
     characterModeMeta
   const { user } = useAuth()
   const { ownerDev } = useOwnerDevAccess()
@@ -227,9 +226,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
 
   const [showResult, setShowResult] = useState(
     () =>
-      hasCrops &&
-      (dayState.status === 'won' || dayState.status === 'lost') &&
-      hasSeenHowTo(id),
+      hasCrops && (dayState.status === 'won' || dayState.status === 'lost'),
   )
   const [showSurrender, setShowSurrender] = useState(false)
 
@@ -241,9 +238,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
       if (saved.hardMode != null) setHardMode(saved.hardMode)
       else if (saved.guessIds.length > 0) setHardMode(false)
       else setHardMode(loadHardModePreference())
-      setShowResult(
-        (saved.status === 'won' || saved.status === 'lost') && hasSeenHowTo(id),
-      )
+      setShowResult(saved.status === 'won' || saved.status === 'lost')
       return
     }
     const preferredHard = loadHardModePreference()
@@ -267,7 +262,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
       setShowResult(false)
       setShowSurrender(false)
     }
-  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasCrops, answerSettled, id])
+  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasCrops, answerSettled])
 
   const hardModeLocked = dayState.guessIds.length > 0
 

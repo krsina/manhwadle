@@ -114,7 +114,11 @@ export function AuthProvider({
         try {
           const taste = await mergeLocalAndRemoteOnSignIn(userId)
           if (!cancelled && taste) onSyncedTasteRef.current?.(taste)
-          if (!cancelled) await refreshAccount()
+          if (!cancelled) {
+            await refreshAccount()
+            // Early Bird (and other hydrate-side hush) may grant inside get_my_account.
+            notifyAchievementsChanged()
+          }
         } catch (err) {
           lastMergedUserIdRef.current = null
           console.warn('[auth] merge on sign-in failed:', err)

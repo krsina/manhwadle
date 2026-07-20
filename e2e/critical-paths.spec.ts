@@ -149,15 +149,15 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()
   })
 
-  test('how-to dialog is keyboard dismissible', async ({ page }) => {
+  test('how-to dialog opens from the help button and is keyboard dismissible', async ({
+    page,
+  }) => {
     await page.addInitScript(() => {
       localStorage.setItem('manhwadle:readerTaste', 'both')
-      for (const key of Object.keys(localStorage)) {
-        if (key.startsWith('manhwadle:howto:seen:')) localStorage.removeItem(key)
-      }
     })
     await page.goto('/play/summary')
-    // First-visit how-to auto-opens once taste is set.
+    await expect(page.locator('#howto-title')).toHaveCount(0)
+    await page.getByRole('button', { name: /how to play/i }).click()
     await expect(page.locator('#howto-title')).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(page.locator('#howto-title')).toHaveCount(0)
