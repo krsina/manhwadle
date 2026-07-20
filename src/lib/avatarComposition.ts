@@ -20,6 +20,11 @@ export interface AvatarCharacterMeta {
   assetKey: string
   /** Free starter / always owned for guests and new accounts. */
   starter: boolean
+  /**
+   * Free limited-time claim character — not auto-owned; must be claimed in the shop.
+   * Shown with a Limited-time badge and sorted to the top (price 0).
+   */
+  limitedTime?: boolean
   price: number
   rarity: AvatarRarity
   /**
@@ -40,6 +45,46 @@ export const STYLE_A_BASE = '/avatar-characters/style-a'
 export const DEFAULT_AVATAR_ID = 'avatar_default_female'
 
 export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
+  {
+    id: 'avatar_quest_recruit',
+    name: 'Quest Recruit',
+    description: 'Limited-time free claim. Wooden practice sword and day-one adventurer energy.',
+    assetPath: 'quest-recruit.png',
+    assetKey: 'avatar_quest_recruit',
+    starter: false,
+    limitedTime: true,
+    price: 0,
+    rarity: 'common',
+    inspirationSeries: 'Newbie adventurer',
+    inspirationCharacter: 'Village quest recruit',
+    traits: {
+      hair: 'Messy warm-brown hair with a cute cowlick',
+      eyes: 'Bright amber-brown eyes with an eager slight smile',
+      outfit: 'Cream short-sleeve tunic under a soft sky-blue vest, brown shorts, pouch, tan boots',
+      props: 'MUST hold ONE oversized wooden practice sword',
+      aura: 'A few tiny soft warm-yellow sparkles (compact)',
+    },
+  },
+  {
+    id: 'avatar_spark_apprentice',
+    name: 'Spark Apprentice',
+    description: 'Limited-time free claim. Mint twin tails and a wooden beginner staff.',
+    assetPath: 'spark-apprentice.png',
+    assetKey: 'avatar_spark_apprentice',
+    starter: false,
+    limitedTime: true,
+    price: 0,
+    rarity: 'common',
+    inspirationSeries: 'Newbie mage apprentice',
+    inspirationCharacter: 'Village spark apprentice',
+    traits: {
+      hair: 'Soft pastel mint-teal twin tails with bangs and a cream ribbon',
+      eyes: 'Bright soft green eyes with a curious hopeful smile',
+      outfit: 'Sky-blue beginner mage tunic with cream trim, belt, knee socks, brown shoes',
+      props: 'MUST hold ONE small wooden beginner staff with a pale-yellow wooden orb tip',
+      aura: 'A few tiny soft mint and pale-yellow sparkles (compact)',
+    },
+  },
   {
     id: 'avatar_default_female',
     name: 'Default (Female)',
@@ -85,7 +130,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'shadow-hunter.png',
     assetKey: 'avatar_shadow_hunter',
     starter: false,
-    price: 150,
+    price: 4000,
     rarity: 'rare',
     inspirationSeries: 'Shadow assassin / hunter',
     inspirationCharacter: 'Dual-dagger shadow hunter',
@@ -104,7 +149,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'skybreaker-monk.png',
     assetKey: 'avatar_skybreaker_monk',
     starter: false,
-    price: 150,
+    price: 4000,
     rarity: 'rare',
     inspirationSeries: 'Martial monk / qi brawler',
     inspirationCharacter: 'Tiger-wrapped skybreaker monk',
@@ -123,7 +168,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'plum-blossom-blade.png',
     assetKey: 'avatar_plum_blossom_blade',
     starter: false,
-    price: 150,
+    price: 4000,
     rarity: 'rare',
     inspirationSeries: 'Mount Hua / murim',
     inspirationCharacter: 'Murim swordsman',
@@ -142,7 +187,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'tower-ranker.png',
     assetKey: 'avatar_tower_ranker',
     starter: false,
-    price: 150,
+    price: 4000,
     rarity: 'rare',
     inspirationSeries: 'Tower climber',
     inspirationCharacter: 'Ranker with pocket device',
@@ -161,7 +206,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'fourth-wall-reader.png',
     assetKey: 'avatar_fourth_wall_reader',
     starter: false,
-    price: 150,
+    price: 4000,
     rarity: 'rare',
     inspirationSeries: 'Omniscient reader',
     inspirationCharacter: 'Reader with hardcover book',
@@ -180,7 +225,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'absolute-regressor.png',
     assetKey: 'avatar_absolute_regressor',
     starter: false,
-    price: 150,
+    price: 4000,
     rarity: 'rare',
     inspirationSeries: 'Regression',
     inspirationCharacter: 'Cold regression swordsman',
@@ -199,7 +244,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'ice-sovereign.png',
     assetKey: 'avatar_ice_sovereign',
     starter: false,
-    price: 250,
+    price: 7000,
     rarity: 'epic',
     inspirationSeries: 'Ice empress',
     inspirationCharacter: 'Ice sovereign heroine',
@@ -218,7 +263,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'flame-returnee.png',
     assetKey: 'avatar_flame_returnee',
     starter: false,
-    price: 150,
+    price: 4000,
     rarity: 'rare',
     inspirationSeries: 'Flame returnee',
     inspirationCharacter: 'Fire gauntlet MC',
@@ -237,7 +282,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'blood-contract.png',
     assetKey: 'avatar_blood_contract',
     starter: false,
-    price: 150,
+    price: 4000,
     rarity: 'rare',
     inspirationSeries: 'Vampire / blood mage',
     inspirationCharacter: 'Blood-contract caster',
@@ -256,7 +301,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'heavenly-demon.png',
     assetKey: 'avatar_heavenly_demon',
     starter: false,
-    price: 250,
+    price: 7000,
     rarity: 'epic',
     inspirationSeries: 'Demonic murim path',
     inspirationCharacter: 'Heavenly demon sabreur',
@@ -275,7 +320,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'academy-prodigy.png',
     assetKey: 'avatar_academy_prodigy',
     starter: false,
-    price: 150,
+    price: 4000,
     rarity: 'rare',
     inspirationSeries: 'Magic academy',
     inspirationCharacter: 'Academy prodigy mage',
@@ -294,7 +339,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'undead-marshal.png',
     assetKey: 'avatar_undead_marshal',
     starter: false,
-    price: 250,
+    price: 7000,
     rarity: 'epic',
     inspirationSeries: 'Necromancer lord',
     inspirationCharacter: 'Undead marshal',
@@ -313,7 +358,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'beast-pact-hunter.png',
     assetKey: 'avatar_beast_pact_hunter',
     starter: false,
-    price: 150,
+    price: 4000,
     rarity: 'rare',
     inspirationSeries: 'Contract hunter',
     inspirationCharacter: 'Beast-pact archer',
@@ -332,7 +377,7 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     assetPath: 'villainess-rose.png',
     assetKey: 'avatar_villainess_rose',
     starter: false,
-    price: 150,
+    price: 4000,
     rarity: 'rare',
     inspirationSeries: 'Villainess duchess',
     inspirationCharacter: 'Rose-fan villainess',
@@ -367,11 +412,30 @@ export function starterAvatarIds(): string[] {
   return AVATAR_CHARACTER_META.filter((character) => character.starter).map((character) => character.id)
 }
 
+/** Free limited-time claim avatars (price 0, not auto-owned). */
+export function limitedTimeAvatarIds(): string[] {
+  return AVATAR_CHARACTER_META.filter((character) => character.limitedTime).map(
+    (character) => character.id,
+  )
+}
+
+/** Shop catalog sort: lowest price first, limited-time before other free items, then id. */
+export function compareShopItemsByPrice(
+  a: { id: string; price: number; limitedTime?: boolean },
+  b: { id: string; price: number; limitedTime?: boolean },
+): number {
+  if (a.price !== b.price) return a.price - b.price
+  const aLimited = a.limitedTime === true ? 0 : 1
+  const bLimited = b.limitedTime === true ? 0 : 1
+  if (aLimited !== bLimited) return aLimited - bLimited
+  return a.id.localeCompare(b.id)
+}
+
 /** Full public URL for a catalog character, defaulting safely for unknown ids. */
 export function avatarAssetUrl(id: string | null | undefined): string {
   const meta = getAvatarCharacterMeta(id) ?? getAvatarCharacterMeta(DEFAULT_AVATAR_ID)!
   // Cache-bust when sprite plates are reprocessed (magenta fringe cleanup, etc.).
-  return `${STYLE_A_BASE}/${meta.assetPath}?v=3`
+  return `${STYLE_A_BASE}/${meta.assetPath}?v=4`
 }
 
 /** Identity bullets for sequential animation prompts (internal). */

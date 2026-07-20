@@ -6,7 +6,9 @@ import {
   rankedSubmissionKey,
   resetRankedSubmissionCache,
   shouldSubmitRankedCompletion,
+  shouldUseServerRankedAttempt,
   submitBonusNameReward,
+  submitRankedDailyGuess,
   submitVerifiedDailyCompletion,
 } from './ranked'
 
@@ -110,25 +112,82 @@ describe('ranked completion helpers', () => {
         configured: true,
       }),
     ).toBeNull()
+    expect(
+      shouldUseServerRankedAttempt({
+        userId: 'u1',
+        isPractice: false,
+        isArchive: false,
+        configured: true,
+      }),
+    ).toBe(true)
   })
 
-  it('submits once per user/date/mode and is idempotent client-side', async () => {
-    rpc.mockResolvedValue({
-      data: {
-        ok: true,
-        inserted: true,
-        date_key: '2026-07-18',
-        mode: 'heardle',
-        taste: 'romance',
-        outcome: 'won',
-        guess_count: 2,
-        surrendered: false,
-        point_delta: 100,
-        play_point_delta: 100,
-        points_balance: 110,
-      },
-      error: null,
-    })
+  it('finalizes via server attempt and never calls forgeable completion RPCs', async () => {
+    rpc
+      .mockResolvedValueOnce({
+        data: {
+          ok: true,
+          created: true,
+          already_completed: false,
+          attempt: {
+            date_key: '2026-07-18',
+            mode: 'heardle',
+            taste: 'romance',
+            hard_mode: false,
+            hints_used: 1,
+            guess_ids: [5, 9],
+            guess_count: 2,
+            max_guesses: 6,
+            status: 'active',
+            character_id: null,
+            meta: null,
+            answer_id: null,
+            finalized_at: null,
+          },
+        },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          ok: true,
+          finalized: true,
+          already_terminal: false,
+          attempt: {
+            date_key: '2026-07-18',
+            mode: 'heardle',
+            taste: 'romance',
+            hard_mode: false,
+            hints_used: 1,
+            guess_ids: [5, 9],
+            guess_count: 2,
+            max_guesses: 6,
+            status: 'won',
+            character_id: null,
+            meta: null,
+            answer_id: 9,
+            finalized_at: '2026-07-18T01:00:00Z',
+          },
+          completion: {
+            ok: true,
+            inserted: true,
+            date_key: '2026-07-18',
+            mode: 'heardle',
+            taste: 'romance',
+            outcome: 'won',
+            guess_count: 2,
+            hints_used: 1,
+            hard_mode: false,
+            surrendered: false,
+            answer_id: 9,
+            character_id: null,
+            completed_at: '2026-07-18T01:00:00Z',
+            point_delta: 100,
+            play_point_delta: 100,
+            points_balance: 110,
+          },
+        },
+        error: null,
+      })
 
     const input = {
       userId: 'user-1',
@@ -149,102 +208,33 @@ describe('ranked completion helpers', () => {
       expect(first.inserted).toBe(true)
       expect(first.outcome).toBe('won')
       expect(first.pointDelta).toBe(100)
-      expect(first.playPointDelta).toBe(100)
-      expect(first.pointsBalance).toBe(110)
+      expect(first.answerId).toBe(9)
     }
-    expect(rpc).toHaveBeenCalledTimes(1)
-    expect(rpc).toHaveBeenCalledWith('complete_daily_mode_with_reward', {
-      p_mode: 'heardle',
-      p_taste: 'romance',
-      p_guess_ids: [5, 9],
-      p_hints_used: 1,
-      p_hard_mode: false,
-      p_surrendered: false,
-    })
+    expect(rpc.mock.calls.map(([name]) => name)).toEqual([
+      'start_daily_attempt',
+      'finalize_daily_attempt',
+    ])
+    expect(
+      rpc.mock.calls.some(([name]) =>
+        String(name).startsWith('complete_daily_mode'),
+      ),
+    ).toBe(false)
 
     const second = await submitVerifiedDailyCompletion(input)
     expect(second).toEqual({ status: 'skipped', reason: 'duplicate' })
-    expect(rpc).toHaveBeenCalledTimes(1)
     expect(rankedSubmissionKey('user-1', 'heardle', '2026-07-18')).toBe(
       'user-1:2026-07-18:heardle',
     )
   })
 
-  it('returns a structured warning when the RPC fails', async () => {
+  it('skips ranked when attempt RPCs are missing (no forgeable fallback)', async () => {
     rpc.mockResolvedValue({
       data: null,
-      error: { message: 'Daily puzzle unavailable for mode/taste' },
-    })
-
-    const result = await submitVerifiedDailyCompletion({
-      userId: 'user-2',
-      isPractice: false,
-      isArchive: false,
-      mode: 'summary',
-      taste: 'both',
-      guessIds: [1, 2, 3, 4, 5, 6],
-      surrendered: false,
-      dateKey: '2026-07-18',
-    })
-
-    expect(result).toEqual({
-      status: 'error',
-      warning: 'ranked_rpc_failed',
-      message: 'Daily puzzle unavailable for mode/taste',
-    })
-
-    // Failed attempt should not stick in the dedupe cache.
-    rpc.mockResolvedValue({
-      data: {
-        ok: true,
-        inserted: true,
-        date_key: '2026-07-18',
-        mode: 'summary',
-        taste: 'both',
-        outcome: 'lost',
-        guess_count: 6,
-        surrendered: false,
-        point_delta: 0,
-        play_point_delta: 0,
-        points_balance: 0,
+      error: {
+        message:
+          'Could not find the function public.start_daily_attempt in the schema cache',
       },
-      error: null,
     })
-    const retry = await submitVerifiedDailyCompletion({
-      userId: 'user-2',
-      isPractice: false,
-      isArchive: false,
-      mode: 'summary',
-      taste: 'both',
-      guessIds: [1, 2, 3, 4, 5, 6],
-      surrendered: false,
-      dateKey: '2026-07-18',
-    })
-    expect(retry.status).toBe('ok')
-  })
-
-  it('falls back to the original completion RPC during rolling deploys', async () => {
-    rpc
-      .mockResolvedValueOnce({
-        data: null,
-        error: {
-          message:
-            'Could not find the function public.complete_daily_mode_with_reward in the schema cache',
-        },
-      })
-      .mockResolvedValueOnce({
-        data: {
-          ok: true,
-          inserted: true,
-          date_key: '2026-07-18',
-          mode: 'cover',
-          taste: 'action',
-          outcome: 'won',
-          guess_count: 1,
-          surrendered: false,
-        },
-        error: null,
-      })
 
     const result = await submitVerifiedDailyCompletion({
       userId: 'user-rolling',
@@ -257,15 +247,109 @@ describe('ranked completion helpers', () => {
       dateKey: '2026-07-18',
     })
 
+    expect(result).toEqual({ status: 'skipped', reason: 'migration_missing' })
+    expect(rpc.mock.calls.map(([name]) => name)).toEqual(['start_daily_attempt'])
+    expect(
+      rpc.mock.calls.some(([name]) =>
+        String(name).includes('complete_daily_mode'),
+      ),
+    ).toBe(false)
+  })
+
+  it('submits ranked guesses through submit_daily_guess', async () => {
+    rpc
+      .mockResolvedValueOnce({
+        data: {
+          ok: true,
+          created: true,
+          already_completed: false,
+          attempt: {
+            date_key: '2026-07-18',
+            mode: 'summary',
+            taste: 'both',
+            hard_mode: false,
+            hints_used: 0,
+            guess_ids: [],
+            guess_count: 0,
+            max_guesses: 6,
+            status: 'active',
+            character_id: null,
+            meta: null,
+            answer_id: null,
+            finalized_at: null,
+          },
+        },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          ok: true,
+          accepted: true,
+          correct: true,
+          guess_id: 7,
+          guess_count: 1,
+          finalized: true,
+          attempt: {
+            date_key: '2026-07-18',
+            mode: 'summary',
+            taste: 'both',
+            hard_mode: false,
+            hints_used: 0,
+            guess_ids: [7],
+            guess_count: 1,
+            max_guesses: 6,
+            status: 'won',
+            character_id: null,
+            meta: null,
+            answer_id: 7,
+            finalized_at: '2026-07-18T02:00:00Z',
+          },
+          completion: {
+            ok: true,
+            inserted: true,
+            date_key: '2026-07-18',
+            mode: 'summary',
+            taste: 'both',
+            outcome: 'won',
+            guess_count: 1,
+            hints_used: 0,
+            hard_mode: false,
+            surrendered: false,
+            answer_id: 7,
+            character_id: null,
+            completed_at: '2026-07-18T02:00:00Z',
+            point_delta: 50,
+            play_point_delta: 50,
+            points_balance: 50,
+          },
+        },
+        error: null,
+      })
+
+    const result = await submitRankedDailyGuess({
+      userId: 'user-guess',
+      isPractice: false,
+      isArchive: false,
+      mode: 'summary',
+      taste: 'both',
+      guessId: 7,
+      dateKey: '2026-07-18',
+    })
+
     expect(result.status).toBe('ok')
-    if (result.status === 'ok') expect(result.pointDelta).toBe(0)
+    if (result.status === 'ok') {
+      expect(result.correct).toBe(true)
+      expect(result.finalized).toBe(true)
+      expect(result.answerId).toBe(7)
+      expect(result.completion?.pointDelta).toBe(50)
+    }
     expect(rpc.mock.calls.map(([name]) => name)).toEqual([
-      'complete_daily_mode_with_reward',
-      'complete_daily_mode',
+      'start_daily_attempt',
+      'submit_daily_guess',
     ])
   })
 
-  it('submits bonus-name XP only for a correct first-try', async () => {
+  it('submits bonus-name XP with guessed character payload', async () => {
     expect(
       await submitBonusNameReward({
         userId: 'user-bonus',
@@ -275,6 +359,7 @@ describe('ranked completion helpers', () => {
         taste: 'both',
         correct: false,
         firstTry: true,
+        guessedCharacterId: 10,
         dateKey: '2026-07-18',
       }),
     ).toEqual({ status: 'skipped', reason: 'incorrect' })
@@ -288,6 +373,7 @@ describe('ranked completion helpers', () => {
         taste: 'both',
         correct: true,
         firstTry: false,
+        guessedCharacterId: 10,
         dateKey: '2026-07-18',
       }),
     ).toEqual({ status: 'skipped', reason: 'not_first_try' })
@@ -314,6 +400,8 @@ describe('ranked completion helpers', () => {
       taste: 'both',
       correct: true,
       firstTry: true,
+      guessedCharacterId: 10,
+      guessLabel: 'Hero Name',
       dateKey: '2026-07-18',
     })
     expect(awarded).toEqual({
@@ -325,12 +413,15 @@ describe('ranked completion helpers', () => {
       pointDelta: 3,
       playPointDelta: 3,
       pointsBalance: 25,
+      reason: undefined,
     })
     expect(rpc).toHaveBeenCalledWith('complete_bonus_name_with_reward', {
       p_mode: 'character',
       p_taste: 'both',
-      p_correct: true,
+      p_guessed_character_id: 10,
+      p_guess_label: 'Hero Name',
     })
+    expect(rpc.mock.calls[0]?.[1]).not.toHaveProperty('p_correct')
 
     const dup = await submitBonusNameReward({
       userId: 'user-bonus',
@@ -340,6 +431,8 @@ describe('ranked completion helpers', () => {
       taste: 'both',
       correct: true,
       firstTry: true,
+      guessedCharacterId: 10,
+      guessLabel: 'Hero Name',
       dateKey: '2026-07-18',
     })
     expect(dup).toEqual({ status: 'skipped', reason: 'duplicate' })

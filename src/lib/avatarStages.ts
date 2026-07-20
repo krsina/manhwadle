@@ -39,7 +39,7 @@ export const AVATAR_STAGE_META: readonly AvatarStageMeta[] = [
     assetPath: 'sky-meadow.png',
     assetKey: 'stage_sky_meadow',
     starter: false,
-    price: 100,
+    price: 2500,
     rarity: 'rare',
   },
   {
@@ -50,7 +50,7 @@ export const AVATAR_STAGE_META: readonly AvatarStageMeta[] = [
     assetPath: 'dusk-plaza.png',
     assetKey: 'stage_dusk_plaza',
     starter: false,
-    price: 100,
+    price: 2500,
     rarity: 'rare',
   },
 ] as const

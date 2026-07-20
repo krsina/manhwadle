@@ -2,7 +2,11 @@
 # Auth Site URL / Redirect URLs for hosted projects are set in the Dashboard:
 #   Authentication → URL Configuration
 #   - Site URL: http://localhost:5173 (local) or your production origin
-#   - Redirect URLs: http://localhost:5173/** and https://<your-domain>/**
+#   - Redirect URLs (staging + production):
+#       http://localhost:5173/**
+#       https://*.pages.dev/**
+#       https://<your-production-domain>/**
+#   See docs/deployment.md
 
 project_id = "snzhnkcccbxkwerbaido"
 
@@ -23,9 +27,13 @@ port = 54323
 
 [auth]
 enabled = true
-# Match Vite default; override for production deploys in the hosted Dashboard.
+# Local CLI defaults. Hosted staging/production allow-lists (incl. *.pages.dev)
+# are configured in the Dashboard — see docs/deployment.md.
 site_url = "http://localhost:5173"
-additional_redirect_urls = ["http://localhost:5173/**"]
+additional_redirect_urls = [
+  "http://localhost:5173/**",
+  "https://*.pages.dev/**",
+]
 enable_signup = true
 
 [auth.email]
@@ -40,8 +48,15 @@ verify_jwt = true
 [functions.moderation]
 verify_jwt = true
 
+# Daily puzzle cron selector — custom CRON_SECRET / service-role auth in-function.
+# Platform JWT verification must stay off or cron callers get 401 before the handler.
+# See docs/deployment.md and docs/runbooks/daily-puzzles.md.
+[functions.select-daily-puzzles]
+verify_jwt = false
+
 # Optional: enable Before User Created Postgres hook after applying roles_moderation.
 # Dashboard → Authentication → Hooks → Before User Created → hook_before_user_created
+# Hosted projects: enable in Dashboard (cannot be committed for production).
 # [auth.hook.before_user_created]
 # enabled = true
 # uri = "pg-functions://postgres/public/hook_before_user_created"

@@ -34,7 +34,8 @@ Path: `supabase/functions/moderation`
 
 - **POST** only. Body: `{ "action": "...", ... }`.
 - Verifies `Authorization: Bearer <user JWT>` with `auth.getUser(jwt)`.
-- Derives **actor** solely from that JWT. Rejects client-supplied `actor_id`.
+- Derives **actor** solely from that JWT. Rejects client-supplied `actor_id` / `actorId` / `user_id` / `userId` (targets still use `target_user_id`).
+- CORS is an origin allowlist via `CORS_ALLOWED_ORIGINS` (local Vite defaults when unset) — see [deployment.md](./deployment.md).
 - Uses the service role only after JWT verification to call `app_private` RPCs.
 - Does **not** expose the service role to the browser.
 
@@ -66,13 +67,24 @@ Migration defines `public.hook_before_user_created(event jsonb)`, which HMAC-che
 
 Limitations: OAuth may not always supply a matching email/subject at hook time; person-level ban evasion via new identities cannot be guaranteed. No device fingerprinting; do not retain raw IPs from hook metadata.
 
-## CAPTCHA and Auth rate limits
+## CAPTCHA, leaked passwords, and Auth rate limits
 
-Configure in the Supabase Dashboard (do not commit secrets):
+Configure in the Supabase Dashboard (do not commit secrets). Full rollout checklist: [deployment.md §6](./deployment.md#6-hosted-auth--edge-function-settings-dashboard--secrets).
 
 1. **Authentication → Rate Limits** — tighten email OTP / signup / recovery limits for production.
 2. **Authentication → Attack Protection / CAPTCHA** — enable CAPTCHA (e.g. hCaptcha or Turnstile) for signup and sensitive auth flows. Add the site/secret keys as project secrets; wire the client captcha token into `signInWithOtp` / OAuth options per current Supabase Auth docs.
-3. Prefer Auth rate limits + CAPTCHA over IP storage. This project intentionally does not persist request IPs for moderation.
+3. **Leaked-password protection** — enable HaveIBeenPwned / leaked-password checks for email passwords.
+4. Prefer Auth rate limits + CAPTCHA over IP storage. This project intentionally does not persist request IPs for moderation.
+
+## Staging security negatives
+
+Against a **staging or local** Supabase project only:
+
+```bash
+npm run test:live:security
+```
+
+Requires `SECURITY_SMOKE_TARGET`, `SECURITY_SMOKE_ACK_NON_PRODUCTION=I_UNDERSTAND_STAGING_ONLY`, and `STAGING_SUPABASE_*` credentials. The script refuse-closes on production project refs and does not use `VITE_*` keys. Full env matrix and coverage: [runbooks/security-negatives-staging.md](./runbooks/security-negatives-staging.md). Do not enable CI against production.
 
 ## Related migrations
 

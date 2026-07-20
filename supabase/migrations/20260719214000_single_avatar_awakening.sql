@@ -2,14 +2,22 @@
  * Collapse Awakenings I/II into a single Awakening per premium avatar.
  * - Deactivate tier-2 shop rows
  * - Rename tier-1 to "Awakening"
- * - Clamp user awakening_level 2 → 1
+ * - Clamp user awakening level 2 → 1
+ *
+ * Must run after 20260719213957_avatar_awakenings (creates the table).
+ * Replaces mis-ordered 20260719140000 which referenced the table before it existed.
  */
 
--- Anyone who somehow only had tier-2 ownership already stores awakening_level on
--- user_avatar_awakenings; clamp highs down to 1.
-update public.user_avatar_awakenings
-set awakening_level = 1
-where awakening_level > 1;
+-- Clamp stored levels (column is `level`, not awakening_level).
+do $$
+begin
+  if to_regclass('public.user_avatar_awakenings') is not null then
+    update public.user_avatar_awakenings
+    set level = 1
+    where level > 1;
+  end if;
+end
+$$;
 
 -- Deactivate Awakening II catalog rows (keep rows for history / FK safety).
 update public.shop_items

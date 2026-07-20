@@ -244,8 +244,7 @@ export function ShopPage() {
           <p className="shop-kicker">Avatar shop</p>
           <h1>Avatar Shop</h1>
           <p>
-            Collect Style A characters and scenic backgrounds for your homepage portrait.
-            Awaken owned characters with MapleStory-style frame-by-frame idle loops.
+            Collect characters and scenic backgrounds for your homepage portrait.
           </p>
         </div>
         <div className="shop-wallet" aria-label={`${balance} shop points`}>
@@ -299,7 +298,11 @@ export function ShopPage() {
 
             {selected && (
               <div className="avatar-shop-meta">
-                <span className={`avatar-shop-rarity is-${selected.rarity}`}>{selected.rarity}</span>
+                <span
+                  className={`avatar-shop-rarity is-${selected.limitedTime ? 'limited-time' : selected.rarity}`}
+                >
+                  {selected.limitedTime ? 'Limited-time' : selected.rarity}
+                </span>
                 <h2>{selected.name}</h2>
                 <p>{selected.description}</p>
               </div>
@@ -328,7 +331,11 @@ export function ShopPage() {
                         ? configured
                           ? 'Sign in to unlock'
                           : 'Unavailable'
-                        : `Buy ◆ ${selected.price}`}
+                        : selected.price === 0
+                          ? busy
+                            ? 'Claiming…'
+                            : 'Claim free'
+                          : `Buy ◆ ${selected.price}`}
               </button>
             </div>
 
@@ -554,7 +561,7 @@ function CharacterCard({
   return (
     <button
       type="button"
-      className={`avatar-card is-${item.rarity}${selected ? ' is-selected' : ''}${!item.owned ? ' is-unowned' : ''}`}
+      className={`avatar-card is-${item.limitedTime ? 'limited-time' : item.rarity}${selected ? ' is-selected' : ''}${!item.owned ? ' is-unowned' : ''}`}
       aria-pressed={selected}
       onClick={onSelect}
     >
@@ -565,7 +572,9 @@ function CharacterCard({
           decorative
           awakeningLevel={item.owned ? level : 0}
         />
-        <span className="avatar-rarity">{item.rarity}</span>
+        <span className="avatar-rarity">
+          {item.limitedTime ? 'Limited-time' : item.rarity}
+        </span>
         {!item.owned && <span className="avatar-unowned-tag">Locked</span>}
         {AVATAR_AWAKENINGS_ENABLED && item.owned && level > 0 && (
           <span className="avatar-awakening-badge" aria-label="Awakened">
@@ -581,6 +590,8 @@ function CharacterCard({
         <span className="avatar-price">
           {item.owned ? (
             'Owned'
+          ) : item.price === 0 ? (
+            'Free'
           ) : (
             <>
               <span aria-hidden="true">◆</span> {item.price}
@@ -639,6 +650,8 @@ function StageCard({
         <span className="avatar-price">
           {item.owned ? (
             'Owned'
+          ) : item.price === 0 ? (
+            'Free'
           ) : (
             <>
               <span aria-hidden="true">◆</span> {item.price}
@@ -649,6 +662,13 @@ function StageCard({
       </div>
     </button>
   )
+}
+
+function shopPurchaseConfirmCopy(item: AvatarShopItem): string {
+  if (item.price === 0) {
+    return `Claim ${item.name} for free?`
+  }
+  return `Spend ◆ ${item.price} to unlock ${item.name}?`
 }
 
 function PurchaseDialog({
@@ -705,12 +725,18 @@ function PurchaseDialog({
           aria-label={item.name}
         />
       ) : null}
-      <p className="modal-kicker">Confirm purchase</p>
+      <p className="modal-kicker">
+        {kind !== 'awakening' && item?.price === 0 ? 'Confirm claim' : 'Confirm purchase'}
+      </p>
       <h2 id={titleId} className="modal-title">
-        Unlock {name}?
+        {kind !== 'awakening' && item?.price === 0
+          ? `Claim ${name}?`
+          : `Unlock ${name}?`}
       </h2>
       <p id="shop-purchase-desc" className="shop-purchase-desc">
-        Spend {price} points. You will have {Math.max(0, balance - price)} left.
+        {kind !== 'awakening' && item?.price === 0
+          ? shopPurchaseConfirmCopy(item)
+          : `Spend ${price} points. You will have ${Math.max(0, balance - price)} left.`}
       </p>
       <div className="modal-actions">
         <button type="button" className="btn btn-ghost" disabled={busy} onClick={onClose}>
@@ -725,7 +751,13 @@ function PurchaseDialog({
             else if (item) onConfirmAvatar(item)
           }}
         >
-          {busy ? 'Purchasing…' : `Spend ${price} points`}
+          {busy
+            ? kind !== 'awakening' && item?.price === 0
+              ? 'Claiming…'
+              : 'Purchasing…'
+            : kind !== 'awakening' && item?.price === 0
+              ? 'Claim free'
+              : `Spend ${price} points`}
         </button>
       </div>
     </Dialog>

@@ -19,18 +19,20 @@ import {
   avatarAssetUrl,
   normalizeEquippedAvatarId,
 } from '../lib/avatarComposition'
+import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
 import { HOME_PATH } from '../lib/routes'
 
 /**
- * Dev-only Animation Creator: avatar library + idle/action/return specs.
+ * Owner+DEV Animation Creator: avatar library + idle/action/return specs.
  * Generate exports a Cursor job package (JSON + markdown); frames are produced by the agent.
  */
 export function AnimationCreatorPage() {
-  if (!import.meta.env.DEV) {
+  const { ownerDev } = useOwnerDevAccess()
+  if (!ownerDev) {
     return (
       <main className="animation-creator">
         <h1>Animation Creator</h1>
-        <p>This tool is only available in local development builds.</p>
+        <p>This tool is only available to the site owner in local development builds.</p>
         <p>
           <Link to={HOME_PATH}>← Home</Link>
         </p>

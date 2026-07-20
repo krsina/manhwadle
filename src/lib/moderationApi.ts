@@ -46,8 +46,9 @@ export function endsAtFromHours(hours: number): string {
   return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
 }
 
+/** Account menu / dashboard — owner only. Moderators remain server-capable if granted. */
 export function canUseModerationUi(role: string | null | undefined): boolean {
-  return role === 'owner' || role === 'moderator'
+  return role === 'owner'
 }
 
 export function parseUserLookup(raw: unknown): UserLookupResult | null {

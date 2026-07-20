@@ -5,7 +5,7 @@ export function AchievementIcon({
   id,
   category,
 }: {
-  id: string
+  id?: string
   category: AchievementCategory
 }) {
   switch (id) {

@@ -7,9 +7,9 @@ import {
 } from './moderationApi'
 
 describe('moderationApi helpers', () => {
-  it('gates dashboard on server-reported staff roles only', () => {
+  it('gates dashboard on server-reported owner role only', () => {
     expect(canUseModerationUi('owner')).toBe(true)
-    expect(canUseModerationUi('moderator')).toBe(true)
+    expect(canUseModerationUi('moderator')).toBe(false)
     expect(canUseModerationUi(null)).toBe(false)
     expect(canUseModerationUi('admin')).toBe(false)
     expect(canUseModerationUi(undefined)).toBe(false)

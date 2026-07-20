@@ -22,6 +22,7 @@ import {
   moderationSetSiteStatus,
   type UserLookupResult,
 } from '../lib/moderationApi'
+import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
 
 type Tab = 'search' | 'reports' | 'appeals' | 'audit' | 'status'
 
@@ -33,6 +34,7 @@ interface ModerationDashboardProps {
 /** Staff console. Visibility is gated by server-reported role; actions recheck DB. */
 export function ModerationDashboard({ open, onClose }: ModerationDashboardProps) {
   const { account } = useAuth()
+  const { showUserModeToggle, userMode } = useOwnerDevAccess()
   const titleId = useId()
   const closeRef = useRef<HTMLButtonElement>(null)
   const [tab, setTab] = useState<Tab>('search')
@@ -60,7 +62,8 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
   const [exemptionReason, setExemptionReason] = useState('')
 
   const isOwner = account?.staffRole === 'owner'
-  const allowed = canUseModerationUi(account?.staffRole)
+  const allowed =
+    canUseModerationUi(account?.staffRole) && !(showUserModeToggle && userMode)
 
   useEffect(() => {
     if (!open) return

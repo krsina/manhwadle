@@ -6,12 +6,14 @@ import {
   saveSolveSoundPairId,
   type SolveSoundPairId,
 } from '../lib/solveCelebrationSounds'
+import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
 import { Dialog } from './Dialog'
 
-/** DEV-only launcher to A/B first-try + double-solve SFX pairs. */
+/** Owner+DEV launcher to A/B first-try + double-solve SFX pairs. */
 export function SolveSoundTestLauncher() {
+  const { ownerDev } = useOwnerDevAccess()
   const [open, setOpen] = useState(false)
-  if (!import.meta.env.DEV) return null
+  if (!ownerDev) return null
 
   return (
     <>

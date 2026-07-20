@@ -168,6 +168,11 @@ export function CharacterPanel() {
           <div
             className="character-panel-xp-track"
             role="progressbar"
+            aria-label={
+              signedIn
+                ? `Level progress, ${level.xpIntoLevel} of ${level.xpForNext} XP`
+                : 'Level progress'
+            }
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={signedIn ? progressPct : 0}

@@ -8,6 +8,7 @@ import {
 } from 'react'
 import type { Provider, Session, User } from '@supabase/supabase-js'
 import type { ReaderTaste } from '../lib/readerTaste'
+import { syncOwnerDevSession } from '../lib/devAccess'
 import {
   changeUsername as apiChangeUsername,
   claimUsername as apiClaimUsername,
@@ -75,17 +76,23 @@ export function AuthProvider({
   async function refreshAccount(): Promise<AccountSnapshot | null> {
     if (!supabase) {
       setAccount(null)
+      syncOwnerDevSession(null)
       return null
     }
     setAccountLoading(true)
     try {
       const next = await fetchMyAccount()
       setAccount(next)
+      syncOwnerDevSession(next?.staffRole ?? null)
       return next
     } finally {
       setAccountLoading(false)
     }
   }
+
+  useEffect(() => {
+    syncOwnerDevSession(account?.staffRole ?? null)
+  }, [account?.staffRole])
 
   useEffect(() => {
     if (!supabase) {
@@ -134,6 +141,7 @@ export function AuthProvider({
       if (event === 'SIGNED_OUT') {
         lastMergedUserIdRef.current = null
         setAccount(null)
+        syncOwnerDevSession(null)
         markPendingReauth()
         return
       }
@@ -202,6 +210,7 @@ export function AuthProvider({
     if (!supabase) return
     lastMergedUserIdRef.current = null
     setAccount(null)
+    syncOwnerDevSession(null)
     markPendingReauth()
     await supabase.auth.signOut()
   }

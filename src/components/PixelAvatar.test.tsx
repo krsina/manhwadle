@@ -12,7 +12,7 @@ describe('PixelAvatar', () => {
     expect(html).toContain('role="img"')
     expect(html).toContain('aria-label="Default (Female)"')
     expect(html).not.toContain('<svg')
-    expect(html).toContain(`src="${STYLE_A_BASE}/default-female.png?v=3"`)
+    expect(html).toContain(`src="${STYLE_A_BASE}/default-female.png?v=4"`)
     expect(html).not.toContain('pixel-avatar-canvas')
     expect(html.match(/<img/g)?.length).toBe(1)
   })
@@ -27,7 +27,7 @@ describe('PixelAvatar', () => {
     expect(html).toContain('aria-hidden="true"')
     expect(html).not.toContain('role="img"')
     expect(html).not.toContain('aria-label=')
-    expect(html).toContain(`src="${STYLE_A_BASE}/shadow-hunter.png?v=3"`)
+    expect(html).toContain(`src="${STYLE_A_BASE}/shadow-hunter.png?v=4"`)
   })
 
   it('marks non-decorative avatars as images and hides the image alt text', () => {
@@ -41,8 +41,8 @@ describe('PixelAvatar', () => {
   it('falls back to the default avatar for unknown or missing character ids', () => {
     const missing = renderToStaticMarkup(<PixelAvatar />)
     const unknown = renderToStaticMarkup(<PixelAvatar characterId="not-a-character" />)
-    expect(missing).toContain(`src="${STYLE_A_BASE}/default-female.png?v=3"`)
-    expect(unknown).toContain(`src="${STYLE_A_BASE}/default-female.png?v=3"`)
+    expect(missing).toContain(`src="${STYLE_A_BASE}/default-female.png?v=4"`)
+    expect(unknown).toContain(`src="${STYLE_A_BASE}/default-female.png?v=4"`)
   })
 
   it('keeps avatars on the static plate while awakenings are disabled in production', () => {
@@ -75,7 +75,7 @@ describe('PixelAvatar', () => {
     )
     expect(html).toContain('data-awakening="0"')
     expect(html).not.toContain('is-sprite-sheet')
-    expect(html).toContain(`src="${STYLE_A_BASE}/shadow-hunter.png?v=3"`)
+    expect(html).toContain(`src="${STYLE_A_BASE}/shadow-hunter.png?v=4"`)
     expect(html).not.toContain('pixel-avatar-aura')
   })
 })

@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
 import { DEV_ANIMATIONS_PATH, HOME_PATH } from '../lib/routes'
 
 const STRIP_SRC = '/dev/plum-action-18-6x3-strip.png?v=3'
 const FRAMES = 18
 const CELL = 256
 
-/** Dev-only temp preview for the oneshot 18-cell action strip. */
+/** Owner+DEV temp preview for the oneshot 18-cell action strip. */
 export function ActionStripPreviewPage() {
-  if (!import.meta.env.DEV) {
+  const { ownerDev } = useOwnerDevAccess()
+  if (!ownerDev) {
     return (
       <main className="animation-creator">
-        <p>Only available in local development.</p>
+        <p>Only available to the site owner in local development.</p>
         <Link to={HOME_PATH}>Back home</Link>
       </main>
     )

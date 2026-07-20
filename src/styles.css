@@ -7057,6 +7057,11 @@ a.mode-row:focus-visible .mode-row-icon {
   color: #b36d00;
 }
 
+.avatar-shop-rarity.is-limited-time,
+.avatar-card.is-limited-time .avatar-rarity {
+  color: #1f7a4d;
+}
+
 .avatar-shop-actions {
   display: flex;
   flex-wrap: wrap;
@@ -7386,6 +7391,10 @@ a.mode-row:focus-visible .mode-row-icon {
 
 .avatar-card.is-legendary .avatar-rarity {
   color: #b36d00;
+}
+
+.avatar-card.is-limited-time .avatar-rarity {
+  color: #1f7a4d;
 }
 
 .avatar-card-copy {

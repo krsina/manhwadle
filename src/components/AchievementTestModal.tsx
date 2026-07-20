@@ -6,6 +6,7 @@ import {
 } from '../lib/achievements'
 import { clearSeenAchievements } from '../lib/achievementUnlocks'
 import { resetAccountMenuPressSession } from '../lib/secretEvents'
+import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
 import {
   CELEBRATION_SOUND_OPTIONS,
   loadCelebrationSoundId,
@@ -34,16 +35,17 @@ function toAward(def: AchievementDefinition): AchievementAward {
   }
 }
 
-/** DEV-only homepage control to preview milestone unlock popups. */
+/** Owner+DEV homepage control to preview milestone unlock popups. */
 export function AchievementTestLauncher({
   onPreview,
 }: {
   onPreview: (award: AchievementAward) => void
 }) {
+  const { ownerDev } = useOwnerDevAccess()
   const [open, setOpen] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
 
-  if (!import.meta.env.DEV) return null
+  if (!ownerDev) return null
 
   return (
     <>

@@ -10,8 +10,8 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | Slug | Shop name | Price | Rarity |
 | --- | --- | --- | --- |
-| `shadow-hunter` | Shadow Hunter | 150 | rare |
-| `skybreaker-monk` | Skybreaker Monk | 150 | rare |
+| `shadow-hunter` | Shadow Hunter | 4000 | rare |
+| `skybreaker-monk` | Skybreaker Monk | 4000 | rare |
 
 ## Wave-1 additions (12)
 
@@ -19,7 +19,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Plum Blossom Blade — 150 rare |
+| Shop | Plum Blossom Blade — 4000 rare |
 | Trope (internal) | Mount Hua / murim swordsman |
 | Hair | Long neat black hair tied partly back |
 | Eyes | Calm dark eyes |
@@ -32,7 +32,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Tower Ranker — 150 rare |
+| Shop | Tower Ranker — 4000 rare |
 | Trope (internal) | Tower climber |
 | Hair | Messy black hair with bangs |
 | Eyes | Sharp golden-yellow eyes |
@@ -45,7 +45,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Fourth-wall Reader — 150 rare |
+| Shop | Fourth-wall Reader — 4000 rare |
 | Trope (internal) | Omniscient reader |
 | Hair | Short neat black hair |
 | Eyes | Tired dark eyes with thin glasses |
@@ -58,7 +58,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Absolute Regressor — 150 rare |
+| Shop | Absolute Regressor — 4000 rare |
 | Trope (internal) | Regression MC |
 | Hair | Short spiky black hair |
 | Eyes | Cold red eyes |
@@ -71,7 +71,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Ice Sovereign — 250 epic |
+| Shop | Ice Sovereign — 7000 epic |
 | Trope (internal) | Ice empress heroine |
 | Hair | Long flowing white-blue hair |
 | Eyes | Icy pale-blue eyes |
@@ -84,7 +84,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Flame Returnee — 150 rare |
+| Shop | Flame Returnee — 4000 rare |
 | Trope (internal) | Flame returnee / fire MC |
 | Hair | Ash-black messy hair with ember-orange tips |
 | Eyes | Glowing orange eyes |
@@ -97,7 +97,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Blood Contract — 150 rare |
+| Shop | Blood Contract — 4000 rare |
 | Trope (internal) | Vampire / blood mage |
 | Hair | Sleek black hair with a crimson streak |
 | Eyes | Glowing crimson eyes |
@@ -110,7 +110,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Heavenly Demon — 250 epic |
+| Shop | Heavenly Demon — 7000 epic |
 | Trope (internal) | Demonic murim path |
 | Hair | Long wild black hair |
 | Eyes | Fierce red eyes |
@@ -123,7 +123,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Academy Prodigy — 150 rare |
+| Shop | Academy Prodigy — 4000 rare |
 | Trope (internal) | Magic academy lead |
 | Hair | Long neat chestnut-brown hair with a side ribbon |
 | Eyes | Bright violet eyes |
@@ -136,7 +136,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Undead Marshal — 250 epic |
+| Shop | Undead Marshal — 7000 epic |
 | Trope (internal) | Necromancer lord |
 | Hair | Pale white slicked-back hair |
 | Eyes | Hollow glowing green eyes |
@@ -149,7 +149,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Beast Pact Hunter — 150 rare |
+| Shop | Beast Pact Hunter — 4000 rare |
 | Trope (internal) | Contract hunter |
 | Hair | Short windblown dark-brown hair |
 | Eyes | Amber beast-mark eyes with vertical pupils |
@@ -162,7 +162,7 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 
 | | |
 | --- | --- |
-| Shop | Villainess Rose — 150 rare |
+| Shop | Villainess Rose — 4000 rare |
 | Trope (internal) | Villainess duchess |
 | Hair | Long elegant blonde curls with a rose hairpin |
 | Eyes | Sharp red eyes with a smug small smile |

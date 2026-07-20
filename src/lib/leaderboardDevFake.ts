@@ -3,6 +3,7 @@
  * Never shipped to production builds (`import.meta.env.DEV` gated).
  */
 
+import { isOwnerDevSessionActive } from './devAccess'
 import {
   ACHIEVEMENT_DEFINITIONS,
   shouldAwardAchievement,
@@ -137,7 +138,13 @@ export function loadDevLeaderboardState(): DevLeaderboardState {
 }
 
 export function saveDevLeaderboardState(next: DevLeaderboardState): void {
-  if (!import.meta.env.DEV || typeof localStorage === 'undefined') return
+  if (
+    !import.meta.env.DEV ||
+    !isOwnerDevSessionActive() ||
+    typeof localStorage === 'undefined'
+  ) {
+    return
+  }
   const normalized: DevLeaderboardState = {
     enabled: next.enabled,
     standing: {
@@ -185,7 +192,11 @@ function rerank(entries: LeaderboardEntry[]): LeaderboardEntry[] {
 }
 
 export function isDevLeaderboardOverrideEnabled(): boolean {
-  return import.meta.env.DEV && loadDevLeaderboardState().enabled
+  return (
+    import.meta.env.DEV &&
+    isOwnerDevSessionActive() &&
+    loadDevLeaderboardState().enabled
+  )
 }
 
 export function setDevLeaderboardEnabled(enabled: boolean): void {

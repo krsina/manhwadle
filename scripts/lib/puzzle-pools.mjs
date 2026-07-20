@@ -204,18 +204,192 @@ function loadVocalSongManhwaIds() {
 
 const VOCAL_SONG_MANHWA_IDS = loadVocalSongManhwaIds()
 
+function loadSongs() {
+  try {
+    const doc = JSON.parse(
+      readFileSync(join(__dirname, '../../src/data/songs.json'), 'utf8'),
+    )
+    return doc.songs || []
+  } catch {
+    return []
+  }
+}
+
+const SONGS = loadSongs()
+
 export function manhwaHasVocalSong(manhwa) {
   return VOCAL_SONG_MANHWA_IDS.has(manhwa.id)
 }
 
-export function buildRows(manhwa, blurbIds, _cropIds = new Set()) {
+/** Match app_private.normalize_bonus_guess_label (a-z0-9 only). */
+export function normalizeBonusGuessLabel(label) {
+  if (label == null) return null
+  const normalized = String(label)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+  return normalized || null
+}
+
+function loadProtagonistOverrides() {
+  try {
+    const doc = JSON.parse(
+      readFileSync(join(__dirname, '../../src/data/protagonists.json'), 'utf8'),
+    )
+    return new Map(
+      Object.entries(doc.protagonists || {}).map(([manhwaId, characterId]) => [
+        Number(manhwaId),
+        Number(characterId),
+      ]),
+    )
+  } catch {
+    return new Map()
+  }
+}
+
+const PROTAGONIST_BY_MANHWA = loadProtagonistOverrides()
+
+function characterNameParts(character) {
+  const names = [
+    character?.name?.full,
+    character?.name?.native,
+    ...(character?.name?.alternative || []),
+  ].filter((name) => typeof name === 'string' && name.trim())
+  return [...new Set(names.map((n) => n.trim()))]
+}
+
+/**
+ * Private server-validation fields for bonus-name rewards.
+ * Stripped from public get_daily_play_state meta.
+ */
+export function buildBonusNameMeta(manhwa) {
+  const mains = guessableCharacters(manhwa, { mainOnly: true })
+  if (mains.length === 0) return null
+
+  const preferredId = PROTAGONIST_BY_MANHWA.get(manhwa.id)
+  const bonus =
+    (preferredId != null ? mains.find((c) => c.id === preferredId) : null) ||
+    mains[0]
+  if (!bonus) return null
+
+  const aliases = characterNameParts(bonus)
+  const normalized = normalizeBonusGuessLabel(aliases[0] || '')
+  if (!normalized && aliases.length === 0) return null
+
+  return {
+    bonus_character_id: bonus.id,
+    bonus_name_normalized: normalized,
+    bonus_name_aliases: aliases,
+  }
+}
+
+function answerFingerprint(manhwa) {
+  return {
+    genres: [...(manhwa.genres || [])],
+    tags: [...(manhwa.tags || [])],
+    status: manhwa.status || 'Unknown',
+    publisher: manhwa.publisher || '',
+    year: manhwa.startDate?.year ?? null,
+  }
+}
+
+function blurbIndex(input) {
+  if (input instanceof Set) return new Map([...input].map((id) => [id, null]))
+  return new Map(
+    (input?.entries || []).map((entry) => [
+      entry.manhwaId,
+      entry.storyDescriptionBlurb || null,
+    ]),
+  )
+}
+
+function cropIndex(input) {
+  const map = new Map()
+  const entries = Array.isArray(input?.entries) ? input.entries : []
+  for (const entry of entries) {
+    const list = map.get(entry.manhwaId) || []
+    list.push(entry)
+    map.set(entry.manhwaId, list)
+  }
+  return map
+}
+
+function characterClues(manhwa, crops) {
+  return guessableCharacters(manhwa, { mainOnly: true })
+    .map((character) => {
+      const crop =
+        (crops || []).find((entry) => entry.characterId === character.id) ||
+        (crops || []).find((entry) => entry.characterId == null)
+      const imageUrl = crop?.imageUrl?.trim() || characterImageUrl(character)
+      if (!imageUrl) return null
+      return {
+        character_id: character.id,
+        image_url: imageUrl,
+        focus_x: Number.isFinite(crop?.focusX) ? crop.focusX : 50,
+        focus_y: Number.isFinite(crop?.focusY) ? crop.focusY : 28,
+      }
+    })
+    .filter(Boolean)
+}
+
+function heardleClues(manhwa) {
+  return SONGS.filter(
+    (song) => song?.manhwaId === manhwa.id && song.kind === 'vocal',
+  ).map((song) => ({
+    id: song.id,
+    youtube_id: song.youtubeId,
+    start_sec: song.startSec ?? 0,
+    kind: song.kind,
+    source: song.source,
+  }))
+}
+
+export function buildPoolEntryMeta(mode, manhwa, authored, crops) {
+  const bonus = buildBonusNameMeta(manhwa)
+  const meta = {
+    answer_fingerprint: answerFingerprint(manhwa),
+  }
+
+  if (mode === 'character') {
+    const clues = characterClues(manhwa, crops)
+    if (clues.length > 0) meta.character_clues = clues
+  } else if (mode === 'summary') {
+    const blurbs = [
+      authored?.t0,
+      authored?.t1,
+      manhwa.description,
+    ].filter((value) => typeof value === 'string' && value.trim())
+    if (blurbs.length > 0) {
+      meta.public_clue = { type: 'summary', blurbs }
+    }
+  } else if (mode === 'cover') {
+    if (manhwa.coverImage?.trim()) {
+      meta.public_clue = {
+        type: 'cover',
+        image_url: manhwa.coverImage.trim(),
+        focus_x: 50,
+        focus_y: 35,
+      }
+    }
+  } else if (mode === 'heardle') {
+    const clues = heardleClues(manhwa)
+    if (clues.length > 0) meta.heardle_clues = clues
+  }
+
+  if (bonus) Object.assign(meta, bonus)
+  return meta
+}
+
+export function buildRows(manhwa, blurbs, crops = { entries: [] }) {
+  const authoredById = blurbIndex(blurbs)
+  const cropsById = cropIndex(crops)
   const rows = []
   for (const mode of MODES) {
     for (const taste of TASTES) {
       const tastePool = filterPoolByTaste(manhwa, taste)
       let playable
       if (mode === 'summary') {
-        playable = tastePool.filter((m) => blurbIds.has(m.id))
+        playable = tastePool.filter((m) => authoredById.has(m.id))
         if (playable.length === 0) playable = tastePool
       } else if (mode === 'character') {
         // Normal Character mode requires MAIN cast with images (hard mode
@@ -231,20 +405,18 @@ export function buildRows(manhwa, blurbIds, _cropIds = new Set()) {
       }
 
       playable.forEach((m, position) => {
-        const eligible =
-          mode === 'character'
-            ? guessableCharacters(m, { mainOnly: true }).map((c) => c.id)
-            : []
         rows.push({
           mode,
           taste,
           position,
           manhwa_id: m.id,
           character_id: null,
-          meta:
-            mode === 'character' && eligible.length > 0
-              ? { eligible_character_ids: eligible }
-              : null,
+          meta: buildPoolEntryMeta(
+            mode,
+            m,
+            authoredById.get(m.id),
+            cropsById.get(m.id),
+          ),
         })
       })
     }

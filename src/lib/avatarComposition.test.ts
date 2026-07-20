@@ -4,13 +4,16 @@ import {
   DEFAULT_AVATAR_ID,
   STYLE_A_BASE,
   avatarAssetUrl,
+  compareShopItemsByPrice,
   describeAvatar,
   getAvatarCharacterMeta,
+  limitedTimeAvatarIds,
   normalizeEquippedAvatarId,
   starterAvatarIds,
 } from './avatarComposition'
 
 const STARTER_IDS = ['avatar_default_female', 'avatar_default_male'] as const
+const LIMITED_TIME_IDS = ['avatar_quest_recruit', 'avatar_spark_apprentice'] as const
 const LEGACY_PREMIUM_IDS = ['avatar_shadow_hunter', 'avatar_skybreaker_monk'] as const
 const WAVE1_IDS = [
   'avatar_plum_blossom_blade',
@@ -28,15 +31,17 @@ const WAVE1_IDS = [
 ] as const
 
 describe('avatarComposition', () => {
-  it('exposes the whole-character catalog contract including wave-1', () => {
-    expect(AVATAR_CHARACTER_META).toHaveLength(16)
+  it('exposes the whole-character catalog contract including wave-1 and limited-time claims', () => {
+    expect(AVATAR_CHARACTER_META).toHaveLength(18)
     expect(AVATAR_CHARACTER_META.map((character) => character.id)).toEqual([
+      ...LIMITED_TIME_IDS,
       ...STARTER_IDS,
       ...LEGACY_PREMIUM_IDS,
       ...WAVE1_IDS,
     ])
     expect(DEFAULT_AVATAR_ID).toBe('avatar_default_female')
     expect(AVATAR_CHARACTER_META.filter((character) => character.starter)).toHaveLength(2)
+    expect(AVATAR_CHARACTER_META.filter((character) => character.limitedTime)).toHaveLength(2)
     expect(AVATAR_CHARACTER_META.filter((character) => character.price > 0)).toHaveLength(14)
     expect(AVATAR_CHARACTER_META.filter((character) => character.rarity === 'epic')).toHaveLength(3)
   })
@@ -44,19 +49,19 @@ describe('avatarComposition', () => {
   it('prices and rarities match the product contract', () => {
     const shadowHunter = getAvatarCharacterMeta('avatar_shadow_hunter')
     const skybreakerMonk = getAvatarCharacterMeta('avatar_skybreaker_monk')
-    expect(shadowHunter).toMatchObject({ price: 150, rarity: 'rare', starter: false })
-    expect(skybreakerMonk).toMatchObject({ price: 150, rarity: 'rare', starter: false })
+    expect(shadowHunter).toMatchObject({ price: 4000, rarity: 'rare', starter: false })
+    expect(skybreakerMonk).toMatchObject({ price: 4000, rarity: 'rare', starter: false })
     expect(getAvatarCharacterMeta('avatar_ice_sovereign')).toMatchObject({
-      price: 250,
+      price: 7000,
       rarity: 'epic',
       starter: false,
     })
     expect(getAvatarCharacterMeta('avatar_heavenly_demon')).toMatchObject({
-      price: 250,
+      price: 7000,
       rarity: 'epic',
     })
     expect(getAvatarCharacterMeta('avatar_undead_marshal')).toMatchObject({
-      price: 250,
+      price: 7000,
       rarity: 'epic',
     })
     const defaultFemale = getAvatarCharacterMeta(DEFAULT_AVATAR_ID)
@@ -72,6 +77,18 @@ describe('avatarComposition', () => {
       rarity: 'common',
       starter: true,
       description: 'A plain starter look',
+    })
+    expect(getAvatarCharacterMeta('avatar_quest_recruit')).toMatchObject({
+      price: 0,
+      rarity: 'common',
+      starter: false,
+      limitedTime: true,
+    })
+    expect(getAvatarCharacterMeta('avatar_spark_apprentice')).toMatchObject({
+      price: 0,
+      rarity: 'common',
+      starter: false,
+      limitedTime: true,
     })
   })
 
@@ -99,10 +116,35 @@ describe('avatarComposition', () => {
     expect(starterAvatarIds().sort()).toEqual(['avatar_default_female', 'avatar_default_male'])
   })
 
+  it('lists limited-time claim ids separately from starters', () => {
+    expect(limitedTimeAvatarIds().sort()).toEqual([
+      'avatar_quest_recruit',
+      'avatar_spark_apprentice',
+    ])
+  })
+
+  it('sorts shop items by price with limited-time free claims first', () => {
+    const sorted = [
+      { id: 'avatar_shadow_hunter', price: 4000 },
+      { id: 'avatar_default_female', price: 0 },
+      { id: 'avatar_quest_recruit', price: 0, limitedTime: true },
+      { id: 'avatar_ice_sovereign', price: 7000 },
+      { id: 'avatar_spark_apprentice', price: 0, limitedTime: true },
+    ].sort(compareShopItemsByPrice)
+    expect(sorted.map((row) => row.id)).toEqual([
+      'avatar_quest_recruit',
+      'avatar_spark_apprentice',
+      'avatar_default_female',
+      'avatar_shadow_hunter',
+      'avatar_ice_sovereign',
+    ])
+  })
+
   it('resolves asset URLs under the Style A base path', () => {
-    expect(avatarAssetUrl('avatar_default_female')).toBe(`${STYLE_A_BASE}/default-female.png?v=3`)
-    expect(avatarAssetUrl('avatar_shadow_hunter')).toBe(`${STYLE_A_BASE}/shadow-hunter.png?v=3`)
-    expect(avatarAssetUrl('avatar_ice_sovereign')).toBe(`${STYLE_A_BASE}/ice-sovereign.png?v=3`)
+    expect(avatarAssetUrl('avatar_default_female')).toBe(`${STYLE_A_BASE}/default-female.png?v=4`)
+    expect(avatarAssetUrl('avatar_shadow_hunter')).toBe(`${STYLE_A_BASE}/shadow-hunter.png?v=4`)
+    expect(avatarAssetUrl('avatar_ice_sovereign')).toBe(`${STYLE_A_BASE}/ice-sovereign.png?v=4`)
+    expect(avatarAssetUrl('avatar_quest_recruit')).toBe(`${STYLE_A_BASE}/quest-recruit.png?v=4`)
     expect(avatarAssetUrl('not-a-character')).toBe(avatarAssetUrl(DEFAULT_AVATAR_ID))
   })
 })

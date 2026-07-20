@@ -43,6 +43,8 @@ export function AchievementUnlockModal({
 
   if (!award) return null
 
+  const hushHidden = !isUnlock && award.category === 'secret' && !award.awardedAt
+
   return (
     <Dialog
       open={open}
@@ -63,21 +65,26 @@ export function AchievementUnlockModal({
       )}
 
       <p className="achievement-unlock-kicker">
-        {isUnlock ? 'Unlocked' : 'Milestone'}
+        {isUnlock ? 'Unlocked' : hushHidden ? 'Hush-Hush' : 'Milestone'}
       </p>
       <div
         className={`achievement-unlock-seal${isUnlock ? '' : ' is-static'}`}
         aria-hidden="true"
       >
-        <AchievementIcon id={award.id} category={award.category} />
+        <AchievementIcon
+          id={hushHidden ? undefined : award.id}
+          category={award.category}
+        />
       </div>
       <h2 id={titleId} className="achievement-unlock-title">
-        {award.title}
+        {hushHidden ? '???' : award.title}
       </h2>
       <p id="achievement-unlock-desc" className="achievement-unlock-desc">
-        {award.description}
+        {hushHidden ? 'Hidden feat. No spoilers.' : award.description}
       </p>
-      <p className="achievement-unlock-reward">◆ {award.pointReward} shop points</p>
+      {!hushHidden && (
+        <p className="achievement-unlock-reward">◆ {award.pointReward} shop points</p>
+      )}
       {!isUnlock && awardedLabel && (
         <p className="achievement-unlock-earned">Earned {awardedLabel}</p>
       )}

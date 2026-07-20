@@ -10,7 +10,8 @@ Edge Function: `supabase/functions/account-data`
 ## Security
 
 - Verifies the `Authorization: Bearer <user JWT>` with `auth.getUser(jwt)`.
-- Derives the user id **only** from that JWT. Never accepts a target user id from the client.
+- Derives the user id **only** from that JWT. Rejects body fields `user_id` / `userId` / `actor_id` / `actorId` on DELETE.
+- CORS is an origin allowlist via `CORS_ALLOWED_ORIGINS` (local Vite defaults when unset) — see [deployment.md](./deployment.md).
 - Uses the service role only after JWT verification, for admin delete + full export reads.
 
 ## Deploy
@@ -19,7 +20,7 @@ Edge Function: `supabase/functions/account-data`
 supabase functions deploy account-data
 ```
 
-Hosted projects inject `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. Leave platform `verify_jwt` enabled (default).
+Hosted projects inject `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`. Keep `verify_jwt = true` in `supabase/config.toml`. Set `CORS_ALLOWED_ORIGINS` on hosted projects (never commit the value).
 
 Apply migration `20260718040000_identity_settings.sql` before relying on username RPCs / `user_settings` / `public_profiles`. Apply `20260718050000_roles_moderation.sql` for bans/reports (cloud bans block writes; export GET still works for the signed-in user). See `docs/moderation.md`.
 
