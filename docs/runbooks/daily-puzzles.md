@@ -2,6 +2,12 @@
 
 Production expects **4 modes × 3 tastes = 12** shared daily lanes.
 
+## Edge Function auth (`select-daily-puzzles`)
+
+- Platform `verify_jwt = false` in `supabase/config.toml` (required): callers use **custom cron auth**, not a user JWT.
+- Set hosted secret `CRON_SECRET`. Invoke with `x-cron-secret: <secret>` or `Authorization: Bearer <CRON_SECRET>` (service role bearer also accepted).
+- Do not call this function from the browser. See [deployment.md §6](../deployment.md#6-hosted-auth--edge-function-settings-dashboard--secrets).
+
 ## Verify today’s rows
 
 1. Confirm `daily_puzzles` has 12 rows for today’s UTC date.
