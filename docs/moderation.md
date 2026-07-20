@@ -92,3 +92,4 @@ Requires `SECURITY_SMOKE_TARGET`, `SECURITY_SMOKE_ACK_NON_PRODUCTION=I_UNDERSTAN
 - `20260718050000_roles_moderation.sql` — roles, restrictions, audit, reports, appeals, ban RLS
 - `20260718060000_leaderboard_home_status.sql` — Top Rankings, streaks, achievements, site/mode status
 - `20260718070000_leaderboard_always_on.sql` — signed-in play always counts on Top Rankings (no opt-in)
+- `20260720212000_leaderboard_read_rate_limits.sql` — signed-in `get_leaderboard` / `get_my_leaderboard_standing` rate limits (60/min; live reads, no cache)

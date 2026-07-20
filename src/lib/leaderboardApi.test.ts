@@ -45,6 +45,11 @@ describe('parseMyLeaderboardStanding', () => {
     expect(standing?.boards.current_streak).toEqual({ value: 3, rank: 4 })
     expect(standing && 'user_id' in standing).toBe(false)
   })
+
+  it('rejects rate-limited / error payloads', () => {
+    expect(parseMyLeaderboardStanding({ ok: false, error: 'rate_limited' })).toBeNull()
+    expect(parseMyLeaderboardStanding({ ok: false, error: 'auth_required' })).toBeNull()
+  })
 })
 
 describe('parseMyLevelRank', () => {

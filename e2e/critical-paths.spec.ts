@@ -124,11 +124,13 @@ test.describe('critical paths', () => {
 
     await search.fill('nobody_here_xyz')
     await page.getByRole('button', { name: 'Search' }).click()
+    // Scope to the search form — board-load alerts must not collide (strict mode).
     // Without a live board this may be an error or an exact no-match; either is a real submit path.
+    const searchForm = page.locator('.leaderboard-search')
     await expect(
-      page
+      searchForm
         .getByRole('alert')
-        .or(page.getByRole('status').filter({ hasText: /No exact match/i })),
+        .or(searchForm.getByRole('status').filter({ hasText: /No exact match/i })),
     ).toBeVisible()
   })
 
