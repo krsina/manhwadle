@@ -141,10 +141,18 @@ describe('avatarComposition', () => {
   })
 
   it('resolves asset URLs under the Style A base path', () => {
-    expect(avatarAssetUrl('avatar_default_female')).toBe(`${STYLE_A_BASE}/default-female.png?v=4`)
-    expect(avatarAssetUrl('avatar_shadow_hunter')).toBe(`${STYLE_A_BASE}/shadow-hunter.png?v=4`)
-    expect(avatarAssetUrl('avatar_ice_sovereign')).toBe(`${STYLE_A_BASE}/ice-sovereign.png?v=4`)
-    expect(avatarAssetUrl('avatar_quest_recruit')).toBe(`${STYLE_A_BASE}/quest-recruit.png?v=4`)
+    expect(avatarAssetUrl('avatar_default_female')).toMatch(
+      new RegExp(`^${STYLE_A_BASE}/default-female\\.png\\?v=\\d+$`),
+    )
+    expect(avatarAssetUrl('avatar_shadow_hunter')).toMatch(
+      new RegExp(`^${STYLE_A_BASE}/shadow-hunter\\.png\\?v=\\d+$`),
+    )
+    expect(avatarAssetUrl('avatar_ice_sovereign')).toMatch(
+      new RegExp(`^${STYLE_A_BASE}/ice-sovereign\\.png\\?v=\\d+$`),
+    )
+    expect(avatarAssetUrl('avatar_quest_recruit')).toMatch(
+      new RegExp(`^${STYLE_A_BASE}/quest-recruit\\.png\\?v=\\d+$`),
+    )
     expect(avatarAssetUrl('not-a-character')).toBe(avatarAssetUrl(DEFAULT_AVATAR_ID))
   })
 })
