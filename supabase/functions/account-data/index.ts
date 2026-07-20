@@ -1,40 +1,49 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { buildCorsHeaders } from "../_shared/cors.ts";
+import {
+  findSpoofedCallerIdKey,
+  spoofedCallerIdErrorMessage,
+} from "../_shared/callerIds.ts";
 
-const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, DELETE, OPTIONS",
-};
+const ALLOW_METHODS = "GET, DELETE, OPTIONS";
+
+function corsFor(req: Request): Record<string, string> {
+  return buildCorsHeaders({
+    requestOrigin: req.headers.get("Origin"),
+    allowedOriginsEnv: Deno.env.get("CORS_ALLOWED_ORIGINS"),
+    methods: ALLOW_METHODS,
+  });
+}
 
 function jsonResponse(
+  req: Request,
   body: Record<string, unknown>,
   status = 200,
 ): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsFor(req), "Content-Type": "application/json" },
   });
 }
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: corsFor(req) });
   }
 
   try {
     if (req.method !== "GET" && req.method !== "DELETE") {
-      return jsonResponse({ error: "Method not allowed" }, 405);
+      return jsonResponse(req, { error: "Method not allowed" }, 405);
     }
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
+      return jsonResponse(req, { error: "Unauthorized" }, 401);
     }
     const jwt = authHeader.slice("Bearer ".length).trim();
     if (!jwt) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
+      return jsonResponse(req, { error: "Unauthorized" }, 401);
     }
 
     const url = Deno.env.get("SUPABASE_URL");
@@ -44,6 +53,7 @@ Deno.serve(async (req: Request) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !anonKey || !serviceKey) {
       return jsonResponse(
+        req,
         { error: "Server credentials are not configured" },
         500,
       );
@@ -59,7 +69,7 @@ Deno.serve(async (req: Request) => {
       error: userError,
     } = await userClient.auth.getUser(jwt);
     if (userError || !user) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
+      return jsonResponse(req, { error: "Unauthorized" }, 401);
     }
     const userId = user.id;
 
@@ -94,12 +104,13 @@ Deno.serve(async (req: Request) => {
 
       if (shop.error) {
         return jsonResponse(
+          req,
           { error: `Shop data export failed: ${shop.error.message}` },
           500,
         );
       }
 
-      return jsonResponse({
+      return jsonResponse(req, {
         exportedAt: new Date().toISOString(),
         user: { id: userId, email: user.email ?? null },
         profile: profile.data ?? null,
@@ -117,29 +128,41 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // DELETE — require explicit confirmation string; user id from JWT only.
-    let confirm = "";
+    // DELETE — require explicit confirmation; user id from JWT only.
+    let body: Record<string, unknown> = {};
     try {
-      const body = await req.json();
-      if (body && typeof body.confirm === "string") confirm = body.confirm.trim();
+      body = (await req.json()) as Record<string, unknown>;
     } catch {
-      /* empty */
+      /* empty body */
     }
+
+    const spoofedKey = findSpoofedCallerIdKey(body);
+    if (spoofedKey) {
+      return jsonResponse(
+        req,
+        { error: spoofedCallerIdErrorMessage(spoofedKey) },
+        400,
+      );
+    }
+
+    const confirm =
+      typeof body.confirm === "string" ? body.confirm.trim() : "";
     if (confirm.toUpperCase() !== "DELETE") {
       return jsonResponse(
-        { error: "Confirmation required. Send { \"confirm\": \"DELETE\" }." },
+        req,
+        { error: 'Confirmation required. Send { "confirm": "DELETE" }.' },
         400,
       );
     }
 
     const { error: deleteError } = await admin.auth.admin.deleteUser(userId);
     if (deleteError) {
-      return jsonResponse({ error: deleteError.message }, 500);
+      return jsonResponse(req, { error: deleteError.message }, 500);
     }
 
-    return jsonResponse({ ok: true, deleted: true });
+    return jsonResponse(req, { ok: true, deleted: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unexpected error";
-    return jsonResponse({ error: message }, 500);
+    return jsonResponse(req, { error: message }, 500);
   }
 });

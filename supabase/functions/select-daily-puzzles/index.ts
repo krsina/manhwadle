@@ -1,6 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+/**
+ * Cron / service-only selector. Platform `verify_jwt` is intentionally false
+ * in `supabase/config.toml` because callers authenticate with `CRON_SECRET`
+ * (`x-cron-secret` or `Authorization: Bearer <CRON_SECRET>`) or the service
+ * role key — not a user JWT. Do not expose this function to browsers.
+ */
+
 const DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function jsonResponse(
@@ -27,6 +34,7 @@ Deno.serve(async (req: Request) => {
     const header = req.headers.get("x-cron-secret");
     const auth = req.headers.get("Authorization") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    // Custom auth (not user JWT): cron secret header/bearer, or service role.
     const ok =
       header === cronSecret ||
       auth === `Bearer ${cronSecret}` ||

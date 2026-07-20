@@ -1,12 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { buildCorsHeaders } from "../_shared/cors.ts";
+import {
+  findSpoofedCallerIdKey,
+  spoofedCallerIdErrorMessage,
+} from "../_shared/callerIds.ts";
 
-const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+const ALLOW_METHODS = "POST, OPTIONS";
 
 type Action =
   | "lookup_username"
@@ -28,13 +28,22 @@ type Action =
   | "set_outage_exemption"
   | "set_account_flags";
 
+function corsFor(req: Request): Record<string, string> {
+  return buildCorsHeaders({
+    requestOrigin: req.headers.get("Origin"),
+    allowedOriginsEnv: Deno.env.get("CORS_ALLOWED_ORIGINS"),
+    methods: ALLOW_METHODS,
+  });
+}
+
 function jsonResponse(
+  req: Request,
   body: Record<string, unknown>,
   status = 200,
 ): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsFor(req), "Content-Type": "application/json" },
   });
 }
 
@@ -48,20 +57,20 @@ function asBool(value: unknown): boolean {
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: corsFor(req) });
   }
 
   try {
     if (req.method !== "POST") {
-      return jsonResponse({ error: "Method not allowed" }, 405);
+      return jsonResponse(req, { error: "Method not allowed" }, 405);
     }
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
+      return jsonResponse(req, { error: "Unauthorized" }, 401);
     }
     const jwt = authHeader.slice("Bearer ".length).trim();
-    if (!jwt) return jsonResponse({ error: "Unauthorized" }, 401);
+    if (!jwt) return jsonResponse(req, { error: "Unauthorized" }, 401);
 
     const url = Deno.env.get("SUPABASE_URL");
     const anonKey =
@@ -70,6 +79,7 @@ Deno.serve(async (req: Request) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !anonKey || !serviceKey) {
       return jsonResponse(
+        req,
         { error: "Server credentials are not configured" },
         500,
       );
@@ -84,24 +94,30 @@ Deno.serve(async (req: Request) => {
       error: userError,
     } = await userClient.auth.getUser(jwt);
     if (userError || !user) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
+      return jsonResponse(req, { error: "Unauthorized" }, 401);
     }
+    // Actor id from verified JWT only — never from the request body.
     const actorId = user.id;
 
     let body: Record<string, unknown> = {};
     try {
       body = (await req.json()) as Record<string, unknown>;
     } catch {
-      return jsonResponse({ error: "Invalid JSON body" }, 400);
+      return jsonResponse(req, { error: "Invalid JSON body" }, 400);
+    }
+
+    const spoofedKey = findSpoofedCallerIdKey(body);
+    if (spoofedKey) {
+      return jsonResponse(
+        req,
+        { error: spoofedCallerIdErrorMessage(spoofedKey) },
+        400,
+      );
     }
 
     const action = asString(body.action) as Action | null;
     if (!action) {
-      return jsonResponse({ error: "action required" }, 400);
-    }
-
-    if ("actor_id" in body || "actorId" in body) {
-      return jsonResponse({ error: "actor_id not allowed" }, 400);
+      return jsonResponse(req, { error: "action required" }, 400);
     }
 
     const admin = createClient(url, serviceKey, {
@@ -122,14 +138,14 @@ Deno.serve(async (req: Request) => {
     switch (action) {
       case "lookup_username": {
         if (!username) {
-          return jsonResponse({ error: "username required" }, 400);
+          return jsonResponse(req, { error: "username required" }, 400);
         }
         const { data, error } = await rpc("moderation_find_user_by_username", {
           p_actor_id: actorId,
           p_username: username,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "list_reports": {
@@ -138,8 +154,8 @@ Deno.serve(async (req: Request) => {
           p_status: asString(body.status),
           p_limit: typeof body.limit === "number" ? body.limit : 50,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, reports: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, reports: data });
       }
 
       case "list_appeals": {
@@ -148,8 +164,8 @@ Deno.serve(async (req: Request) => {
           p_status: asString(body.status),
           p_limit: typeof body.limit === "number" ? body.limit : 50,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, appeals: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, appeals: data });
       }
 
       case "list_audit": {
@@ -158,14 +174,14 @@ Deno.serve(async (req: Request) => {
           p_target_user_id: targetUserId,
           p_limit: typeof body.limit === "number" ? body.limit : 50,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, actions: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, actions: data });
       }
 
       case "set_report_status": {
         const reportId = body.report_id;
         if (typeof reportId !== "number" && typeof reportId !== "string") {
-          return jsonResponse({ error: "report_id required" }, 400);
+          return jsonResponse(req, { error: "report_id required" }, 400);
         }
         const { data, error } = await rpc("moderation_set_report_status", {
           p_actor_id: actorId,
@@ -173,14 +189,14 @@ Deno.serve(async (req: Request) => {
           p_status: asString(body.status),
           p_reason: reason,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "set_appeal_status": {
         const appealId = body.appeal_id;
         if (typeof appealId !== "number" && typeof appealId !== "string") {
-          return jsonResponse({ error: "appeal_id required" }, 400);
+          return jsonResponse(req, { error: "appeal_id required" }, 400);
         }
         const { data, error } = await rpc("moderation_set_appeal_status", {
           p_actor_id: actorId,
@@ -188,16 +204,16 @@ Deno.serve(async (req: Request) => {
           p_status: asString(body.status),
           p_reason: reason,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "force_username_change": {
         if (!targetUserId) {
-          return jsonResponse({ error: "target_user_id required" }, 400);
+          return jsonResponse(req, { error: "target_user_id required" }, 400);
         }
         if (reason.trim().length < 3) {
-          return jsonResponse({ error: "reason required" }, 400);
+          return jsonResponse(req, { error: "reason required" }, 400);
         }
         const { data, error } = await rpc("moderation_issue_restriction", {
           p_actor_id: actorId,
@@ -207,22 +223,23 @@ Deno.serve(async (req: Request) => {
           p_ends_at: null,
           p_permanent: false,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "issue_cloud_ban":
       case "issue_leaderboard_exclusion": {
         if (!targetUserId) {
-          return jsonResponse({ error: "target_user_id required" }, 400);
+          return jsonResponse(req, { error: "target_user_id required" }, 400);
         }
         if (reason.trim().length < 3) {
-          return jsonResponse({ error: "reason required" }, 400);
+          return jsonResponse(req, { error: "reason required" }, 400);
         }
         const permanent = asBool(body.permanent);
         const endsAt = asString(body.ends_at);
         if (!permanent && !endsAt) {
           return jsonResponse(
+            req,
             { error: "ends_at required for temporary actions" },
             400,
           );
@@ -237,18 +254,18 @@ Deno.serve(async (req: Request) => {
           p_ends_at: permanent ? null : endsAt,
           p_permanent: permanent,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "revoke_restriction": {
         if (!targetUserId) {
-          return jsonResponse({ error: "target_user_id required" }, 400);
+          return jsonResponse(req, { error: "target_user_id required" }, 400);
         }
         const kind = asString(body.kind);
-        if (!kind) return jsonResponse({ error: "kind required" }, 400);
+        if (!kind) return jsonResponse(req, { error: "kind required" }, 400);
         if (reason.trim().length < 3) {
-          return jsonResponse({ error: "reason required" }, 400);
+          return jsonResponse(req, { error: "reason required" }, 400);
         }
         const { data, error } = await rpc("moderation_revoke_restriction", {
           p_actor_id: actorId,
@@ -256,19 +273,19 @@ Deno.serve(async (req: Request) => {
           p_kind: kind,
           p_reason: reason,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "grant_role":
       case "revoke_role": {
         if (!targetUserId) {
-          return jsonResponse({ error: "target_user_id required" }, 400);
+          return jsonResponse(req, { error: "target_user_id required" }, 400);
         }
         const role = asString(body.role);
-        if (!role) return jsonResponse({ error: "role required" }, 400);
+        if (!role) return jsonResponse(req, { error: "role required" }, 400);
         if (reason.trim().length < 3) {
-          return jsonResponse({ error: "reason required" }, 400);
+          return jsonResponse(req, { error: "reason required" }, 400);
         }
         const fn =
           action === "grant_role"
@@ -280,18 +297,18 @@ Deno.serve(async (req: Request) => {
           p_role: role,
           p_reason: reason,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "block_identity": {
         const kind = asString(body.kind);
         const value = asString(body.value);
         if (!kind || !value) {
-          return jsonResponse({ error: "kind and value required" }, 400);
+          return jsonResponse(req, { error: "kind and value required" }, 400);
         }
         if (reason.trim().length < 3) {
-          return jsonResponse({ error: "reason required" }, 400);
+          return jsonResponse(req, { error: "reason required" }, 400);
         }
         const { data, error } = await rpc("moderation_block_identity", {
           p_actor_id: actorId,
@@ -300,16 +317,16 @@ Deno.serve(async (req: Request) => {
           p_provider: asString(body.provider),
           p_reason: reason,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "get_site_status": {
         const { data, error } = await rpc("moderation_get_site_status", {
           p_actor_id: actorId,
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "set_site_status": {
@@ -324,13 +341,13 @@ Deno.serve(async (req: Request) => {
           p_leaderboard_epoch_date: asString(body.leaderboard_epoch_date),
           p_clear_banner: asBool(body.clear_banner),
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "set_mode_status": {
         const mode = asString(body.mode);
-        if (!mode) return jsonResponse({ error: "mode required" }, 400);
+        if (!mode) return jsonResponse(req, { error: "mode required" }, 400);
         const { data, error } = await rpc("moderation_set_mode_status", {
           p_actor_id: actorId,
           p_mode: mode,
@@ -343,15 +360,15 @@ Deno.serve(async (req: Request) => {
               : null,
           p_clear_message: asBool(body.clear_message),
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "set_outage_exemption": {
         const dateKey = asString(body.date_key);
         const mode = asString(body.mode);
         if (!dateKey || !mode) {
-          return jsonResponse({ error: "date_key and mode required" }, 400);
+          return jsonResponse(req, { error: "date_key and mode required" }, 400);
         }
         const { data, error } = await rpc("moderation_set_outage_exemption", {
           p_actor_id: actorId,
@@ -360,13 +377,13 @@ Deno.serve(async (req: Request) => {
           p_reason: reason,
           p_remove: asBool(body.remove),
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       case "set_account_flags": {
         if (!targetUserId) {
-          return jsonResponse({ error: "target_user_id required" }, 400);
+          return jsonResponse(req, { error: "target_user_id required" }, 400);
         }
         const { data, error } = await rpc("moderation_set_account_flags", {
           p_actor_id: actorId,
@@ -376,15 +393,15 @@ Deno.serve(async (req: Request) => {
             typeof body.is_suspicious === "boolean" ? body.is_suspicious : null,
           p_notes: asString(body.notes),
         });
-        if (error) return jsonResponse({ error: error.message }, 400);
-        return jsonResponse({ ok: true, result: data });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
       }
 
       default:
-        return jsonResponse({ error: "Unknown action" }, 400);
+        return jsonResponse(req, { error: "Unknown action" }, 400);
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unexpected error";
-    return jsonResponse({ error: message }, 500);
+    return jsonResponse(req, { error: message }, 500);
   }
 });
