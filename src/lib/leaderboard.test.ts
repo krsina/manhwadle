@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
-  assignDenseRanks,
+  assignOrdinalRanks,
+  assignOrdinalRanksFromValues,
   clampLeaderboardLimit,
   compareLeaderboardRows,
   decodeLeaderboardCursor,
   encodeLeaderboardCursor,
   isAfterLeaderboardCursor,
   parseLeaderboardPage,
+  sortLeaderboardEntries,
 } from './leaderboard'
 import { DEFAULT_AVATAR_ID } from './avatarComposition'
 import { DEFAULT_STAGE_ID } from './avatarStages'
@@ -20,59 +22,93 @@ describe('clampLeaderboardLimit', () => {
   })
 })
 
-describe('assignDenseRanks', () => {
-  it('shares rank on ties without gaps', () => {
-    const ranked = assignDenseRanks([
-      { value: 10, name: 'a' },
-      { value: 10, name: 'b' },
-      { value: 8, name: 'c' },
-      { value: 7, name: 'd' },
-      { value: 7, name: 'e' },
+describe('assignOrdinalRanks', () => {
+  it('assigns unique ranks with first-achieved then publicId tiebreaks', () => {
+    const ranked = assignOrdinalRanksFromValues([
+      { value: 10, publicId: 'b', achievedAtMs: 200 },
+      { value: 10, publicId: 'a', achievedAtMs: 100 },
+      { value: 8, publicId: 'c', achievedAtMs: 50 },
+      { value: 7, publicId: 'e', achievedAtMs: 10 },
+      { value: 7, publicId: 'd', achievedAtMs: 10 },
     ])
-    expect(ranked.map((r) => r.rank)).toEqual([1, 1, 2, 3, 3])
+    expect(ranked.map((r) => ({ rank: r.rank, publicId: r.publicId }))).toEqual([
+      { rank: 1, publicId: 'a' },
+      { rank: 2, publicId: 'b' },
+      { rank: 3, publicId: 'c' },
+      { rank: 4, publicId: 'd' },
+      { rank: 5, publicId: 'e' },
+    ])
+  })
+
+  it('falls back to publicId when achieved times match', () => {
+    const sorted = sortLeaderboardEntries([
+      { value: 5, publicId: 'z', achievedAtMs: 1 },
+      { value: 5, publicId: 'm', achievedAtMs: 1 },
+    ])
+    expect(sorted.map((r) => r.publicId)).toEqual(['m', 'z'])
+    expect(assignOrdinalRanks(sorted).map((r) => r.rank)).toEqual([1, 2])
   })
 })
 
 describe('leaderboard cursors', () => {
   it('round-trips opaque keyset payloads', () => {
     const encoded = encodeLeaderboardCursor({
-      v: 1,
+      v: 2,
       board: 'current_streak',
       value: 12,
-      u: 'alice',
-      p: 'pub_1',
+      t: '2026-07-20T12:00:00.000Z',
+      p: '00000000-0000-4000-8000-000000000001',
     })
     expect(decodeLeaderboardCursor(encoded)).toEqual({
-      v: 1,
+      v: 2,
       board: 'current_streak',
       value: 12,
-      u: 'alice',
-      p: 'pub_1',
+      t: '2026-07-20T12:00:00.000Z',
+      p: '00000000-0000-4000-8000-000000000001',
     })
     expect(decodeLeaderboardCursor('%%%')).toBeNull()
   })
 
+  it('rejects legacy v1 cursors', () => {
+    const legacy = utf8ToBase64(
+      JSON.stringify({
+        v: 1,
+        board: 'current_streak',
+        value: 12,
+        u: 'alice',
+        p: 'pub_1',
+      }),
+    )
+    expect(decodeLeaderboardCursor(legacy)).toBeNull()
+  })
+
   it('orders keyset after cursor deterministically', () => {
     const cursor = {
-      v: 1 as const,
+      v: 2 as const,
       board: 'longest_streak' as const,
       value: 10,
-      u: 'bob',
+      t: '2026-07-20T10:00:00.000Z',
       p: 'p2',
     }
     expect(
-      isAfterLeaderboardCursor({ value: 10, u: 'bob', p: 'p2' }, cursor),
+      isAfterLeaderboardCursor(
+        { value: 10, t: '2026-07-20T10:00:00.000Z', p: 'p2' },
+        cursor,
+      ),
     ).toBe(false)
     expect(
-      isAfterLeaderboardCursor({ value: 9, u: 'aaa', p: 'p0' }, cursor),
+      isAfterLeaderboardCursor({ value: 9, t: '2026-07-01T00:00:00.000Z', p: 'p0' }, cursor),
     ).toBe(true)
     expect(
-      isAfterLeaderboardCursor({ value: 10, u: 'carl', p: 'p3' }, cursor),
+      isAfterLeaderboardCursor(
+        { value: 10, t: '2026-07-20T11:00:00.000Z', p: 'p0' },
+        cursor,
+      ),
     ).toBe(true)
     expect(
       compareLeaderboardRows(
-        { value: 5, u: 'a', p: '1' },
-        { value: 5, u: 'a', p: '2' },
+        { value: 5, t: '2026-01-01T00:00:00.000Z', p: '1' },
+        { value: 5, t: '2026-01-02T00:00:00.000Z', p: '1' },
       ),
     ).toBeLessThan(0)
   })
@@ -119,3 +155,12 @@ describe('parseLeaderboardPage', () => {
     ).toBeNull()
   })
 })
+
+function utf8ToBase64(value: string): string {
+  const bytes = new TextEncoder().encode(value)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]!)
+  }
+  return btoa(binary)
+}

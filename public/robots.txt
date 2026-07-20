@@ -3,5 +3,6 @@ Allow: /
 Disallow: /library
 Disallow: /character-images
 Disallow: /character-image-verify
+Disallow: /dev
 
 Sitemap: https://manhwadle.net/sitemap.xml

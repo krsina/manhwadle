@@ -20,6 +20,7 @@ import {
   type AvatarShopSnapshot,
 } from '../lib/avatarShop'
 import { avatarStageCssUrl, avatarStageUrl, DEFAULT_STAGE_ID } from '../lib/avatarStages'
+import { handleTabListKeyDown } from '../lib/focusTabs'
 import { reportSecretEvent } from '../lib/secretEvents'
 
 type ShopTab = 'characters' | 'backgrounds'
@@ -363,12 +364,18 @@ export function ShopPage() {
           </aside>
 
           <section className="avatar-shop-catalog" aria-label="Shop catalog">
-            <div className="avatar-shop-tabs" role="tablist" aria-label="Shop sections">
+            <div
+              className="avatar-shop-tabs"
+              role="tablist"
+              aria-label="Shop sections"
+              onKeyDown={(event) => handleTabListKeyDown(event, event.currentTarget)}
+            >
               <button
                 type="button"
                 role="tab"
                 id="shop-tab-characters"
                 aria-selected={tab === 'characters'}
+                tabIndex={tab === 'characters' ? 0 : -1}
                 className={`avatar-shop-tab${tab === 'characters' ? ' is-active' : ''}`}
                 onClick={() => setTab('characters')}
               >
@@ -379,6 +386,7 @@ export function ShopPage() {
                 role="tab"
                 id="shop-tab-backgrounds"
                 aria-selected={tab === 'backgrounds'}
+                tabIndex={tab === 'backgrounds' ? 0 : -1}
                 className={`avatar-shop-tab${tab === 'backgrounds' ? ' is-active' : ''}`}
                 onClick={() => setTab('backgrounds')}
               >
@@ -629,7 +637,7 @@ function StageCard({
   return (
     <button
       type="button"
-      className={`avatar-card is-${item.rarity}${selected ? ' is-selected' : ''}${!item.owned ? ' is-unowned' : ''}`}
+      className={`avatar-card is-${item.limitedTime ? 'limited-time' : item.rarity}${selected ? ' is-selected' : ''}${!item.owned ? ' is-unowned' : ''}`}
       aria-pressed={selected}
       onClick={onSelect}
     >
@@ -639,7 +647,7 @@ function StageCard({
         role="img"
         aria-hidden="true"
       >
-        <span className="avatar-rarity">{item.rarity}</span>
+        <span className="avatar-rarity">{item.limitedTime ? 'Limited-time' : item.rarity}</span>
         {!item.owned && <span className="avatar-unowned-tag">Locked</span>}
       </div>
       <div className="avatar-card-copy">

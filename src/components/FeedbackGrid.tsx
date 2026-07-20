@@ -19,6 +19,12 @@ function yearLabel(row: GuessFeedback): string {
   return String(year)
 }
 
+function toneMatchLabel(tone: string): string {
+  if (tone === 'correct') return 'Exact'
+  if (tone === 'close') return 'Close'
+  return 'No match'
+}
+
 function GenreValue({ row }: { row: GuessFeedback }) {
   if (row.genres.tone === 'incorrect') {
     return <span className="tile-value">None</span>
@@ -76,17 +82,19 @@ function FlipCell({
   delayMs,
   className,
   title,
+  ariaLabel,
   children,
 }: {
   animate: boolean
   delayMs: number
   className: string
   title?: string
+  ariaLabel?: string
   children: ReactNode
 }) {
   if (!animate) {
     return (
-      <div className={className} title={title}>
+      <div className={className} title={title} aria-label={ariaLabel}>
         {children}
       </div>
     )
@@ -98,7 +106,7 @@ function FlipCell({
     <div className="flip-cell" style={style}>
       <div className="flip-cell-inner">
         <div className="flip-cell-front" aria-hidden="true" />
-        <div className={`flip-cell-back ${className}`} title={title}>
+        <div className={`flip-cell-back ${className}`} title={title} aria-label={ariaLabel}>
           {children}
         </div>
       </div>
@@ -133,7 +141,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
 
   return (
     <section className="feedback" aria-label="Guess feedback">
-      <div className="feedback-head" aria-hidden="true">
+      <div className="feedback-head">
         <span>Title</span>
         <span>Genres</span>
         <span>Year</span>
@@ -144,6 +152,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
       <ul className="feedback-list">
         {rows.map((row, index) => {
           const animate = index === flippingIndex
+          const tagsMatch = row.tags.shared.length > 0 ? 'Shared' : 'No match'
           return (
             <li
               key={`${row.manhwa.id}-${index}`}
@@ -168,40 +177,50 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
                 delayMs={FLIP_STAGGER_MS}
                 className={`tile tone-${row.genres.tone}`}
                 title={row.genres.guessed.join(', ')}
+                ariaLabel={`Genres, ${toneMatchLabel(row.genres.tone)}`}
               >
                 <span className="tile-label">Genres</span>
+                <span className="tile-tone-status">{toneMatchLabel(row.genres.tone)}</span>
                 <GenreValue row={row} />
               </FlipCell>
               <FlipCell
                 animate={animate}
                 delayMs={FLIP_STAGGER_MS * 2}
                 className={`tile tone-${row.year.tone}`}
+                ariaLabel={`Year, ${toneMatchLabel(row.year.tone)}`}
               >
                 <span className="tile-label">Year</span>
+                <span className="tile-tone-status">{toneMatchLabel(row.year.tone)}</span>
                 <span className="tile-value">{yearLabel(row)}</span>
               </FlipCell>
               <FlipCell
                 animate={animate}
                 delayMs={FLIP_STAGGER_MS * 3}
                 className={`tile tone-${row.status.tone}`}
+                ariaLabel={`Status, ${toneMatchLabel(row.status.tone)}`}
               >
                 <span className="tile-label">Status</span>
+                <span className="tile-tone-status">{toneMatchLabel(row.status.tone)}</span>
                 <span className="tile-value">{row.status.status}</span>
               </FlipCell>
               <FlipCell
                 animate={animate}
                 delayMs={FLIP_STAGGER_MS * 4}
                 className={`tile tone-${row.publisher.tone}`}
+                ariaLabel={`Publisher, ${toneMatchLabel(row.publisher.tone)}`}
               >
                 <span className="tile-label">Publisher</span>
+                <span className="tile-tone-status">{toneMatchLabel(row.publisher.tone)}</span>
                 <span className="tile-value">{row.publisher.publisher}</span>
               </FlipCell>
               <FlipCell
                 animate={animate}
                 delayMs={FLIP_STAGGER_MS * 5}
                 className="tile tile-tags"
+                ariaLabel={`Tags, ${tagsMatch}`}
               >
                 <span className="tile-label">Tags</span>
+                <span className="tile-tone-status">{tagsMatch}</span>
                 <TagValue row={row} />
               </FlipCell>
             </li>

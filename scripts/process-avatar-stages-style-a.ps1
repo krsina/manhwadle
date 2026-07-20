@@ -154,8 +154,11 @@ public static class StageProcessor
 }
 '@
 
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$reviewDirectory = Join-Path $repoRoot 'art\avatar-stages\style-a\review'
+
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
-New-Item -ItemType Directory -Force -Path (Join-Path $OutputDirectory 'review') | Out-Null
+New-Item -ItemType Directory -Force -Path $reviewDirectory | Out-Null
 
 if (-not $ReviewOnly) {
   if ($StageFiles.Count -eq 0) {
@@ -182,12 +185,13 @@ if (-not $ReviewOnly) {
 
 [StageProcessor]::MakeComparison(
   $OutputDirectory,
-  (Join-Path $OutputDirectory 'review\comparison.png')
+  (Join-Path $reviewDirectory 'comparison.png')
 )
 
 [StageProcessor]::MakeSizeCheck(
   $OutputDirectory,
-  (Join-Path $OutputDirectory 'review\size-check.png')
+  (Join-Path $reviewDirectory 'size-check.png')
 )
 
 Write-Output "Wrote Style A stage assets to $OutputDirectory"
+Write-Output "Wrote review sheets to $reviewDirectory"

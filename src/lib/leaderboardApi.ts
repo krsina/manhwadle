@@ -4,12 +4,14 @@ import {
   isLeaderboardBoard,
   parseLeaderboardPage,
   type LeaderboardBoard,
+  type LeaderboardEntry,
   type LeaderboardPage,
 } from './leaderboard'
 import { parseAchievementAwards, type AchievementAward } from './achievements'
 import {
   getDevAchievements,
   getDevLeaderboardPage,
+  getDevLeaderboardSearch,
   getDevMyStanding,
 } from './leaderboardDevFake'
 
@@ -113,6 +115,60 @@ export async function fetchLeaderboard(input: {
   const page = parseLeaderboardPage(data)
   if (!page) return { ok: false, error: 'unexpected_response' }
   return { ok: true, page }
+}
+
+function parseLeaderboardEntry(raw: unknown): LeaderboardEntry | null {
+  if (!raw || typeof raw !== 'object') return null
+  const page = parseLeaderboardPage({
+    board: 'current_streak',
+    entries: [raw],
+    next_cursor: null,
+    has_more: false,
+  })
+  return page?.entries[0] ?? null
+}
+
+/** Exact username search on one board (Enter/submit only; no prefix matching). */
+export async function searchLeaderboard(input: {
+  board: LeaderboardBoard
+  username: string
+}): Promise<
+  | { ok: true; entry: LeaderboardEntry | null }
+  | { ok: false; error: string }
+> {
+  if (!isLeaderboardBoard(input.board)) {
+    return { ok: false, error: 'invalid_board' }
+  }
+  const username = input.username.trim()
+  if (username.length < 3 || username.length > 20) {
+    return { ok: false, error: 'invalid_username' }
+  }
+
+  const fake = getDevLeaderboardSearch(input.board, username)
+  if (fake !== undefined) {
+    return { ok: true, entry: fake }
+  }
+
+  if (!isSupabaseConfigured() || !supabase) {
+    return { ok: false, error: 'unconfigured' }
+  }
+  const { data, error } = await supabase.rpc('search_leaderboard', {
+    p_board: input.board,
+    p_username: username,
+  })
+  if (error) return { ok: false, error: error.message }
+  if (!data || typeof data !== 'object') return { ok: false, error: 'unexpected_response' }
+  const row = data as Record<string, unknown>
+  if (row.ok === false) {
+    return {
+      ok: false,
+      error: typeof row.error === 'string' ? row.error : 'search_failed',
+    }
+  }
+  if (row.entry == null) return { ok: true, entry: null }
+  const entry = parseLeaderboardEntry(row.entry)
+  if (!entry) return { ok: false, error: 'unexpected_response' }
+  return { ok: true, entry }
 }
 
 export function parseMyLeaderboardStanding(raw: unknown): MyLeaderboardStanding | null {

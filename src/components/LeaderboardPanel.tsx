@@ -1,6 +1,11 @@
-import { useEffect, useId, useState, type CSSProperties } from 'react'
+import { useEffect, useId, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Dialog } from './Dialog'
-import { PixelAvatar } from './PixelAvatar'
+import {
+  entryKey,
+  LeaderboardRow,
+  LeaderboardShowcaseCard,
+} from './LeaderboardCards'
 import {
   LEADERBOARD_BOARDS,
   boardBlurb,
@@ -10,14 +15,14 @@ import {
 } from '../lib/leaderboard'
 import { fetchLeaderboard } from '../lib/leaderboardApi'
 import { DEV_LEADERBOARD_EVENT } from '../lib/leaderboardDevFake'
-import { avatarStageCssUrl, DEFAULT_STAGE_ID } from '../lib/avatarStages'
+import { LEADERBOARD_PATH } from '../lib/routes'
 import { reportSecretEvent } from '../lib/secretEvents'
 import { handleTabListKeyDown } from '../lib/focusTabs'
 
 type LoadState = 'idle' | 'loading' | 'error' | 'ready'
 type LeaderboardLayout = 'list' | 'showcase'
 
-const SIDEBAR_LIMIT = 10
+const SIDEBAR_LIMIT = 50
 const SHOWCASE_TOP = 3
 const LAYOUT_STORAGE_KEY = 'manhwadle:leaderboard-layout'
 /** Matches `.home-main` stacking in styles.css — rankings become narrow. */
@@ -57,7 +62,7 @@ function loadLeaderboardLayout(): LeaderboardLayout {
   } catch {
     // ignore
   }
-  return 'list'
+  return 'showcase'
 }
 
 function saveLeaderboardLayout(layout: LeaderboardLayout) {
@@ -68,88 +73,9 @@ function saveLeaderboardLayout(layout: LeaderboardLayout) {
   }
 }
 
-function entryKey(entry: LeaderboardEntry): string {
-  return `${entry.publicId}-${entry.rank}-${entry.value}`
-}
-
-function RankBadge({ rank }: { rank: number }) {
-  if (rank <= 3) {
-    return (
-      <span className="leaderboard-medal" aria-hidden="true">
-        {rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉'}
-      </span>
-    )
-  }
-  return <>{rank}</>
-}
-
-function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
-  return (
-    <li
-      className={`leaderboard-row${entry.rank <= 3 ? ` is-top is-top-${entry.rank}` : ''}`}
-    >
-      <span className="leaderboard-rank" aria-label={`Rank ${entry.rank}`}>
-        <RankBadge rank={entry.rank} />
-      </span>
-      <span className="leaderboard-player">
-        <PixelAvatar
-          characterId={entry.equippedAvatarId}
-          size="sm"
-          decorative
-          className="leaderboard-avatar"
-        />
-        <span className="leaderboard-name">{entry.username}</span>
-      </span>
-      <span className="leaderboard-value">
-        <span className="leaderboard-value-num">{entry.value}</span>
-        <span className="leaderboard-value-unit" aria-hidden="true">
-          {entry.value === 1 ? 'day' : 'days'}
-        </span>
-      </span>
-    </li>
-  )
-}
-
-function LeaderboardShowcaseCard({ entry }: { entry: LeaderboardEntry }) {
-  const podium = entry.rank >= 1 && entry.rank <= 3 ? ` is-podium-${entry.rank}` : ''
-  const stageStyle = {
-    ['--avatar-stage-url' as string]: avatarStageCssUrl(
-      entry.equippedStageId ?? DEFAULT_STAGE_ID,
-    ),
-  } as CSSProperties
-  return (
-    <li
-      className={`leaderboard-showcase-card${entry.rank <= 3 ? ` is-top is-top-${entry.rank}` : ''}${podium}`}
-    >
-      <div className="leaderboard-showcase-stage avatar-stage-well" style={stageStyle}>
-        <span className="leaderboard-showcase-rank" aria-label={`Rank ${entry.rank}`}>
-          <RankBadge rank={entry.rank} />
-        </span>
-        <PixelAvatar
-          characterId={entry.equippedAvatarId}
-          size="md"
-          decorative
-          className="leaderboard-showcase-avatar"
-        />
-      </div>
-      <div className="leaderboard-showcase-meta">
-        <span className="leaderboard-showcase-name">{entry.username}</span>
-        <span className="leaderboard-showcase-value">
-          <span className="leaderboard-value-num">{entry.value}</span>
-          <span className="leaderboard-value-unit" aria-hidden="true">
-            d
-          </span>
-        </span>
-      </div>
-    </li>
-  )
-}
-
 export function LeaderboardPanel() {
   const [active, setActive] = useState<LeaderboardBoard>('current_streak')
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(false)
   const [state, setState] = useState<LoadState>('idle')
   const [error, setError] = useState<string | null>(null)
   const [reloadToken, setReloadToken] = useState(0)
@@ -173,7 +99,6 @@ export function LeaderboardPanel() {
     setState('loading')
     setError(null)
     setEntries([])
-    setCursor(null)
     void fetchLeaderboard({ board: active, limit: SIDEBAR_LIMIT }).then((result) => {
       if (cancelled) return
       if (!result.ok) {
@@ -182,8 +107,6 @@ export function LeaderboardPanel() {
         return
       }
       setEntries(result.page.entries)
-      setCursor(result.page.nextCursor)
-      setHasMore(result.page.hasMore)
       setState('ready')
       void reportSecretEvent('leaderboard_view')
     })
@@ -191,21 +114,6 @@ export function LeaderboardPanel() {
       cancelled = true
     }
   }, [active, reloadToken])
-
-  async function loadMore() {
-    if (!cursor || state === 'loading') return
-    setState('loading')
-    const result = await fetchLeaderboard({ board: active, limit: SIDEBAR_LIMIT, cursor })
-    if (!result.ok) {
-      setState('error')
-      setError('Could not load more rows.')
-      return
-    }
-    setEntries((prev) => [...prev, ...result.page.entries])
-    setCursor(result.page.nextCursor)
-    setHasMore(result.page.hasMore)
-    setState('ready')
-  }
 
   function toggleLayout() {
     setLayout((prev) => {
@@ -247,6 +155,9 @@ export function LeaderboardPanel() {
               <span aria-hidden="true">{showcase ? '☰' : '▦'}</span>
             </button>
           )}
+          <Link to={LEADERBOARD_PATH} className="leaderboard-view-all">
+            View all
+          </Link>
         </div>
       </div>
 
@@ -308,17 +219,6 @@ export function LeaderboardPanel() {
             <LeaderboardRow key={entryKey(entry)} entry={entry} />
           ))}
         </ol>
-      )}
-
-      {hasMore && (
-        <button
-          type="button"
-          className="btn btn-ghost leaderboard-more"
-          disabled={state === 'loading'}
-          onClick={() => void loadMore()}
-        >
-          {state === 'loading' ? 'Loading…' : 'Show more'}
-        </button>
       )}
 
       <RankingsInfoModal open={infoOpen} onClose={() => setInfoOpen(false)} />

@@ -78,6 +78,7 @@ export const STAGE_CATALOG_FALLBACK: readonly AvatarShopItem[] = AVATAR_STAGE_ME
   assetKey: meta.assetKey,
   owned: meta.starter,
   equipped: meta.id === DEFAULT_STAGE_ID,
+  limitedTime: meta.limitedTime === true,
 }))
   .slice()
   .sort(compareShopItemsByPrice)

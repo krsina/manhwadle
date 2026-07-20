@@ -6,6 +6,7 @@ import {
   clearDevLeaderboard,
   isDevLeaderboardOverrideEnabled,
   loadDevLeaderboardState,
+  seedBulkDevRankings,
   seedSampleDevRankings,
   setDevLeaderboardEnabled,
   syncDevYouOnBoards,
@@ -201,6 +202,20 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
             }}
           >
             Populate test rankings
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => {
+              seedBulkDevRankings(500)
+              const state = loadDevLeaderboardState()
+              setEnabled(true)
+              setStanding(state.standing)
+              const n = state.boards.current_streak.length
+              setNotice(`Populated ${n} local rankings (avatars + stages).`)
+            }}
+          >
+            Populate 500 rankings
           </button>
           <button
             type="button"

@@ -24,10 +24,11 @@ if ([string]::IsNullOrWhiteSpace($SourceDirectory)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($BaseStudyDirectory)) {
-  $BaseStudyDirectory = Join-Path $repoRoot 'public\avatar-base-study'
+  $BaseStudyDirectory = Join-Path $repoRoot 'art\avatar-base-study'
 }
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
-  $OutputDirectory = Join-Path $repoRoot 'public\avatar\style-c'
+  # Style C layered pack is retired from the live site; keep any rebuilds out of public/.
+  $OutputDirectory = Join-Path $repoRoot 'art\avatar\style-c'
 }
 
 Add-Type -AssemblyName System.Drawing

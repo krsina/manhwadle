@@ -103,6 +103,35 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('button').filter({ hasText: 'Skybreaker Monk' })).toBeVisible()
   })
 
+  test('homepage leaderboard links to the full board without Show more', async ({ page }) => {
+    await page.goto('/')
+    const panel = page.locator('.leaderboard-panel')
+    await expect(panel.getByRole('heading', { name: 'Leaderboard' })).toBeVisible()
+    await expect(panel.getByRole('link', { name: 'View all' })).toBeVisible()
+    await expect(panel.getByRole('button', { name: 'Show more' })).toHaveCount(0)
+    await expect(panel.getByRole('tab', { name: /Current streak/i })).toBeVisible()
+  })
+
+  test('leaderboard page supports exact username search submit', async ({ page }) => {
+    await page.goto('/leaderboard')
+    await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Back home' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: /Current streak/i })).toBeVisible()
+
+    const search = page.getByLabel('Find player')
+    await expect(search).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Search' })).toBeVisible()
+
+    await search.fill('nobody_here_xyz')
+    await page.getByRole('button', { name: 'Search' }).click()
+    // Without a live board this may be an error or an exact no-match; either is a real submit path.
+    await expect(
+      page
+        .getByRole('alert')
+        .or(page.getByRole('status').filter({ hasText: /No exact match/i })),
+    ).toBeVisible()
+  })
+
   test('production preview hides owner-only dev surfaces for guests', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('button', { name: 'Dev tools' })).toHaveCount(0)
