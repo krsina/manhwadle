@@ -25,6 +25,7 @@ export function CharacterGuessInput({
   const [query, setQuery] = useState('')
   const [hits, setHits] = useState<CharacterSearchHit[]>([])
   const [open, setOpen] = useState(false)
+  const [noResults, setNoResults] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const rootRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
@@ -33,13 +34,15 @@ export function CharacterGuessInput({
     if (!query.trim()) {
       setHits([])
       setOpen(false)
+      setNoResults(false)
       return
     }
 
     const handle = window.setTimeout(() => {
       const next = searchCharacters(characters, query, CHARACTER_SEARCH_LIMIT)
       setHits(next)
-      setOpen(next.length > 0)
+      setNoResults(next.length === 0)
+      setOpen(true)
       setActiveIndex(0)
     }, 120)
 
@@ -67,9 +70,14 @@ export function CharacterGuessInput({
     setQuery('')
     setHits([])
     setOpen(false)
+    setNoResults(false)
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (noResults && e.key === 'Enter') {
+      e.preventDefault()
+      return
+    }
     if (!open || hits.length === 0) {
       if (e.key === 'Enter') e.preventDefault()
       return
@@ -119,6 +127,16 @@ export function CharacterGuessInput({
         autoFocus
       />
       {open && (
+        noResults ? (
+          <div
+            id={listId}
+            className="guess-list guess-empty"
+            role="status"
+            aria-live="polite"
+          >
+            No matching characters
+          </div>
+        ) : (
         <ul id={listId} className="guess-list" role="listbox" ref={listRef}>
           {hits.map((hit, index) => (
             <li key={`${hit.character.id}-${index}`} role="presentation">
@@ -136,6 +154,7 @@ export function CharacterGuessInput({
             </li>
           ))}
         </ul>
+        )
       )}
     </div>
   )

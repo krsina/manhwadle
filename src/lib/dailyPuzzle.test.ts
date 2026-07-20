@@ -95,4 +95,33 @@ describe('getTodaysPuzzle', () => {
     )
     expect(result.source).toBe('local')
   })
+
+  it('falls back to local when remote answer is outside the playable pool', async () => {
+    const { getTodaysPuzzle } = await import('./dailyPuzzle')
+    const playable = [makeManhwa({ id: 1 })]
+    const fallback = [makeManhwa({ id: 1 }), makeManhwa({ id: 2 })]
+    maybeSingle.mockResolvedValue({
+      data: {
+        date_key: '2026-07-20',
+        mode: 'character',
+        taste: 'action',
+        answer_id: 2,
+        character_id: 99,
+        meta: null,
+      },
+      error: null,
+    })
+
+    const result = await getTodaysPuzzle(
+      'character',
+      'action',
+      playable,
+      fallback,
+      'character-action',
+      '2026-07-20',
+    )
+    expect(result.source).toBe('local')
+    expect(result.answer.id).toBe(1)
+    expect(result.characterId).toBeNull()
+  })
 })

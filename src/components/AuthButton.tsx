@@ -1,6 +1,12 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
-import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth, type AuthOAuthProvider } from './AuthProvider'
+import { Dialog } from './Dialog'
+import { ModerationDashboard } from './ModerationDashboard'
+import { canUseModerationUi } from '../lib/moderationApi'
+import { SETTINGS_PATH } from '../lib/routes'
+import { PixelAvatar } from './PixelAvatar'
+import { DIALOG_ESCAPE_EVENT, reportAccountMenuPress } from '../lib/secretEvents'
 
 const OAUTH_PROVIDERS: {
   id: AuthOAuthProvider
@@ -13,9 +19,11 @@ const OAUTH_PROVIDERS: {
 
 /** Compact optional sign-in. Hidden when Supabase env is missing. */
 export function AuthButton() {
-  const { user, configured, loading, signInWithMagicLink, signInWithOAuth, signOut } =
+  const { user, account, configured, loading, signInWithMagicLink, signInWithOAuth, signOut } =
     useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const [moderationOpen, setModerationOpen] = useState(false)
 
   if (!configured) return null
 
@@ -29,33 +37,29 @@ export function AuthButton() {
   }
 
   if (user) {
-    const label = user.email?.split('@')[0] || 'Account'
+    const label = account?.username || 'Account'
     return (
       <>
-        <button
-          type="button"
-          className="auth-chip auth-chip-signed auth-chip-trigger"
-          onClick={() => setOpen(true)}
-          aria-haspopup="dialog"
-          aria-expanded={open}
-          title={user.email ?? 'Account'}
-        >
-          <span className="auth-avatar" aria-hidden="true">
-            {label.charAt(0).toUpperCase()}
-          </span>
-          <span className="auth-chip-label">{label}</span>
-          <ChevronIcon />
-        </button>
-        {open && (
-          <AccountModal
-            email={user.email ?? null}
-            onClose={() => setOpen(false)}
-            onSignOut={async () => {
-              await signOut()
-              setOpen(false)
-            }}
-          />
-        )}
+        <AccountMenu
+          label={label}
+          email={user.email ?? null}
+          username={account?.username ?? null}
+          staffRole={account?.staffRole ?? null}
+          cloudBanned={Boolean(account?.cloudBanned)}
+          equippedAvatarId={account?.equippedAvatarId}
+          title={account?.username ? `@${account.username}` : (user.email ?? 'Account')}
+          onOpenSettings={() => navigate(SETTINGS_PATH)}
+          onOpenModeration={
+            canUseModerationUi(account?.staffRole)
+              ? () => setModerationOpen(true)
+              : undefined
+          }
+          onSignOut={() => signOut()}
+        />
+        <ModerationDashboard
+          open={moderationOpen}
+          onClose={() => setModerationOpen(false)}
+        />
       </>
     )
   }
@@ -63,9 +67,12 @@ export function AuthButton() {
   return (
     <>
       <button
+        id="site-auth-button"
         type="button"
         className="auth-chip-btn"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true)
+        }}
         aria-haspopup="dialog"
         aria-expanded={open}
       >
@@ -132,18 +139,7 @@ function SignInModal({
 
   const anyBusy = busy || oauthBusy !== null
 
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null
-
-    function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      prev?.focus?.()
-    }
-  }, [onClose])
+  // Focus + Escape handled by Dialog
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -172,15 +168,16 @@ function SignInModal({
     }
   }
 
-  return createPortal(
-    <div className="modal-backdrop auth-backdrop" role="presentation" onClick={onClose}>
-      <div
-        className="modal auth-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        onClick={(e) => e.stopPropagation()}
-      >
+  return (
+    <Dialog
+      open
+      onClose={onClose}
+      titleId={titleId}
+      descriptionId="auth-sign-in-desc"
+      backdropClassName="auth-backdrop"
+      panelClassName="auth-modal"
+      initialFocusRef={inputRef}
+    >
         <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
           <span aria-hidden="true">×</span>
         </button>
@@ -282,78 +279,160 @@ function SignInModal({
             </form>
           </>
         )}
-      </div>
-    </div>,
-    document.body,
+    </Dialog>
   )
 }
 
-function AccountModal({
+function AccountMenu({
+  label,
   email,
-  onClose,
+  username,
+  staffRole,
+  cloudBanned,
+  equippedAvatarId,
+  title,
+  onOpenSettings,
+  onOpenModeration,
   onSignOut,
 }: {
+  label: string
   email: string | null
-  onClose: () => void
+  username: string | null
+  staffRole: string | null
+  cloudBanned: boolean
+  equippedAvatarId: string | null | undefined
+  title: string
+  onOpenSettings: () => void
+  onOpenModeration?: () => void
   onSignOut: () => Promise<void>
 }) {
-  const titleId = useId()
+  const menuId = useId()
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+    if (!open) return
 
-  return createPortal(
-    <div className="modal-backdrop auth-backdrop" role="presentation" onClick={onClose}>
-      <div
-        className="modal auth-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        onClick={(e) => e.stopPropagation()}
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target as Node | null
+      if (target && wrapRef.current?.contains(target)) return
+      setOpen(false)
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      window.dispatchEvent(new Event(DIALOG_ESCAPE_EVENT))
+      setOpen(false)
+    }
+
+    document.addEventListener('pointerdown', onPointerDown, true)
+    document.addEventListener('keydown', onKeyDown, true)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true)
+      document.removeEventListener('keydown', onKeyDown, true)
+    }
+  }, [open])
+
+  return (
+    <div className="auth-menu" ref={wrapRef}>
+      <button
+        type="button"
+        className="auth-chip auth-chip-signed auth-chip-trigger"
+        onPointerDown={(event) => {
+          // pointerdown survives rapid mash better than click; primary button only.
+          if (event.button !== 0) return
+          void reportAccountMenuPress()
+        }}
+        onClick={() => {
+          setOpen((value) => !value)
+        }}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+        title={title}
       >
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
-          <span aria-hidden="true">×</span>
-        </button>
-        <p className="modal-kicker">Account</p>
-        <h2 id={titleId} className="modal-title">
-          Signed in
-        </h2>
-        <p className="auth-modal-intro">
-          {email ? (
-            <>
-              You&apos;re signed in as{' '}
-              <strong className="auth-email-highlight">{email}</strong>. Progress stays synced
-              while you&apos;re signed in.
-            </>
-          ) : (
-            'Your progress stays synced while you are signed in.'
+        <span className="auth-avatar" aria-hidden="true">
+          <PixelAvatar characterId={equippedAvatarId} size="sm" decorative />
+        </span>
+        <span className="auth-chip-label">{label}</span>
+        <ChevronIcon />
+      </button>
+      {open && (
+        <div
+          id={menuId}
+          className="auth-menu-panel"
+          role="menu"
+          aria-label="Account menu"
+        >
+          <p className="auth-menu-kicker">Account</p>
+          <p className="auth-menu-intro">
+            {username ? (
+              <>
+                Playing as <strong className="auth-email-highlight">{username}</strong>
+                {email ? <> ({email})</> : null}.
+              </>
+            ) : email ? (
+              <>
+                Signed in as <strong className="auth-email-highlight">{email}</strong>.
+              </>
+            ) : (
+              'Your progress stays synced while you are signed in.'
+            )}
+          </p>
+          {cloudBanned && (
+            <p className="auth-modal-error" role="status">
+              Cloud sync writes are disabled for this account. You can still play locally and
+              read existing synced data.
+            </p>
           )}
-        </p>
-        <div className="modal-actions auth-modal-actions">
-          <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
-            Close
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost auth-sign-out-btn"
-            disabled={busy}
-            onClick={() => {
-              setBusy(true)
-              void onSignOut().finally(() => setBusy(false))
-            }}
-          >
-            {busy ? 'Signing out…' : 'Sign out'}
-          </button>
+          <div className="auth-menu-actions">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false)
+                onOpenSettings()
+              }}
+              disabled={busy}
+            >
+              Account settings
+            </button>
+            {onOpenModeration && (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false)
+                  onOpenModeration()
+                }}
+                disabled={busy}
+              >
+                Moderation{staffRole ? ` (${staffRole})` : ''}
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn btn-ghost auth-sign-out-btn"
+              role="menuitem"
+              disabled={busy}
+              onClick={() => {
+                setBusy(true)
+                void onSignOut().finally(() => {
+                  setBusy(false)
+                  setOpen(false)
+                })
+              }}
+            >
+              {busy ? 'Signing out…' : 'Sign out'}
+            </button>
+          </div>
         </div>
-      </div>
-    </div>,
-    document.body,
+      )}
+    </div>
   )
 }
 

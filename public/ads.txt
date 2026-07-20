@@ -1,0 +1,5 @@
+# Authorized Digital Sellers (ads.txt)
+# After AdSense and/or Adsterra approval, replace this file with lines from your
+# publisher dashboard. Keep this file at https://manhwadle.net/ads.txt
+#
+# See docs/ads.md

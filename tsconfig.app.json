@@ -23,5 +23,6 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "catalog.config.json"]
+  "include": ["src", "catalog.config.json"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts"]
 }

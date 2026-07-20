@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /library
+Disallow: /character-images
+Disallow: /character-image-verify
+
+Sitemap: https://manhwadle.net/sitemap.xml

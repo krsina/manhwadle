@@ -31,3 +31,17 @@ enable_signup = true
 [auth.email]
 enable_signup = true
 enable_confirmations = false
+
+# Account export / self-service deletion (JWT required; user id from token only).
+[functions.account-data]
+verify_jwt = true
+
+# Staff moderation API (JWT required; actor id from token only).
+[functions.moderation]
+verify_jwt = true
+
+# Optional: enable Before User Created Postgres hook after applying roles_moderation.
+# Dashboard → Authentication → Hooks → Before User Created → hook_before_user_created
+# [auth.hook.before_user_created]
+# enabled = true
+# uri = "pg-functions://postgres/public/hook_before_user_created"

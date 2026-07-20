@@ -1,5 +1,6 @@
 import type { CharacterCropEntry } from '../lib/crops'
 import { clampFocus, cropZoomScale } from '../lib/crops'
+import { MediaImage } from './MediaImage'
 import { RevealMoreButton } from './RevealMoreButton'
 
 interface CharacterClueProps {
@@ -57,10 +58,11 @@ export function CharacterClue({
               transformOrigin: `${focusX}% ${focusY}%`,
             }}
           >
-            <img
+            <MediaImage
               className={`crop-image${grayscale ? ' is-grayscale' : ''}`}
               src={crop.imageUrl}
-              alt=""
+              alt="Today’s character clue. Wrong guesses zoom out the crop."
+              fallbackLabel="Character image unavailable"
               draggable={false}
               referrerPolicy="no-referrer"
             />

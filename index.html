@@ -3,20 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manhwadle — daily manhwa guessing game</title>
     <meta
       name="description"
-      content="Manhwadle — a daily Wordle-style game where you guess the manhwa from its summary."
+      content="Manhwadle is a daily Wordle-style guessing game for manhwa. Play Summary, Character, Cover, and Heardle modes. Unofficial fan project."
     />
+    <link rel="canonical" href="https://manhwadle.net/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Manhwadle" />
+    <meta property="og:title" content="Manhwadle — daily manhwa guessing game" />
+    <meta
+      property="og:description"
+      content="Guess today’s manhwa from summary, character, cover, or song clues. Four daily modes. Unofficial fan project."
+    />
+    <meta property="og:url" content="https://manhwadle.net/" />
+    <meta property="og:image" content="https://manhwadle.net/og-share.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Manhwadle — daily manhwa guessing game" />
+    <meta
+      name="twitter:description"
+      content="Guess today’s manhwa from summary, character, cover, or song clues. Four daily modes."
+    />
+    <meta name="twitter:image" content="https://manhwadle.net/og-share.svg" />
+    <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eef1f6" media="(prefers-color-scheme: light)" />
+    <meta name="color-scheme" content="dark light" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <meta name="color-scheme" content="dark light" />
-    <meta name="theme-color" content="#09090b" />
-    <title>Manhwadle</title>
+    <!--
+      Inline theme boot is required to avoid a flash of the wrong theme before React hydrates.
+      It only reads localStorage and sets data-theme / color-scheme. CSP allows this exact
+      pattern via a narrow script-src 'unsafe-inline' exception documented in public/_headers.
+    -->
     <script>
       (function () {
         try {

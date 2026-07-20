@@ -31,7 +31,7 @@ export function applyTheme(theme: Theme): void {
 
   const themeColor = document.querySelector('meta[name="theme-color"]')
   if (themeColor) {
-    themeColor.setAttribute('content', theme === 'dark' ? '#09090b' : '#f4f4f5')
+    themeColor.setAttribute('content', theme === 'dark' ? '#09090b' : '#eef1f6')
   }
 }
 

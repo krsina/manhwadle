@@ -1,3 +1,5 @@
+import { reportSecretEvent } from '../lib/secretEvents'
+
 interface HardModeToggleProps {
   enabled: boolean
   disabled?: boolean
@@ -27,7 +29,9 @@ export function HardModeToggle({
       disabled={disabled}
       onClick={() => {
         if (disabled) return
-        onChange(!enabled)
+        const next = !enabled
+        onChange(next)
+        if (next) void reportSecretEvent('hard_mode_on')
       }}
     >
       <span className="hard-mode-toggle-label">Hard Mode</span>

@@ -20,7 +20,7 @@ function genreToneClass(state: KnownInfo['genres']['state']): string {
 
 function genreKnownValue(info: KnownInfo['genres']): string {
   if (info.state === 'exact') {
-    return info.confirmed.length > 0 ? info.confirmed.join(', ') : 'All match'
+    return info.confirmed.length > 0 ? info.confirmed.join(', ') : '—'
   }
   if (info.state === 'partial') {
     return info.confirmed.length > 0 ? info.confirmed.join(', ') : 'Partial'

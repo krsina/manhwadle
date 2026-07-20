@@ -1,0 +1,41 @@
+﻿{
+  "id": "style-c-male-base",
+  "approvalStatus": "approved",
+  "approvalDate": "2026-07-18",
+  "sharedContractRef": "style-c-female-base-anchors.json",
+  "registration": {"translateX":-2,"translateY":-5,"mode":"nearest-neighbor-integer"},
+  "canvas": {"width":256,"height":256,"format":"Format32bppArgb","origin":"top-left"},
+  "canvasCenter": {"x":128,"y":128},
+  "anchors": {
+    "headCenter": {"x":127,"y":84},
+    "faceCenter": {"x":127,"y":88},
+    "eyeLineY": 93,
+    "hairlineY": 47,
+    "earLeft": {"x":77,"y":93},
+    "earRight": {"x":177,"y":93},
+    "neck": {"x":127,"y":131},
+    "shoulderLeft": {"x":103,"y":142},
+    "shoulderRight": {"x":152,"y":142},
+    "elbowLeft": {"x":96,"y":163},
+    "elbowRight": {"x":158,"y":163},
+    "wristLeft": {"x":95,"y":185},
+    "wristRight": {"x":159,"y":185},
+    "waist": {"x":127,"y":162},
+    "hipLeft": {"x":105,"y":178},
+    "hipRight": {"x":150,"y":178},
+    "kneeLeft": {"x":116,"y":196},
+    "kneeRight": {"x":139,"y":196},
+    "ankleLeft": {"x":116,"y":203},
+    "ankleRight": {"x":139,"y":203},
+    "soleLeft": {"x":112,"y":224},
+    "soleRight": {"x":142,"y":224}
+  },
+  "bounds": {
+    "face": {"left":83,"top":49,"right":171,"bottom":128,"width":89,"height":80},
+    "silhouette": {"left":71,"top":30,"right":184,"bottom":224,"width":114,"height":195},
+    "underlayer": {"left":107,"top":131,"right":148,"bottom":191,"width":42,"height":61}
+  },
+  "groundBaselineY": 224,
+  "ears": "human",
+  "notes": "Approved male plate shares the locked production attachment contract with the approved female base. Silhouette/underlayer bounds are measured from the male plate after integer registration."
+}

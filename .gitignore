@@ -9,11 +9,17 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-tools
 dist-ssr
+test-results
+playwright-report
+blob-report
+playwright/.cache
 *.local
 .env
 .env.*
 !.env.example
+supabase/.temp/
 
 # Generated puzzle pool dumps (recreate via npm run sync-pools)
 scripts/puzzle-pools.sql
@@ -38,6 +44,7 @@ scripts/character-alias-anilist-checkpoint.json
 manhwadle-etl/output/*.enrich-images.checkpoint.json
 
 # Generated audit and simulation reports
+scripts/audit-artifacts/
 scripts/character-alias-anilist-refresh.json
 scripts/name-order-alias-audit.csv
 scripts/name-order-alias-audit.json

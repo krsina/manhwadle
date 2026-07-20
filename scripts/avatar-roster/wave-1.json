@@ -1,0 +1,252 @@
+{
+  "wave": 1,
+  "style": "style-a",
+  "existingPremium": [
+    "shadow-hunter",
+    "skybreaker-monk"
+  ],
+  "characters": [
+    {
+      "slug": "plum-blossom-blade",
+      "id": "avatar_plum_blossom_blade",
+      "name": "Plum Blossom Blade",
+      "description": "White murim robes, pink plum petals, and a long gleaming sword.",
+      "price": 150,
+      "rarity": "rare",
+      "sortOrder": 50,
+      "genderPresentation": "male",
+      "traits": {
+        "hair": "Long neat black hair tied partly back",
+        "eyes": "Calm dark eyes",
+        "outfit": "White murim martial robes with soft pink sash accents",
+        "props": "MUST hold ONE long straight sword clearly in hand",
+        "aura": "A few floating pink plum blossom petals around the figure (compact)"
+      },
+      "inspirationSeries": "Mount Hua / murim",
+      "inspirationCharacter": "Murim swordsman"
+    },
+    {
+      "slug": "tower-ranker",
+      "id": "avatar_tower_ranker",
+      "name": "Tower Ranker",
+      "description": "Long blue coat, black hair, and a compact pocket-glow aura.",
+      "price": 150,
+      "rarity": "rare",
+      "sortOrder": 60,
+      "genderPresentation": "male",
+      "traits": {
+        "hair": "Messy black hair with bangs",
+        "eyes": "Sharp golden-yellow eyes",
+        "outfit": "Long blue trench coat over dark clothes and boots",
+        "props": "MUST show a glowing rectangular pocket device on the belt or in one hand",
+        "aura": "Soft cool blue pocket-glow particles behind the figure"
+      },
+      "inspirationSeries": "Tower climber",
+      "inspirationCharacter": "Ranker with pocket device"
+    },
+    {
+      "slug": "fourth-wall-reader",
+      "id": "avatar_fourth_wall_reader",
+      "name": "Fourth-wall Reader",
+      "description": "White coat, black hair, and a subtle crack-ink aura.",
+      "price": 150,
+      "rarity": "rare",
+      "sortOrder": 70,
+      "genderPresentation": "male",
+      "traits": {
+        "hair": "Short neat black hair",
+        "eyes": "Tired dark eyes with thin glasses",
+        "outfit": "Long white coat over plain dark shirt and pants",
+        "props": "MUST hold a closed hardcover book under one arm",
+        "aura": "Subtle black ink crack lines behind the figure (no text, no UI)"
+      },
+      "inspirationSeries": "Omniscient reader",
+      "inspirationCharacter": "Reader with hardcover book"
+    },
+    {
+      "slug": "absolute-regressor",
+      "id": "avatar_absolute_regressor",
+      "name": "Absolute Regressor",
+      "description": "Black coat, red time-fracture aura, and a single sword.",
+      "price": 150,
+      "rarity": "rare",
+      "sortOrder": 80,
+      "genderPresentation": "male",
+      "traits": {
+        "hair": "Short spiky black hair",
+        "eyes": "Cold red eyes",
+        "outfit": "Black high-collar coat, dark armor accents, boots",
+        "props": "MUST hold ONE sword clearly visible",
+        "aura": "Jagged red time-fracture shards behind the silhouette"
+      },
+      "inspirationSeries": "Regression",
+      "inspirationCharacter": "Cold regression swordsman"
+    },
+    {
+      "slug": "ice-sovereign",
+      "id": "avatar_ice_sovereign",
+      "name": "Ice Sovereign",
+      "description": "White-blue hair, crystalline dress, and an ice spear.",
+      "price": 250,
+      "rarity": "epic",
+      "sortOrder": 90,
+      "genderPresentation": "female",
+      "traits": {
+        "hair": "Long flowing white-blue hair",
+        "eyes": "Icy pale-blue eyes",
+        "outfit": "Crystalline ice-blue gown with silver trim and boots",
+        "props": "MUST hold ONE crystalline ice spear",
+        "aura": "Compact ice crystal shards behind the figure"
+      },
+      "inspirationSeries": "Ice empress",
+      "inspirationCharacter": "Ice sovereign heroine"
+    },
+    {
+      "slug": "flame-returnee",
+      "id": "avatar_flame_returnee",
+      "name": "Flame Returnee",
+      "description": "Ash-black hair, ember coat, and fire gauntlets.",
+      "price": 150,
+      "rarity": "rare",
+      "sortOrder": 100,
+      "genderPresentation": "male",
+      "traits": {
+        "hair": "Ash-black messy hair with ember-orange tips",
+        "eyes": "Glowing orange eyes",
+        "outfit": "Charred dark coat with ember lining, dark pants, boots",
+        "props": "MUST wear oversized fire gauntlets on BOTH hands",
+        "aura": "Compact ember flame wisps behind the figure"
+      },
+      "inspirationSeries": "Flame returnee",
+      "inspirationCharacter": "Fire gauntlet MC"
+    },
+    {
+      "slug": "blood-contract",
+      "id": "avatar_blood_contract",
+      "name": "Blood Contract",
+      "description": "Crimson eyes, dark cape, and floating blood orbs.",
+      "price": 150,
+      "rarity": "rare",
+      "sortOrder": 110,
+      "genderPresentation": "male",
+      "traits": {
+        "hair": "Sleek black hair with a crimson streak",
+        "eyes": "Glowing crimson eyes",
+        "outfit": "Dark formal coat with high collar and long black cape",
+        "props": "MUST include THREE floating blood-red orbs near the hands",
+        "aura": "Thin crimson mist behind the cape"
+      },
+      "inspirationSeries": "Vampire / blood mage",
+      "inspirationCharacter": "Blood-contract caster"
+    },
+    {
+      "slug": "heavenly-demon",
+      "id": "avatar_heavenly_demon",
+      "name": "Heavenly Demon",
+      "description": "Black-red martial robes, demonic qi aura, and a saber.",
+      "price": 250,
+      "rarity": "epic",
+      "sortOrder": 120,
+      "genderPresentation": "male",
+      "traits": {
+        "hair": "Long wild black hair",
+        "eyes": "Fierce red eyes",
+        "outfit": "Black and crimson murim robes with demonic pattern sash",
+        "props": "MUST hold ONE curved saber clearly in hand",
+        "aura": "Jagged black-red demonic qi behind the figure"
+      },
+      "inspirationSeries": "Demonic murim path",
+      "inspirationCharacter": "Heavenly demon sabreur"
+    },
+    {
+      "slug": "academy-prodigy",
+      "id": "avatar_academy_prodigy",
+      "name": "Academy Prodigy",
+      "description": "Academy uniform, cloak, and a glowing tome.",
+      "price": 150,
+      "rarity": "rare",
+      "sortOrder": 130,
+      "genderPresentation": "female",
+      "traits": {
+        "hair": "Long neat chestnut-brown hair with a side ribbon",
+        "eyes": "Bright violet eyes",
+        "outfit": "Magic academy uniform with navy cloak and gold trim",
+        "props": "MUST hold ONE glowing open tome or short mage staff",
+        "aura": "Soft violet magic sparkles behind the figure"
+      },
+      "inspirationSeries": "Magic academy",
+      "inspirationCharacter": "Academy prodigy mage"
+    },
+    {
+      "slug": "undead-marshal",
+      "id": "avatar_undead_marshal",
+      "name": "Undead Marshal",
+      "description": "Bone crown accents, dark armor, and a mini skull familiar.",
+      "price": 250,
+      "rarity": "epic",
+      "sortOrder": 140,
+      "genderPresentation": "male",
+      "traits": {
+        "hair": "Pale white slicked-back hair",
+        "eyes": "Hollow glowing green eyes",
+        "outfit": "Dark necromancer armor with bone shoulder accents",
+        "props": "MUST include a tiny floating skull familiar beside the shoulder",
+        "aura": "Sickly green necromantic wisps behind the figure"
+      },
+      "inspirationSeries": "Necromancer lord",
+      "inspirationCharacter": "Undead marshal"
+    },
+    {
+      "slug": "beast-pact-hunter",
+      "id": "avatar_beast_pact_hunter",
+      "name": "Beast Pact Hunter",
+      "description": "Hunter cloak, beast-mark eyes, and an oversized bow.",
+      "price": 150,
+      "rarity": "rare",
+      "sortOrder": 150,
+      "genderPresentation": "female",
+      "traits": {
+        "hair": "Short windblown dark-brown hair",
+        "eyes": "Amber beast-mark eyes with vertical pupils",
+        "outfit": "Leather hunter cloak, dark tunic, boots",
+        "props": "MUST hold ONE oversized longbow clearly visible",
+        "aura": "Compact claw-mark shaped green spirit wisps behind"
+      },
+      "inspirationSeries": "Contract hunter",
+      "inspirationCharacter": "Beast-pact archer"
+    },
+    {
+      "slug": "villainess-rose",
+      "id": "avatar_villainess_rose",
+      "name": "Villainess Rose",
+      "description": "Ornate gown, rose fan, and a readable smug smile.",
+      "price": 150,
+      "rarity": "rare",
+      "sortOrder": 160,
+      "genderPresentation": "female",
+      "traits": {
+        "hair": "Long elegant blonde curls with a rose hairpin",
+        "eyes": "Sharp red eyes with a smug small smile",
+        "outfit": "Ornate deep-red ballgown with gold trim",
+        "props": "MUST hold ONE rose-decorated folding fan",
+        "aura": "A few floating red rose petals (compact)"
+      },
+      "inspirationSeries": "Villainess duchess",
+      "inspirationCharacter": "Rose-fan villainess"
+    }
+  ],
+  "existingPremiumMeta": [
+    {
+      "slug": "shadow-hunter",
+      "id": "avatar_shadow_hunter",
+      "inspirationSeries": "Shadow assassin / hunter",
+      "inspirationCharacter": "Dual-dagger shadow hunter"
+    },
+    {
+      "slug": "skybreaker-monk",
+      "id": "avatar_skybreaker_monk",
+      "inspirationSeries": "Martial monk / qi brawler",
+      "inspirationCharacter": "Tiger-wrapped skybreaker monk"
+    }
+  ]
+}

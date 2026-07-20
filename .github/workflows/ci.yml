@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main, production-readiness]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Secret scan
+        run: npm run check:secrets
+
+      - name: Migration timestamp uniqueness
+        run: npm run check:migrations
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build compact catalog
+        run: npm run build:catalog
+
+      - name: Production build
+        run: npm run build
+
+      - name: Dist artifact + budget checks
+        run: npm run check:dist
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Playwright critical paths
+        run: npm run test:e2e
+
+  # Auth / moderation flows that need a live staging project.
+  # Enable by setting repository variables and secrets, then remove `if: false`.
+  staging-smoke:
+    if: false
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - run: npm ci
+      - name: Documented staging live smokes
+        run: |
+          echo "Configure STAGING_SUPABASE_URL + keys, then run:"
+          echo "  npm run test:live"
+          echo "  npm run test:live:auth"
+          echo "See docs/moderation.md and docs/deployment.md"

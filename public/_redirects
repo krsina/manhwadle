@@ -1,0 +1,3 @@
+# Cloudflare Pages SPA: serve the player app for client routes.
+# Tool HTML is excluded from production dist.
+/*    /index.html   200

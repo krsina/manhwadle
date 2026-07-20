@@ -95,9 +95,9 @@ export function songSourceLabel(source: SongSource, kind: SongKind): string {
     case 'webtoon_ost':
       return 'Webtoon OST'
     case 'anime':
-      return 'Anime theme'
     case 'drama':
-      return 'Drama OST'
+      // Don't spoil whether the clip is from an anime or drama adaptation.
+      return 'OST'
     case 'film':
       return 'Film OST'
     default:

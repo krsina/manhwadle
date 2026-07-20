@@ -14,6 +14,7 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
   const [query, setQuery] = useState('')
   const [hits, setHits] = useState<SearchHit[]>([])
   const [open, setOpen] = useState(false)
+  const [noResults, setNoResults] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const rootRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
@@ -22,13 +23,16 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
     if (!query.trim()) {
       setHits([])
       setOpen(false)
+      setNoResults(false)
       return
     }
 
     const handle = window.setTimeout(() => {
       const next = searchManhwa(pool, query, 10).filter((h) => !excludedIds.has(h.manhwa.id))
       setHits(next)
-      setOpen(next.length > 0)
+      const empty = next.length === 0
+      setNoResults(empty)
+      setOpen(true)
       setActiveIndex(0)
     }, 120)
 
@@ -57,9 +61,14 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
     setQuery('')
     setHits([])
     setOpen(false)
+    setNoResults(false)
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (noResults && e.key === 'Enter') {
+      e.preventDefault()
+      return
+    }
     if (!open || hits.length === 0) {
       if (e.key === 'Enter') e.preventDefault()
       return
@@ -106,6 +115,16 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
         }
       />
       {open && (
+        noResults ? (
+          <div
+            id={listId}
+            className="guess-list guess-empty"
+            role="status"
+            aria-live="polite"
+          >
+            No matching titles
+          </div>
+        ) : (
         <ul id={listId} className="guess-list" role="listbox" ref={listRef}>
           {hits.map((hit, index) => (
             <li key={hit.manhwa.id} role="presentation">
@@ -123,6 +142,7 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
             </li>
           ))}
         </ul>
+        )
       )}
     </div>
   )
