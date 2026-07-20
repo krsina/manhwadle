@@ -5,6 +5,11 @@ test.describe('critical paths', () => {
   test('homepage loads and exposes mode rows', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('link', { name: /Manhwadle/i }).first()).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Play Summary/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Play Character/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Play Cover/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Play Heardle/i })).toBeVisible()
     await expect(page.getByRole('navigation', { name: /Legal/i })).toBeVisible()
     await expect(
       page.getByRole('navigation', { name: /Legal/i }).getByRole('link', { name: 'Privacy' }),
@@ -44,6 +49,19 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('tab', { name: 'Characters' })).toBeVisible()
     await expect(page.getByRole('tab', { name: 'Backgrounds' })).toBeVisible()
 
+    // Limited-time free claims sort first in the guest catalog.
+    const questRecruit = page.getByRole('button').filter({ hasText: 'Quest Recruit' })
+    await expect(questRecruit).toBeVisible()
+    await questRecruit.click()
+    await expect(questRecruit).toHaveAttribute('aria-pressed', 'true')
+    await expect(
+      page.locator('.avatar-shop-meta').getByRole('heading', { name: 'Quest Recruit' }),
+    ).toBeVisible()
+    await expect(page.locator('.avatar-shop-meta').getByText('Limited-time', { exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Sign in to unlock' })).toBeVisible()
+
+    await expect(page.getByRole('button').filter({ hasText: 'Spark Apprentice' })).toBeVisible()
+
     const shadowHunter = page.getByRole('button').filter({ hasText: 'Shadow Hunter' })
     await expect(shadowHunter).toBeVisible()
     await shadowHunter.click()
@@ -76,7 +94,23 @@ test.describe('critical paths', () => {
     await page.goto('/shop')
     await expect(page.getByRole('heading', { name: 'Avatar Shop' })).toBeVisible()
     await expect(page.locator('.avatar-shop-preview .pixel-avatar')).toBeVisible()
+    await expect(page.getByRole('button').filter({ hasText: 'Quest Recruit' })).toBeVisible()
     await expect(page.getByRole('button').filter({ hasText: 'Skybreaker Monk' })).toBeVisible()
+  })
+
+  test('production preview hides owner-only dev surfaces for guests', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByRole('button', { name: 'Dev tools' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Test unlocks' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /Test solve SFX/i })).toHaveCount(0)
+
+    await page.goto('/dev/animations')
+    await expect(page).toHaveURL('/')
+    await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()
+
+    await page.goto('/dev/action-strip-preview')
+    await expect(page).toHaveURL('/')
+    await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()
   })
 
   test('how-to dialog is keyboard dismissible', async ({ page }) => {

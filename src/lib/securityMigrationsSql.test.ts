@@ -1,0 +1,157 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import { describe, expect, it } from 'vitest'
+
+function readSql(relativePath: string): string {
+  return fs
+    .readFileSync(path.resolve(relativePath), 'utf8')
+    .replace(/\r\n/g, '\n')
+}
+
+const ledgerMigration = readSql(
+  'supabase/migrations/20260720094230_harden_private_ledger_and_grants.sql',
+)
+
+const playMigration = readSql(
+  'supabase/migrations/20260720094451_server_authoritative_daily_play.sql',
+)
+
+describe('private ledger hardening migration contracts', () => {
+  it('enables RLS on point_transactions and keeps client DML revoked', () => {
+    expect(ledgerMigration).toContain(
+      'alter table app_private.point_transactions enable row level security',
+    )
+    expect(ledgerMigration).toContain(
+      'revoke all on table app_private.point_transactions\n  from public, anon, authenticated',
+    )
+    expect(ledgerMigration).toContain(
+      'revoke all on schema app_private from anon, authenticated',
+    )
+  })
+
+  it('revokes client execute on after_username_change_award_secret', () => {
+    expect(ledgerMigration).toContain(
+      'revoke all on function app_private.after_username_change_award_secret()\n  from public, anon, authenticated',
+    )
+    expect(ledgerMigration).toContain(
+      'grant execute on function app_private.after_username_change_award_secret()\n  to postgres, service_role',
+    )
+  })
+})
+
+describe('server-authoritative daily play migration contracts', () => {
+  it('restricts daily_puzzles SELECT to past/archive dates only', () => {
+    expect(playMigration).toContain('create policy daily_puzzles_select_past')
+    expect(playMigration).toContain('using (date_key < public.current_utc_date_key())')
+    expect(playMigration).not.toMatch(
+      /daily_puzzles_select_past_and_today[\s\S]*date_key <= public\.current_utc_date_key/,
+    )
+  })
+
+  it('exposes the attempt / guess / finalize RPC triad with fixed search_path', () => {
+    for (const name of [
+      'get_daily_play_state',
+      'start_daily_attempt',
+      'submit_daily_guess',
+      'finalize_daily_attempt',
+    ]) {
+      expect(playMigration).toContain(`function public.${name}`)
+    }
+    expect(playMigration).toContain("set search_path to 'pg_catalog', 'app_private', 'public'")
+    expect(playMigration).toContain(
+      'grant execute on function public.start_daily_attempt(text, text, boolean, text)\n  to authenticated, service_role',
+    )
+    expect(playMigration).toContain(
+      'revoke all on function public.submit_daily_guess(text, text, integer, integer, text)\n  from public, anon',
+    )
+  })
+
+  it('deprecates fabricated-history completion RPCs with compat errors', () => {
+    expect(playMigration).toContain("'deprecated_use_attempt_flow'")
+    expect(playMigration).toContain('Use start_daily_attempt / submit_daily_guess / finalize_daily_attempt')
+    expect(playMigration).toMatch(
+      /create or replace function public\.complete_daily_mode_with_reward\([\s\S]*?deprecated_use_attempt_flow/,
+    )
+  })
+
+  it('validates bonus names without a trusted boolean and stubs the old signature', () => {
+    expect(playMigration).toContain("'deprecated_use_guess_payload'")
+    expect(playMigration).toContain(
+      'function public.complete_bonus_name_with_reward(\n  p_mode text,\n  p_taste text,\n  p_guessed_character_id integer,\n  p_guess_label text default null\n)',
+    )
+    expect(playMigration).toContain("'bonus_metadata_unavailable'")
+    expect(playMigration).toContain('app_private.normalize_bonus_guess_label')
+  })
+
+  it('disables unverified rewarded-ad point claims', () => {
+    expect(playMigration).toContain("'provider_verification_required'")
+    expect(playMigration).toContain('Never awards points')
+  })
+
+  it('makes client-only secret events non-economic', () => {
+    expect(playMigration).toContain('try_award_secret_cosmetic')
+    expect(playMigration).toContain("when 'hard_mode_on' then")
+    expect(playMigration).toContain(
+      '-- Cosmetic/economic unlock for hard mode is server-gated via completions.',
+    )
+    expect(playMigration).toContain("'secret_konami'")
+    expect(playMigration).toMatch(
+      /set point_reward = 0\s+where id in \([\s\S]*'secret_konami'[\s\S]*'secret_four_roads'/,
+    )
+    expect(playMigration).toContain("'secret_hard_mode'")
+    expect(playMigration).toContain("'secret_hint_denied'")
+    expect(playMigration).not.toContain(
+      "set point_reward = 25\nwhere id = 'secret_hard_mode'",
+    )
+    expect(playMigration).toContain(
+      "perform app_private.try_award_secret_cosmetic(p_user_id, 'secret_hard_mode')",
+    )
+    expect(playMigration).toContain(
+      "perform app_private.try_award_secret_cosmetic(p_user_id, 'secret_hint_denied')",
+    )
+  })
+
+  it('allowlists public clue/fingerprint meta and hides active Character ids', () => {
+    expect(playMigration).toContain(
+      "'clue', p_meta -> 'public_clue'",
+    )
+    expect(playMigration).toContain(
+      "'fingerprint', p_meta -> 'answer_fingerprint'",
+    )
+    expect(playMigration).not.toContain(
+      "'character_id', v_character_id,\n    'meta'",
+    )
+    expect(playMigration).toContain(
+      "'character_id', case when v_terminal then p_attempt.character_id else null end",
+    )
+    expect(playMigration).toContain("selected_clue - 'character_id'")
+  })
+
+  it('repairs completion when submit_daily_guess sees a terminal attempt', () => {
+    expect(playMigration).toMatch(
+      /if v_attempt\.status is distinct from 'active' then\s+v_completion := app_private\.insert_completion_from_attempt\(v_attempt\);[\s\S]*?'reason', 'already_terminal'[\s\S]*?'completion', v_completion[\s\S]*?'finalized', true/,
+    )
+  })
+
+  it('keeps private attempt tables locked to service roles', () => {
+    expect(playMigration).toContain('create table if not exists app_private.daily_attempts')
+    expect(playMigration).toContain(
+      'alter table app_private.daily_attempts enable row level security',
+    )
+    expect(playMigration).toContain(
+      'revoke all on table app_private.daily_attempts\n  from public, anon, authenticated',
+    )
+  })
+
+  it('rate-limits attempt mutations', () => {
+    expect(playMigration).toContain(
+      "consume_rpc_rate_limit(v_uid, 'submit_daily_guess', 30, 60)",
+    )
+    expect(playMigration).toContain(
+      "consume_rpc_rate_limit(v_uid, 'start_daily_attempt', 20, 60)",
+    )
+    expect(playMigration).toContain(
+      "consume_rpc_rate_limit(v_uid, 'finalize_daily_attempt', 20, 60)",
+    )
+  })
+})
