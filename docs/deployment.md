@@ -131,6 +131,10 @@ gh api -X PUT repos/krsina/manhwadle/branches/main/protection \
 
 ## 5. Day-to-day release habit (minimal downtime)
 
+Commit / PR / merge habits (preflight, green-before-merge, common CI failures): [git-pr-flow-style-guide.md](./git-pr-flow-style-guide.md).
+
+Docs / `art/` / markdown-only PRs skip the full `quality` job via `paths-ignore` in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (live assets are under `public/`).
+
 1. Branch off `main` → develop locally (`npm run dev`).
 2. Open a PR → Cloudflare posts a **preview URL**; GitHub **CI / quality** runs.
 3. QA on the preview (staging Supabase).
