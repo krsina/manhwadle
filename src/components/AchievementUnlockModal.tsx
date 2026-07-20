@@ -1,7 +1,7 @@
 import { useEffect, useId } from 'react'
 import type { AchievementAward } from '../lib/achievements'
 import { playAchievementUnlockSound } from '../lib/celebrationSounds'
-import { AchievementIcon } from './AchievementIcon'
+import { AchievementIcon, achievementTypeKicker } from './AchievementIcon'
 import { ConfettiBurst } from './ConfettiBurst'
 import { Dialog } from './Dialog'
 
@@ -44,6 +44,7 @@ export function AchievementUnlockModal({
   if (!award) return null
 
   const hushHidden = !isUnlock && award.category === 'secret' && !award.awardedAt
+  const typeLabel = achievementTypeKicker(award.category)
 
   return (
     <Dialog
@@ -64,9 +65,7 @@ export function AchievementUnlockModal({
         </button>
       )}
 
-      <p className="achievement-unlock-kicker">
-        {isUnlock ? 'Unlocked' : hushHidden ? 'Hush-Hush' : 'Milestone'}
-      </p>
+      <p className="achievement-unlock-kicker">{typeLabel}</p>
       <div
         className={`achievement-unlock-seal${isUnlock ? '' : ' is-static'}`}
         aria-hidden="true"

@@ -22,7 +22,6 @@ import {
 import { manhwaHasCover } from '../../lib/cover'
 import { isArchiveDate } from '../../lib/archive'
 import { displayTitle } from '../../lib/daily'
-import { hasSeenHowTo } from '../../lib/howto'
 import { useOwnerDevAccess } from '../../lib/useOwnerDevAccess'
 import { buildKnownInfo } from '../../lib/knowledge'
 import { randomPlayableIndex } from '../../lib/random'
@@ -87,7 +86,7 @@ function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): Gue
 
 /** Cover mode: progressive zoom-out on the daily title's cover art. */
 export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
-  const { id, name, seedPrefix, storagePrefix, maxGuesses, tagline } =
+  const { id: _id, name, seedPrefix, storagePrefix, maxGuesses, tagline } =
     coverModeMeta
   const { user } = useAuth()
   const { ownerDev } = useOwnerDevAccess()
@@ -165,9 +164,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
 
   const [showResult, setShowResult] = useState(
     () =>
-      hasCovers &&
-      (dayState.status === 'won' || dayState.status === 'lost') &&
-      hasSeenHowTo(id),
+      hasCovers && (dayState.status === 'won' || dayState.status === 'lost'),
   )
   const [showSurrender, setShowSurrender] = useState(false)
 
@@ -179,9 +176,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
       if (saved.hardMode != null) setHardMode(saved.hardMode)
       else if (saved.guessIds.length > 0) setHardMode(false)
       else setHardMode(loadHardModePreference())
-      setShowResult(
-        (saved.status === 'won' || saved.status === 'lost') && hasSeenHowTo(id),
-      )
+      setShowResult(saved.status === 'won' || saved.status === 'lost')
       return
     }
     const preferredHard = loadHardModePreference()
@@ -205,7 +200,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
       setShowResult(false)
       setShowSurrender(false)
     }
-  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasCovers, answerSettled, id])
+  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, hasCovers, answerSettled])
 
   const hardModeLocked = dayState.guessIds.length > 0
 

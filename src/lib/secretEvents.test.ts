@@ -9,11 +9,21 @@ import {
 describe('secret achievements catalog', () => {
   it('includes hush-hush secrets with balanced point tiers', () => {
     const secrets = ACHIEVEMENT_DEFINITIONS.filter((d) => d.category === 'secret')
-    expect(secrets.length).toBe(27)
-    expect(secrets.every((d) => d.metric === 'secret_flag')).toBe(true)
-    expect(secrets.every((d) => [50, 100].includes(d.pointReward))).toBe(true)
-    expect(secrets.filter((d) => d.pointReward === 50)).toHaveLength(14)
-    expect(secrets.filter((d) => d.pointReward === 100)).toHaveLength(13)
+    expect(secrets.length).toBe(33)
+    expect(secrets.some((d) => d.id === 'secret_early_bird')).toBe(true)
+    expect(secrets.some((d) => d.id === 'visit_comeback_1')).toBe(true)
+    expect(secrets.some((d) => d.id === 'visit_timeskip')).toBe(true)
+
+    const flagSecrets = secrets.filter((d) => d.metric === 'secret_flag')
+    expect(flagSecrets.length).toBe(28)
+    expect(flagSecrets.every((d) => [50, 100].includes(d.pointReward))).toBe(true)
+    expect(flagSecrets.filter((d) => d.pointReward === 50)).toHaveLength(14)
+    expect(flagSecrets.filter((d) => d.pointReward === 100)).toHaveLength(14)
+
+    const hiatusSecrets = secrets.filter((d) => d.metric !== 'secret_flag')
+    expect(hiatusSecrets).toHaveLength(5)
+    expect(hiatusSecrets.every((d) => [50, 100, 200].includes(d.pointReward))).toBe(true)
+
     expect(secrets.some((d) => d.id === 'secret_account_menu')).toBe(true)
     expect(secrets.some((d) => d.id === 'secret_konami')).toBe(true)
     expect(secrets.some((d) => d.title === 'Ten Curtain Calls')).toBe(true)

@@ -58,6 +58,7 @@ export type HushSoundId =
   | 'slam'
   | 'curtain'
   | 'cascade'
+  | 'dawn'
 
 export const HUSH_SOUND_BY_ACHIEVEMENT: Readonly<Record<string, HushSoundId>> = {
   secret_konami: 'bit8',
@@ -87,6 +88,12 @@ export const HUSH_SOUND_BY_ACHIEVEMENT: Readonly<Record<string, HushSoundId>> = 
   secret_escapist: 'slam',
   secret_account_menu: 'curtain',
   secret_cascade: 'cascade',
+  secret_early_bird: 'dawn',
+  visit_comeback_1: 'dawn',
+  visit_comeback_3: 'ember',
+  visit_comeback_5: 'echo',
+  visit_comeback_10: 'throne',
+  visit_timeskip: 'tick',
 }
 
 let sharedCtx: AudioContext | null = null
@@ -963,6 +970,46 @@ function playCurtain(ctx: AudioContext): void {
   }
 }
 
+/** Soft morning chime: rising dawn tones for Early Bird. */
+function playDawn(ctx: AudioContext): void {
+  const input = masterBus(ctx)
+  const t0 = ctx.currentTime + 0.02
+  noiseBurst(ctx, input, {
+    start: t0,
+    duration: 0.18,
+    gain: 0.028,
+    filterFreq: 1800,
+    type: 'bandpass',
+  })
+  const notes = [
+    { freq: 523.25, delay: 0, gain: 0.07 },
+    { freq: 659.25, delay: 0.1, gain: 0.065 },
+    { freq: 783.99, delay: 0.2, gain: 0.06 },
+    { freq: 1046.5, delay: 0.34, gain: 0.045 },
+  ] as const
+  for (const note of notes) {
+    const start = t0 + note.delay
+    tone(ctx, input, {
+      freq: note.freq,
+      start,
+      duration: 0.42,
+      type: 'sine',
+      gain: note.gain,
+      attack: 0.02,
+      decay: 0.32,
+    })
+    tone(ctx, input, {
+      freq: note.freq * 2,
+      start,
+      duration: 0.22,
+      type: 'triangle',
+      gain: note.gain * 0.35,
+      attack: 0.01,
+      decay: 0.16,
+    })
+  }
+}
+
 /** Multiple seals stacking: quick successive plinks that ring together. */
 function playCascade(ctx: AudioContext): void {
   const input = masterBus(ctx)
@@ -1103,6 +1150,9 @@ function playHushSound(ctx: AudioContext, id: HushSoundId): void {
       break
     case 'cascade':
       playCascade(ctx)
+      break
+    case 'dawn':
+      playDawn(ctx)
       break
   }
 }

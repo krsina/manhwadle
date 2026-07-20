@@ -119,15 +119,6 @@ export function AchievementIcon({
         </svg>
       )
 
-    case 'any_streak_1': // Prologue (single spark)
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M12 3.4 13.4 9.2 19 10.2l-4.2 3.8 1.2 5.6L12 16.6 7.999 19.6l1.2-5.6L4.999 10.2 10.6 9.2 12 3.4Z"
-          />
-        </svg>
-      )
     case 'any_streak_2': // You came back! (surprised double mark / return)
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -322,101 +313,12 @@ export function AchievementIcon({
         </svg>
       )
 
-    case 'visit_days_1': // Footstep (single print)
+    case 'secret_early_bird': // Early Bird — dawn sun + bird
       return (
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path
             fill="currentColor"
-            d="M10.2 4.6c1.4 0 2.4 1.2 2.2 2.6-.2 1.4-1.4 2.8-2.6 3.8-1.1.9-2 1.9-2 3.2 0 1.3 1 2.3 2.2 2.3 1.4 0 2.4-1 3.2-2 .6-.8 1.2-1.2 2-.1.7 1 .2 2.2-.8 2.8-1.6 1-3.6 1.4-5.2.6-2.1-1-3.4-3.2-3.2-5.5.2-2.4 1.8-4.2 3.4-5.5 1-.8 1.8-1.6 1.8-2.2 0-.5.4-1 1-.1Zm6.6 3.2c1.1 0 1.9.9 1.8 2-.1 1.1-1.1 2.2-2 3-.8.6-1.4 1.4-1.4 2.3 0 .9.7 1.6 1.5 1.6 1 0 1.7-.7 2.2-1.4.5-.6.9-.9 1.5 0 .5.7.2 1.6-.6 2-1.2.7-2.7 1-3.9.4-1.6-.8-2.6-2.5-2.4-4.2.2-1.9 1.5-3.3 2.7-4.3.8-.7 1.4-1.3 1.4-1.7 0-.4.3-.7.8-.7Z"
-          />
-        </svg>
-      )
-    case 'visit_days_7': // Outer Disciple — broom / courtyard
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M13.2 3.6h1.8l1.2 9.2H12L13.2 3.6Zm-5.4 10.4 3.4-1.2 1.4 2.4-4.2 4.6c-.7.8-1.9.8-2.6 0l-.8-.9c-.7-.7-.6-1.9.2-2.5l2.6-2.4Zm8.8-.2 2.8 2.2c.8.6.9 1.8.2 2.5l-.8.9c-.7.8-1.9.8-2.6 0l-4.2-4.6 1.4-2.4 3.2 1.4Z"
-          />
-        </svg>
-      )
-    case 'visit_days_30': // Qi Condensation — swirling orb
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M12 3.5c4.6 0 8.3 3.5 8.3 7.8 0 2.8-1.6 5.2-4 6.6l-1.2-1.7c1.7-1 2.8-2.8 2.8-4.9 0-3.1-2.7-5.6-5.9-5.6S5.9 8.2 5.9 11.3c0 2.1 1.1 3.9 2.8 4.9l-1.2 1.7c-2.4-1.4-4-3.8-4-6.6C3.5 7 7.2 3.5 12 3.5Zm0 5.2a3.1 3.1 0 1 1 0 6.2 3.1 3.1 0 0 1 0-6.2Zm-1.1 8.4h2.2V20.4h-2.2z"
-          />
-        </svg>
-      )
-    case 'visit_days_90': // Foundation — stone pillar base
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M8.2 4.2h7.6v2.2H8.2V4.2Zm1.4 3.4h4.8v8.2H9.6V7.6ZM5.4 17.2h13.2v2.2H5.4v-2.2Zm2.2-1.4h8.8v1.2H7.6v-1.2Z"
-          />
-        </svg>
-      )
-    case 'visit_days_180': // Core Formation — nested cores
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" strokeWidth="1.8" />
-          <circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" strokeWidth="1.8" />
-          <circle cx="12" cy="12" r="2" fill="currentColor" />
-        </svg>
-      )
-    case 'visit_days_365': // Immortal Roster — scroll / ledger
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M6.4 4.4h11.2c1 0 1.8.8 1.8 1.8v11.6c0 1-.8 1.8-1.8 1.8H6.4c-1 0-1.8-.8-1.8-1.8V6.2c0-1 .8-1.8 1.8-1.8Zm1.8 3.2v1.8h8.8V7.6H8.2Zm0 3.6v1.8h8.8v-1.8H8.2Zm0 3.6v1.8h5.6v-1.8H8.2Z"
-          />
-        </svg>
-      )
-    case 'visit_streak_3': // Daily Sutra — open book
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M4.4 6.2c1.6-.8 3.4-1.2 5.2-1.2v12.2c-1.7 0-3.4.3-5.2 1V6.2Zm10 0c1.8 0 3.6.4 5.2 1.2v11.8c-1.8-.7-3.5-1-5.2-1V6.2Zm-1.6-.2v12.2c-.5 0-1 .1-1.6.1V6.1c.5 0 1.1-.1 1.6-.1Z"
-          />
-        </svg>
-      )
-    case 'visit_streak_7': // Closed-Door — sealed gate
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M6.2 4.4h11.6v15.2H6.2V4.4Zm2 2.2v10.8h7.6V6.6H8.2Zm3 3.4h1.6v2.8c.7.3 1.2 1 1.2 1.8 0 1.1-.9 2-2 2s-2-.9-2-2c0-.8.5-1.5 1.2-1.8V10Z"
-          />
-        </svg>
-      )
-    case 'visit_streak_14': // Seclusion — mountain cave
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M12 3.6 20.4 18.8H3.6L12 3.6Zm0 4.2L7.2 16.6h3.2c.4-1.4 1.5-2.4 2.9-2.4h.2c1.4 0 2.5 1 2.9 2.4h3.2L12 7.8Z"
-          />
-        </svg>
-      )
-    case 'visit_streak_30': // Steady Heart — calm heart
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M12 19.4 5.2 12.8C3.6 11.2 3.5 8.6 5 7.1c1.5-1.5 3.9-1.5 5.4 0L12 8.7l1.6-1.6c1.5-1.5 3.9-1.5 5.4 0 1.5 1.5 1.4 4.1-.2 5.7L12 19.4Z"
-          />
-        </svg>
-      )
-    case 'visit_streak_60': // Heavenly Routine — sun cycle
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M11.1 2.8h1.8v2.6h-1.8V2.8ZM4.8 11.1H7.4v1.8H4.8v-1.8Zm12.8 0H20v1.8h-2.4v-1.8ZM6.4 5.5l1.8 1.8-1.3 1.3-1.8-1.8 1.3-1.3Zm11.2 0 1.3 1.3-1.8 1.8-1.3-1.3 1.8-1.8ZM12 7.4a4.6 4.6 0 1 1 0 9.2 4.6 4.6 0 0 1 0-9.2Zm-5.6 9.6 1.8-1.8 1.3 1.3-1.8 1.8-1.3-1.3Zm9.9-1.8 1.8 1.8-1.3 1.3-1.8-1.8 1.3-1.3Z"
+            d="M12 3.2c.4 0 .8.3.8.8v1.4h-1.6V4c0-.5.4-.8.8-.8Zm6.2 2.4 1.1 1.1-1 1-1.1-1.1 1-1ZM5.8 5.6l1 1-1.1 1.1-1-1 1.1-1.1ZM12 6.4a5 5 0 0 1 5 5H7a5 5 0 0 1 5-5Zm-8.2 6.2h2.4v1.6H3.8v-1.6Zm14 0h2.4v1.6h-2.4v-1.6ZM4.2 15.2h15.6v1.6H4.2v-1.6Zm2.4 2.4h11.2v1.6H6.6v-1.6Zm8.6-7.2c1.4.2 2.4 1.1 2.6 2.4-.8-.2-1.6-.1-2.3.3-.9.5-1.4 1.2-1.5 2.1-.6-1.1-.4-2.5.4-3.5.4-.4.8-.7 1.2-.9.1-.1.2-.1.4-.1Z"
           />
         </svg>
       )
@@ -562,10 +464,25 @@ export function achievementCategoryLabel(category: AchievementCategory): string 
     case 'all_mode':
       return 'Full clear'
     case 'visit':
-      return 'Return arc'
+      return 'Hush-Hush'
     case 'secret':
       return 'Hush-Hush'
     default:
       return 'Completion'
+  }
+}
+
+/** Modal / section kicker for the achievement family. */
+export function achievementTypeKicker(category: AchievementCategory): string {
+  switch (category) {
+    case 'streak':
+      return 'Streaks'
+    case 'all_mode':
+      return 'Full clears'
+    case 'visit':
+    case 'secret':
+      return 'Hush-Hush'
+    default:
+      return 'Completions'
   }
 }
