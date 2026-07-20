@@ -18,6 +18,8 @@ interface CoverClueProps {
   onRevealMore?: () => void
   /** Forced grayscale (hard mode) */
   grayscale?: boolean
+  focusX?: number
+  focusY?: number
 }
 
 /** Progressive zoom-out on manhwa cover art (portrait frame, like Character). */
@@ -32,11 +34,13 @@ export function CoverClue({
   canRevealMore = false,
   onRevealMore,
   grayscale = false,
+  focusX,
+  focusY,
 }: CoverClueProps) {
   const scale = cropZoomScale(failedGuesses, { finished })
-  const { focusX, focusY } = coverFocusOrigin(manhwaId, dateKey, seedPrefix)
-  const originX = clampFocus(focusX)
-  const originY = clampFocus(focusY, 35)
+  const generatedFocus = coverFocusOrigin(manhwaId, dateKey, seedPrefix)
+  const originX = clampFocus(focusX ?? generatedFocus.focusX)
+  const originY = clampFocus(focusY ?? generatedFocus.focusY, 35)
   const step = finished
     ? maxGuesses
     : Math.min(failedGuesses + 1, maxGuesses)

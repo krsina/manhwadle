@@ -17,15 +17,20 @@ declare global {
   }
 }
 
+const AD_REWARD_UNAVAILABLE =
+  'Rewarded-ad points are temporarily unavailable until provider verification is enabled.'
+
 /**
  * User-initiated once-daily rewarded video for shop points.
  * Requires sign-in; hidden when already claimed today.
+ * Database awards stay disabled until provider verification exists.
  */
 export function RewardedAdButton() {
   const { user, refreshAccount } = useAuth()
   const [claimed, setClaimed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [rewardsDisabled, setRewardsDisabled] = useState(false)
   const points = getRewardedPointsAmount()
 
   useEffect(() => {
@@ -54,6 +59,14 @@ export function RewardedAdButton() {
     return (
       <p className="rewarded-ad-hint" role="status">
         Daily rewarded ad claimed. Come back tomorrow.
+      </p>
+    )
+  }
+
+  if (rewardsDisabled) {
+    return (
+      <p className="rewarded-ad-hint" role="status">
+        {AD_REWARD_UNAVAILABLE}
       </p>
     )
   }
@@ -97,6 +110,12 @@ export function RewardedAdButton() {
 
       const result = await claimRewardedAdPoints(getTodayKey())
       if (!result.ok) {
+        if (result.providerVerificationRequired || result.error === 'provider_verification_required') {
+          setRewardsDisabled(true)
+          setMessage(AD_REWARD_UNAVAILABLE)
+          setBusy(false)
+          return
+        }
         setMessage(
           result.error === 'already_claimed'
             ? 'Already claimed today.'

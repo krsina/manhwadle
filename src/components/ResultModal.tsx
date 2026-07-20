@@ -22,9 +22,13 @@ import {
 import { useAuth } from './AuthProvider'
 import { reportSecretEvent } from '../lib/secretEvents'
 
-interface BonusNameResult {
+export interface BonusNameResult {
   guess: string
   correct: boolean
+  /** AniList character id submitted for server-side bonus validation. */
+  guessedCharacterId?: number
+  /** Label / alias text submitted alongside the character id. */
+  guessLabel?: string
 }
 
 type ShareFeedback = 'idle' | 'copied' | 'shared'
@@ -294,9 +298,12 @@ export function ResultModal({
     const correct = acceptedBonusCharacters.some((accepted) =>
       isBonusCharacterCorrect(character, accepted, matchedLabel),
     )
-    const result = {
-      guess: matchedLabel?.trim() || characterDisplayName(character),
+    const guessLabel = matchedLabel?.trim() || characterDisplayName(character)
+    const result: BonusNameResult = {
+      guess: guessLabel,
       correct,
+      guessedCharacterId: character.id,
+      guessLabel,
     }
     setLocalBonus(result)
     onBonusNameAnswer?.(result)

@@ -159,7 +159,7 @@ function categoryBlurb(category: AchievementCategory, defs: readonly Achievement
     case 'visit':
       return 'Show up each day, keep visit streaks, and come back after hiatus.'
     case 'secret':
-      return 'Hidden feats. Descriptions are hints. No spoilers.'
+      return 'Hidden feats. No spoilers.'
     default:
       return `Stack verified finishes from ${first} to ${last}.`
   }
@@ -174,24 +174,36 @@ function TrophyGrid({
 }) {
   return (
     <ul className="achievement-badges" aria-label="Milestones">
-      {tiles.map(({ award, earned }) => (
-        <li key={award.id}>
-          <button
-            type="button"
-            className={`achievement-badge achievement-${award.category}${earned ? '' : ' is-locked'}`}
-            onClick={() => onSelect(award)}
-            aria-label={`${award.title}. ${achievementCategoryLabel(award.category)}. ${award.pointReward} shop points. ${earned ? 'Earned' : 'Locked'}. View details.`}
-          >
-            <span className="achievement-badge-mark" aria-hidden="true">
-              <AchievementIcon id={award.id} category={award.category} />
-            </span>
-            <span className="achievement-badge-title">{award.title}</span>
-            <span className="achievement-badge-reward" aria-hidden="true">
-              ◆ {award.pointReward}
-            </span>
-          </button>
-        </li>
-      ))}
+      {tiles.map(({ award, earned }) => {
+        const hushLocked = award.category === 'secret' && !earned
+        const title = hushLocked ? '???' : award.title
+        const categoryLabel = achievementCategoryLabel(award.category)
+        const ariaLabel = hushLocked
+          ? `Hidden feat. ${categoryLabel}. Locked. No spoilers.`
+          : `${award.title}. ${categoryLabel}. ${award.pointReward} shop points. ${earned ? 'Earned' : 'Locked'}. View details.`
+
+        return (
+          <li key={award.id}>
+            <button
+              type="button"
+              className={`achievement-badge achievement-${award.category}${earned ? '' : ' is-locked'}${hushLocked ? ' is-hush-hidden' : ''}`}
+              onClick={() => onSelect(award)}
+              aria-label={ariaLabel}
+            >
+              <span className="achievement-badge-mark" aria-hidden="true">
+                <AchievementIcon
+                  id={hushLocked ? undefined : award.id}
+                  category={award.category}
+                />
+              </span>
+              <span className="achievement-badge-title">{title}</span>
+              <span className="achievement-badge-reward" aria-hidden="true">
+                ◆ {hushLocked ? '???' : award.pointReward}
+              </span>
+            </button>
+          </li>
+        )
+      })}
     </ul>
   )
 }

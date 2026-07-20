@@ -199,7 +199,7 @@ export function HomePage({ taste }: HomePageProps) {
               Milestones
             </h2>
             <p className="home-section-blurb">
-              Little seals for sticking with the daily grind.
+              Little medals for sticking with the daily grind.
             </p>
           </div>
           <div className="home-achievements-actions">
