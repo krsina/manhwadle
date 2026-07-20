@@ -1,3 +1,7 @@
+# Quality gates only. Cloudflare Pages (Git integration) deploys:
+#   - non-main branches / PRs → Preview (use staging Supabase env vars)
+#   - main → Production
+# Protect main so this `quality` job is required before merge — docs/deployment.md
 name: CI
 
 on:
@@ -66,7 +70,9 @@ jobs:
       - run: npm ci
       - name: Documented staging live smokes
         run: |
-          echo "Configure STAGING_SUPABASE_URL + keys, then run:"
+          echo "Configure STAGING_SUPABASE_* secrets only (never production), then run:"
           echo "  npm run test:live"
           echo "  npm run test:live:auth"
-          echo "See docs/moderation.md and docs/deployment.md"
+          echo "  npm run test:live:security   # requires SECURITY_SMOKE_TARGET + ACK; fail-closed"
+          echo "See docs/moderation.md, docs/deployment.md, docs/runbooks/security-negatives-staging.md"
+          echo "Do not enable this job against production credentials."

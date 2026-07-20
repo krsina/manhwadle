@@ -61,10 +61,7 @@ async function main() {
   const manhwa = JSON.parse(manhwaRaw)
   const blurbDoc = JSON.parse(blurbRaw)
   const cropDoc = JSON.parse(cropRaw)
-  const blurbIds = new Set((blurbDoc.entries || []).map((e) => e.manhwaId))
-  const cropIds = new Set((cropDoc.entries || []).map((e) => e.manhwaId))
-
-  const rows = buildRows(manhwa, blurbIds, cropIds)
+  const rows = buildRows(manhwa, blurbDoc, cropDoc)
   console.log(`Built ${rows.length} puzzle_pool_entries`)
 
   if (jsonOnly) {
