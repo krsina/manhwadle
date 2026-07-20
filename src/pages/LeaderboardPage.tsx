@@ -97,7 +97,11 @@ export function LeaderboardPage() {
         if (cancelled) return
         if (!result.ok) {
           setState('error')
-          setError('Could not load the leaderboard.')
+          setError(
+            result.error === 'rate_limited'
+              ? 'Too many requests — try again in a minute.'
+              : 'Could not load the leaderboard.',
+          )
           return
         }
         setEntries(result.page.entries)
@@ -122,7 +126,11 @@ export function LeaderboardPage() {
     })
     if (!result.ok) {
       setState('error')
-      setError('Could not load more rows.')
+      setError(
+        result.error === 'rate_limited'
+          ? 'Too many requests — try again in a minute.'
+          : 'Could not load more rows.',
+      )
       return
     }
     setEntries((prev) => [...prev, ...result.page.entries])

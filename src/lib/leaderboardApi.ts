@@ -112,6 +112,14 @@ export async function fetchLeaderboard(input: {
     p_cursor: input.cursor ?? null,
   })
   if (error) return { ok: false, error: error.message }
+  // Signed-in rate limit returns { ok: false, error: 'rate_limited' } (live boards, no cache).
+  if (data && typeof data === 'object' && (data as { ok?: unknown }).ok === false) {
+    const row = data as Record<string, unknown>
+    return {
+      ok: false,
+      error: typeof row.error === 'string' ? row.error : 'fetch_failed',
+    }
+  }
   const page = parseLeaderboardPage(data)
   if (!page) return { ok: false, error: 'unexpected_response' }
   return { ok: true, page }
@@ -215,6 +223,13 @@ export async function fetchMyLeaderboardStanding(): Promise<
   }
   const { data, error } = await supabase.rpc('get_my_leaderboard_standing')
   if (error) return { ok: false, error: error.message }
+  if (data && typeof data === 'object' && (data as { ok?: unknown }).ok === false) {
+    const row = data as Record<string, unknown>
+    return {
+      ok: false,
+      error: typeof row.error === 'string' ? row.error : 'fetch_failed',
+    }
+  }
   const standing = parseMyLeaderboardStanding(data)
   if (!standing) return { ok: false, error: 'unexpected_response' }
   return { ok: true, standing }
