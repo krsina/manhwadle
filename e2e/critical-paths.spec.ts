@@ -31,27 +31,44 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('link', { name: /Manhwadle/i }).first()).toBeVisible()
   })
 
-  test('avatar shop exposes the guest catalog and reward rules', async ({ page }) => {
+  test('avatar shop exposes the guest catalog and preview flow', async ({ page }) => {
     await page.goto('/shop')
     await expect(page.getByRole('heading', { name: 'Avatar Shop' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Sign in to unlock and equip' })).toBeVisible()
+    await expect(
+      page.getByText(/Guest rounds cannot earn server-verified points/i),
+    ).toBeVisible()
+    await expect(page.getByLabel(/shop points/i)).toBeVisible()
+    await expect(page.locator('.avatar-shop-preview .pixel-avatar')).toBeVisible()
+
+    await expect(page.getByRole('tab', { name: 'Characters' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Backgrounds' })).toBeVisible()
 
     const shadowHunter = page.getByRole('button').filter({ hasText: 'Shadow Hunter' })
     await expect(shadowHunter).toBeVisible()
     await shadowHunter.click()
     await expect(shadowHunter).toHaveAttribute('aria-pressed', 'true')
+    await expect(
+      page.locator('.avatar-shop-meta').getByRole('heading', { name: 'Shadow Hunter' }),
+    ).toBeVisible()
 
     const defaultMale = page.getByRole('button').filter({ hasText: 'Default (Male)' })
     await expect(defaultMale).toBeVisible()
 
-    await expect(page.getByText('Win +10')).toBeVisible()
-    await expect(page.getByText('Full loss +3')).toBeVisible()
-    await expect(page.getByText('Surrender +0')).toBeVisible()
     const signIn = page.getByRole('button', { name: 'Sign in to unlock' })
     if (await signIn.isVisible().catch(() => false)) {
       await signIn.click()
       await expect(page.getByRole('heading', { name: 'Sign in', exact: true })).toBeVisible()
+      await page.keyboard.press('Escape')
     }
+
+    await page.getByRole('tab', { name: 'Backgrounds' }).click()
+    await expect(page.getByRole('tab', { name: 'Backgrounds' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    await expect(page.getByRole('button').filter({ hasText: 'Blossom Courtyard' })).toBeVisible()
+    await expect(page.getByRole('button').filter({ hasText: 'Sky Meadow' })).toBeVisible()
   })
 
   test('avatar shop remains usable on mobile', async ({ page }) => {
