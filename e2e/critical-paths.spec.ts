@@ -58,7 +58,12 @@ test.describe('critical paths', () => {
       page.locator('.avatar-shop-meta').getByRole('heading', { name: 'Quest Recruit' }),
     ).toBeVisible()
     await expect(page.locator('.avatar-shop-meta').getByText('Limited-time', { exact: true })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Sign in to unlock' })).toBeVisible()
+    // Without Supabase env in CI the CTA is Unavailable; with auth configured it prompts sign-in.
+    await expect(
+      page
+        .locator('.avatar-shop-actions .btn-primary')
+        .filter({ hasText: /Sign in to unlock|Unavailable/ }),
+    ).toBeVisible()
 
     await expect(page.getByRole('button').filter({ hasText: 'Spark Apprentice' })).toBeVisible()
 
