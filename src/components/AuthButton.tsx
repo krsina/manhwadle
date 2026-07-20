@@ -4,6 +4,7 @@ import { useAuth, type AuthOAuthProvider } from './AuthProvider'
 import { Dialog } from './Dialog'
 import { ModerationDashboard } from './ModerationDashboard'
 import { canUseModerationUi } from '../lib/moderationApi'
+import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
 import { SETTINGS_PATH } from '../lib/routes'
 import { PixelAvatar } from './PixelAvatar'
 import { DIALOG_ESCAPE_EVENT, reportAccountMenuPress } from '../lib/secretEvents'
@@ -22,8 +23,14 @@ export function AuthButton() {
   const { user, account, configured, loading, signInWithMagicLink, signInWithOAuth, signOut } =
     useAuth()
   const navigate = useNavigate()
+  const { showUserModeToggle, userMode, setUserMode } = useOwnerDevAccess()
   const [open, setOpen] = useState(false)
   const [moderationOpen, setModerationOpen] = useState(false)
+  const hideOwnerPrivileges = showUserModeToggle && userMode
+
+  useEffect(() => {
+    if (hideOwnerPrivileges && moderationOpen) setModerationOpen(false)
+  }, [hideOwnerPrivileges, moderationOpen])
 
   if (!configured) return null
 
@@ -50,10 +57,13 @@ export function AuthButton() {
           title={account?.username ? `@${account.username}` : (user.email ?? 'Account')}
           onOpenSettings={() => navigate(SETTINGS_PATH)}
           onOpenModeration={
-            canUseModerationUi(account?.staffRole)
+            canUseModerationUi(account?.staffRole) && !hideOwnerPrivileges
               ? () => setModerationOpen(true)
               : undefined
           }
+          showUserModeToggle={showUserModeToggle}
+          userMode={userMode}
+          onToggleUserMode={() => setUserMode(!userMode)}
           onSignOut={() => signOut()}
         />
         <ModerationDashboard
@@ -293,6 +303,9 @@ function AccountMenu({
   title,
   onOpenSettings,
   onOpenModeration,
+  showUserModeToggle,
+  userMode,
+  onToggleUserMode,
   onSignOut,
 }: {
   label: string
@@ -304,6 +317,9 @@ function AccountMenu({
   title: string
   onOpenSettings: () => void
   onOpenModeration?: () => void
+  showUserModeToggle?: boolean
+  userMode?: boolean
+  onToggleUserMode?: () => void
   onSignOut: () => Promise<void>
 }) {
   const menuId = useId()
@@ -412,6 +428,20 @@ function AccountMenu({
                 disabled={busy}
               >
                 Moderation{staffRole ? ` (${staffRole})` : ''}
+              </button>
+            )}
+            {showUserModeToggle && onToggleUserMode && (
+              <button
+                type="button"
+                className="btn btn-ghost auth-user-mode-btn"
+                role="menuitemcheckbox"
+                aria-checked={Boolean(userMode)}
+                onClick={() => {
+                  onToggleUserMode()
+                }}
+                disabled={busy}
+              >
+                User mode{userMode ? ': on' : ': off'}
               </button>
             )}
             <button

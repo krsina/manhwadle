@@ -22,6 +22,7 @@ import {
   type CellStreakStyle,
   type DayPlayLevel,
 } from '../lib/streak'
+import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
 import { ArchiveDevStreakPanel } from './ArchiveDevStreakPanel'
 import { Dialog } from './Dialog'
 
@@ -72,6 +73,7 @@ export function ArchiveCalendarModal({
   onSelectDate,
   onClose,
 }: ArchiveCalendarModalProps) {
+  const { ownerDev } = useOwnerDevAccess()
   const todayKey = getTodayKey()
   const todayParts = parseDateKeyParts(todayKey)!
   const [viewYear, setViewYear] = useState(todayParts.year)
@@ -126,8 +128,7 @@ export function ArchiveCalendarModal({
     const totalDays = daysInUtcMonth(viewYear, viewMonth)
     const startWeekday = utcMonthStartWeekday(viewYear, viewMonth)
     const result: (CalendarCell | null)[] = []
-    const forcedDates =
-      import.meta.env.DEV ? loadDevForcedDates(taste) : new Set<string>()
+    const forcedDates = ownerDev ? loadDevForcedDates(taste) : new Set<string>()
 
     for (let i = 0; i < startWeekday; i++) {
       result.push(null)
@@ -184,6 +185,7 @@ export function ArchiveCalendarModal({
     selectedDateKey,
     taste,
     devTick,
+    ownerDev,
   ])
 
   const weeks = useMemo(() => {
@@ -231,7 +233,7 @@ export function ArchiveCalendarModal({
       descriptionId="archive-desc"
       backdropClassName="archive-backdrop"
       panelClassName="archive-modal"
-      shellClassName={`archive-shell${import.meta.env.DEV ? ' has-dev-panel' : ''}`}
+      shellClassName={`archive-shell${ownerDev ? ' has-dev-panel' : ''}`}
     >
           <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
             <span aria-hidden="true">×</span>
@@ -401,7 +403,7 @@ export function ArchiveCalendarModal({
               </button>
             </div>
           )}
-        {import.meta.env.DEV && (
+        {ownerDev && (
           <ArchiveDevStreakPanel
             taste={taste}
             viewYear={viewYear}

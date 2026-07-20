@@ -1,3 +1,4 @@
+import { isOwnerDevSessionActive } from './devAccess'
 import type { DayState } from './anilist-types'
 import { ARCHIVE_MODE_LANES } from './archive'
 import type { ReaderTaste } from './readerTaste'
@@ -34,7 +35,11 @@ function forceKey(taste: ReaderTaste): string {
 
 /** Dates forced playable in DEV even with no remote puzzle row. */
 export function loadDevForcedDates(taste: ReaderTaste): Set<string> {
-  if (!import.meta.env.DEV || typeof localStorage === 'undefined') {
+  if (
+    !import.meta.env.DEV ||
+    !isOwnerDevSessionActive() ||
+    typeof localStorage === 'undefined'
+  ) {
     return new Set()
   }
   try {
@@ -49,7 +54,13 @@ export function loadDevForcedDates(taste: ReaderTaste): Set<string> {
 }
 
 export function saveDevForcedDates(taste: ReaderTaste, dates: Set<string>): void {
-  if (!import.meta.env.DEV || typeof localStorage === 'undefined') return
+  if (
+    !import.meta.env.DEV ||
+    !isOwnerDevSessionActive() ||
+    typeof localStorage === 'undefined'
+  ) {
+    return
+  }
   try {
     localStorage.setItem(forceKey(taste), JSON.stringify([...dates].sort()))
   } catch {
@@ -125,6 +136,7 @@ export function applyFakeModeOutcome(
   modeId: ArchiveModeId,
   outcome: FakeModeOutcome,
 ): void {
+  if (!import.meta.env.DEV || !isOwnerDevSessionActive()) return
   const storage = modeStorage(modeId, taste)
   const next = buildFakeState(dateKey, outcome)
   if (!next) {
@@ -161,6 +173,7 @@ export function applyFakeDayOutcomes(
 
 /** Wipe all three modes for a date and un-force it. */
 export function clearFakeDay(dateKey: string, taste: ReaderTaste): void {
+  if (!import.meta.env.DEV || !isOwnerDevSessionActive()) return
   for (const lane of ARCHIVE_MODE_LANES) {
     clearModeDay(dateKey, modeStorage(lane.id, taste))
   }

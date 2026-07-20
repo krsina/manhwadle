@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './components/AuthProvider'
 import { AppLayout } from './components/AppLayout'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { OwnerDevRoute } from './components/OwnerDevRoute'
 import {
   loadReaderTaste,
   saveReaderTaste,
@@ -120,25 +121,21 @@ function App() {
               <Route
                 path="dev/animations"
                 element={
-                  import.meta.env.DEV ? (
+                  <OwnerDevRoute>
                     <Suspense fallback={<RouteFallback />}>
                       <AnimationCreatorPage />
                     </Suspense>
-                  ) : (
-                    <Navigate to="/" replace />
-                  )
+                  </OwnerDevRoute>
                 }
               />
               <Route
                 path="dev/action-strip-preview"
                 element={
-                  import.meta.env.DEV ? (
+                  <OwnerDevRoute>
                     <Suspense fallback={<RouteFallback />}>
                       <ActionStripPreviewPage />
                     </Suspense>
-                  ) : (
-                    <Navigate to="/" replace />
-                  )
+                  </OwnerDevRoute>
                 }
               />
               <Route

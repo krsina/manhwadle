@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Dialog } from './Dialog'
+import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
 import {
   clearDevLeaderboard,
   isDevLeaderboardOverrideEnabled,
@@ -13,10 +14,11 @@ import {
 } from '../lib/leaderboardDevFake'
 import { DEV_ANIMATIONS_PATH, DEV_ACTION_STRIP_PREVIEW_PATH } from '../lib/routes'
 import { STREAK_PRESETS, streakTier } from '../lib/streakIntensity'
-/** Floating DEV-only tools for Top Rankings + streak badge previews. */
+/** Floating owner+DEV tools for Top Rankings + streak badge previews. */
 export function DevToolsLauncher() {
+  const { ownerDev } = useOwnerDevAccess()
   const [open, setOpen] = useState(false)
-  if (!import.meta.env.DEV) return null
+  if (!ownerDev) return null
   return (
     <>
       <button
