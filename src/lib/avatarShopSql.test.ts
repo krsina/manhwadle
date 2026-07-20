@@ -13,6 +13,9 @@ const wholeCharacterMigrationPath = path.resolve(
   'supabase/migrations/20260718140000_whole_character_avatar_shop.sql',
 )
 const wave1MigrationPath = path.resolve('supabase/migrations/20260719100000_avatar_wave1_shop.sql')
+const limitedTimeMigrationPath = path.resolve(
+  'supabase/migrations/20260720100729_avatar_limited_time_newbies.sql',
+)
 const stageMigrationPath = path.resolve('supabase/migrations/20260719110000_avatar_stage_shop.sql')
 const hasWholeCharacterMigration = fs.existsSync(wholeCharacterMigrationPath)
 const wholeCharacterMigration = hasWholeCharacterMigration
@@ -21,10 +24,13 @@ const wholeCharacterMigration = hasWholeCharacterMigration
 const wave1Migration = fs.existsSync(wave1MigrationPath)
   ? fs.readFileSync(wave1MigrationPath, 'utf8')
   : ''
+const limitedTimeMigration = fs.existsSync(limitedTimeMigrationPath)
+  ? fs.readFileSync(limitedTimeMigrationPath, 'utf8')
+  : ''
 const stageMigration = fs.existsSync(stageMigrationPath)
   ? fs.readFileSync(stageMigrationPath, 'utf8')
   : ''
-const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}`
+const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}\n${limitedTimeMigration}`
 
 describe('avatar shop migration contracts', () => {
   it('makes point sources idempotent and balances non-negative', () => {
@@ -81,6 +87,18 @@ describe.runIf(hasWholeCharacterMigration)('whole-character avatar shop migratio
     expect(wave1Migration).toContain('avatar_plum_blossom_blade')
     expect(wave1Migration).toContain('avatar_villainess_rose')
     expect(wave1Migration).not.toContain('and id not in (')
+  })
+
+  it('adds limited-time free claims without auto-granting all price-0 avatars', () => {
+    expect(limitedTimeMigration).toContain('avatar_quest_recruit')
+    expect(limitedTimeMigration).toContain('avatar_spark_apprentice')
+    expect(limitedTimeMigration).toContain('order by si.price asc')
+    expect(limitedTimeMigration).toContain(
+      "si.id in ('avatar_default_female', 'avatar_default_male')",
+    )
+    expect(limitedTimeMigration).toContain("'limited_time'")
+    expect(limitedTimeMigration).toContain('elsif v_item.price = 0 then')
+    expect(limitedTimeMigration).not.toContain('and id not in (')
   })
 })
 

@@ -8,6 +8,7 @@ import {
 import {
   AVATAR_CHARACTER_META,
   DEFAULT_AVATAR_ID,
+  compareShopItemsByPrice,
   getAvatarCharacterMeta,
   normalizeEquippedAvatarId,
   starterAvatarIds,
@@ -31,6 +32,8 @@ export interface AvatarShopItem {
   assetKey: string
   owned: boolean
   equipped?: boolean
+  /** Free limited-time claim — show Limited-time badge; not a permanent starter. */
+  limitedTime?: boolean
   /** Owned awakening tier for this avatar (0 = none). Stages omit this. */
   awakeningLevel?: AwakeningLevel
 }
@@ -60,8 +63,11 @@ export const AVATAR_CATALOG_FALLBACK: readonly AvatarShopItem[] = AVATAR_CHARACT
   assetKey: meta.assetKey,
   owned: meta.starter,
   equipped: meta.id === DEFAULT_AVATAR_ID,
-  awakeningLevel: 0,
+  limitedTime: meta.limitedTime === true,
+  awakeningLevel: 0 as AwakeningLevel,
 }))
+  .slice()
+  .sort(compareShopItemsByPrice)
 
 export const STAGE_CATALOG_FALLBACK: readonly AvatarShopItem[] = AVATAR_STAGE_META.map((meta) => ({
   id: meta.id,
@@ -73,6 +79,8 @@ export const STAGE_CATALOG_FALLBACK: readonly AvatarShopItem[] = AVATAR_STAGE_ME
   owned: meta.starter,
   equipped: meta.id === DEFAULT_STAGE_ID,
 }))
+  .slice()
+  .sort(compareShopItemsByPrice)
 
 export const AWAKENING_SHOP_FALLBACK: readonly AvatarAwakeningShopItem[] =
   AWAKENING_CATALOG_FALLBACK.map((row) => ({ ...row, owned: false }))
@@ -90,13 +98,13 @@ function fallbackShop(): AvatarShopSnapshot {
       ...item,
       owned: starters.has(item.id),
       equipped: item.id === DEFAULT_AVATAR_ID,
-      awakeningLevel: 0,
-    })),
+      awakeningLevel: 0 as AwakeningLevel,
+    })).sort(compareShopItemsByPrice),
     stages: STAGE_CATALOG_FALLBACK.map((item) => ({
       ...item,
       owned: stageStarters.has(item.id),
       equipped: item.id === DEFAULT_STAGE_ID,
-    })),
+    })).sort(compareShopItemsByPrice),
     awakenings: AVATAR_AWAKENINGS_ENABLED
       ? AWAKENING_SHOP_FALLBACK.map((row) => ({ ...row }))
       : [],
@@ -164,6 +172,10 @@ function parseShopItem(
     assetKey: asString(item.asset_key) ?? meta?.assetKey ?? id,
     owned: item.owned === true || meta?.starter === true,
     equipped: item.equipped === true || id === equippedId,
+    limitedTime:
+      item.limited_time === true ||
+      item.limitedTime === true ||
+      (meta != null && 'limitedTime' in meta && meta.limitedTime === true),
   }
   if (kind === 'avatar') {
     parsed.awakeningLevel = normalizeAwakeningLevel(item.awakening_level)
@@ -220,7 +232,7 @@ function mergeCatalog(
     items.push({ ...row, equipped: row.id === equippedId })
     seen.add(row.id)
   }
-  return items
+  return items.sort(compareShopItemsByPrice)
 }
 
 export function parseAvatarShopSnapshot(raw: unknown): AvatarShopSnapshot | null {
