@@ -49,7 +49,7 @@ In Cloudflare → **Workers & Pages** → **Create** → **Pages** → **Import 
 | Build command | `npm ci && npm run build` |
 | Build output directory | `dist` |
 | Root directory | `/` (repository root) |
-| Node version | `20` (Pages reads [`.nvmrc`](../.nvmrc); or set `NODE_VERSION=20`) |
+| Node version | `22` (Pages reads [`.nvmrc`](../.nvmrc); or set `NODE_VERSION=22`) |
 | Production branch | `main` |
 
 Notes:
