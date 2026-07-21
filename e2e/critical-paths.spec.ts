@@ -103,6 +103,28 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('button').filter({ hasText: 'Skybreaker Monk' })).toBeVisible()
   })
 
+  test('site header stays compact on mobile without Ko-fi', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+    const header = page.locator('.site-header')
+    await expect(header.getByRole('link', { name: /Manhwadle/i })).toBeVisible()
+    await expect(header.getByRole('link', { name: /Open avatar shop/i })).toBeVisible()
+    await expect(header.getByRole('link', { name: /Support on Ko-fi/i })).toBeHidden()
+    await expect(header.getByRole('button', { name: /Preferences/i })).toBeVisible()
+    await expect(header.getByRole('button', { name: /Switch to (light|dark) mode/i })).toBeVisible()
+    // AuthButton is null when Supabase env is missing (CI). Local .env may show Sign in.
+    const signIn = header.getByRole('button', { name: /Sign in/i })
+    if ((await signIn.count()) > 0) {
+      await expect(signIn).toBeVisible()
+    }
+
+    const brandBox = await header.locator('.site-brand').boundingBox()
+    const actionsBox = await header.locator('.site-actions').boundingBox()
+    expect(brandBox).toBeTruthy()
+    expect(actionsBox).toBeTruthy()
+    expect(brandBox!.x + brandBox!.width).toBeLessThanOrEqual(actionsBox!.x + 1)
+  })
+
   test('homepage leaderboard links to the full board without Show more', async ({ page }) => {
     await page.goto('/')
     const panel = page.locator('.leaderboard-panel')
