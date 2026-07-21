@@ -38,10 +38,47 @@ export function PrivacyPage() {
         <h2>Advertising</h2>
         <p>
           When ads are enabled, we may show third-party display banners (Google AdSense and/or
-          Adsterra) and an optional user-initiated rewarded video for in-game points. Ad scripts
-          and creatives can set cookies or similar identifiers and collect device or usage data
-          under the ad partner&apos;s policies. We do not use pop-under or push-notification ad
-          formats.
+          Adsterra) and an optional user-initiated rewarded video for in-game points. We do not
+          use pop-under or push-notification ad formats.
+        </p>
+        <p>
+          Third-party vendors, including Google, use cookies to serve ads based on a user&apos;s
+          prior visits to this website or other websites. Google&apos;s use of advertising cookies
+          (including the DoubleClick DART cookie) enables it and its partners to serve personalized
+          ads based on visits to this site and/or other sites on the Internet. Ad scripts and
+          creatives may set cookies or similar identifiers and collect device or usage data under
+          each partner&apos;s policies. See{' '}
+          <a
+            href="https://policies.google.com/technologies/ads"
+            target="_blank"
+            rel="noreferrer"
+          >
+            How Google uses information from sites or apps that use our services
+          </a>
+          .
+        </p>
+        <p>
+          On Manhwadle, when ads are live we may also show an on-site consent prompt so you can
+          allow or refuse personalized advertising cookies for this site (where required, for
+          example in the EEA, UK, or Switzerland). That prompt is separate from the industry
+          opt-outs below.
+        </p>
+        <p>
+          Separately, you can turn off personalized ads from Google across the web in{' '}
+          <a href="https://www.google.com/settings/ads" target="_blank" rel="noreferrer">
+            Google Ads Settings
+          </a>
+          , or opt out of many other ad networks&apos; personalized cookies at{' '}
+          <a href="https://www.aboutads.info/choices/" target="_blank" rel="noreferrer">
+            aboutads.info
+          </a>
+          . Those tools are Google&apos;s / industry-wide controls — not Manhwadle account
+          settings.
+        </p>
+        <p>
+          When Adsterra or other non-Google ad networks serve ads here, those vendors may also use
+          cookies or similar technologies. Review their privacy policies on their sites for details
+          and any opt-out options they offer.
         </p>
       </section>
       <section>
