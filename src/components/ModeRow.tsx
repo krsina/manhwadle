@@ -5,6 +5,7 @@ import {
   statusLabel,
   type ModeCompletionStatus,
 } from '../lib/modeCompletion'
+
 interface ModeRowProps {
   mode: GameModeDefinition
   status: ModeCompletionStatus
@@ -22,6 +23,7 @@ export function ModeRow({
   const actionLabel =
     completed || status === 'in_progress' ? 'Continue' : 'Play'
   const action = !available ? 'Unavailable' : actionLabel
+  const showPlayCue = available && !completed
 
   const className = [
     'mode-row',
@@ -31,6 +33,14 @@ export function ModeRow({
   ]
     .filter(Boolean)
     .join(' ')
+
+  const statusText = !available
+    ? 'Temporarily unavailable'
+    : status === 'not_started'
+      ? 'Play'
+      : status === 'in_progress'
+        ? 'Continue'
+        : statusLabel(status)
 
   const body = (
     <>
@@ -42,8 +52,14 @@ export function ModeRow({
           <h2 id={`mode-row-title-${mode.id}`} className="mode-row-title">
             {mode.name}
           </h2>
-          <p className="mode-row-status" data-status={status}>
-            {available ? statusLabel(status) : 'Temporarily unavailable'}
+          <p
+            className={['mode-row-status', showPlayCue ? 'mode-row-status-cue' : '']
+              .filter(Boolean)
+              .join(' ')}
+            data-status={status}
+          >
+            {showPlayCue && <PlayGlyph className="mode-row-status-glyph" />}
+            {statusText}
           </p>
         </div>
         <p className="mode-row-desc">{mode.tagline}</p>
@@ -74,6 +90,14 @@ export function ModeRow({
     >
       {body}
     </Link>
+  )
+}
+
+function PlayGlyph({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8.5 6.2v11.6L18.2 12 8.5 6.2z" fill="currentColor" />
+    </svg>
   )
 }
 

@@ -17,9 +17,9 @@ export function AboutPage() {
       <section>
         <h2>Why it exists</h2>
         <p>
-          It started as a fan project for readers who love Korean comics and webtoons. The goal is
-          a fair, replayable daily ritual: short sessions, clear feedback, optional hard mode, and
-          cloud sync when you sign in.
+          {APP_NAME} is built for readers who love Korean comics and webtoons. The goal is a fair,
+          replayable daily ritual: short sessions, clear feedback, optional hard mode, and cloud
+          sync when you sign in.
         </p>
       </section>
       <section>
@@ -32,7 +32,7 @@ export function AboutPage() {
         </p>
       </section>
       <section>
-        <h2>Unofficial</h2>
+        <h2>Affiliation</h2>
         <p>
           {APP_NAME} is not affiliated with AniList, YouTube, publishers, or manhwa rights holders.
           Title metadata and many images come from AniList&apos;s API; rights remain with the

@@ -1,14 +1,17 @@
 {
   "meta": {
     "version": 1,
-    "updatedAt": "2026-07-17T21:00:00.000Z",
+    "updatedAt": "2026-07-21T06:00:00.000Z",
     "notes": [
       "Extra character name alternatives keyed by AniList character id.",
       "Merged into character.name.alternative by sync-game-data.mjs and apply-character-aliases.mjs.",
-      "Use for fan/official romanizations AniList does not list (e.g. Isel → Iselle)."
+      "Use for fan/official romanizations AniList does not list (e.g. Isel → Iselle).",
+      "Korean surname 이 is often Lee in fan sources and Yi on AniList — keep both when AniList only has one."
     ]
   },
   "aliases": {
+    "21562": ["Lee Shi-Woon", "Shi-Woon Lee"],
+    "41114": ["Mrs Lee"],
     "305585": ["Iselle", "Yselle"],
     "298546": ["Islat Han", "Israt Han", "Han Islat"],
     "305418": ["Tell"],

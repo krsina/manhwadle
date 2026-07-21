@@ -43,6 +43,7 @@ export function PlayPage({ taste, setTaste }: PlayPageProps) {
   const dateFromUrl = parseDateKey(searchParams.get('date'))
   const [dateKey, setDateKey] = useState(dateFromUrl || getTodayKey())
   const [showArchive, setShowArchive] = useState(false)
+  const [archiveAfterTaste, setArchiveAfterTaste] = useState(false)
   const [modeAvailable, setModeAvailable] = useState(true)
   const [modeMessage, setModeMessage] = useState<string | null>(null)
   const [fullPool, setFullPool] = useState<Manhwa[] | null>(null)
@@ -113,11 +114,25 @@ export function PlayPage({ taste, setTaste }: PlayPageProps) {
     navigate(playPath(mode.id, next === getTodayKey() ? null : next), { replace: true })
   }
 
+  function requestArchive() {
+    if (!taste) {
+      setArchiveAfterTaste(true)
+      return
+    }
+    setShowArchive(true)
+  }
+
   function handleTasteSelect(next: ReaderTaste) {
     saveReaderTaste(next)
     setTaste(next)
     syncAfterLocalChange(user?.id).taste(next)
   }
+
+  useEffect(() => {
+    if (!taste || !archiveAfterTaste) return
+    setArchiveAfterTaste(false)
+    setShowArchive(true)
+  }, [taste, archiveAfterTaste])
 
   return (
     <div className="play-page">
@@ -135,12 +150,7 @@ export function PlayPage({ taste, setTaste }: PlayPageProps) {
               maxGuesses={mode.maxGuesses}
             />
           )}
-          <ArchiveButton
-            onClick={() => {
-              if (!taste) return
-              setShowArchive(true)
-            }}
-          />
+          <ArchiveButton onClick={requestArchive} />
         </div>
       </div>
 
@@ -207,7 +217,9 @@ export function PlayPage({ taste, setTaste }: PlayPageProps) {
         </p>
       )}
 
-      {!taste && modeAvailable && <ReaderTastePrompt onSelect={handleTasteSelect} />}
+      {!taste && (modeAvailable || archiveAfterTaste) && (
+        <ReaderTastePrompt onSelect={handleTasteSelect} />
+      )}
       {taste && (
         <ArchiveCalendarModal
           open={showArchive}

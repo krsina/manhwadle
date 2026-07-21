@@ -20,6 +20,7 @@ playwright/.cache
 .env.*
 !.env.example
 supabase/.temp/
+supabase/.branches/
 
 # Generated puzzle pool dumps (recreate via npm run sync-pools)
 scripts/puzzle-pools.sql

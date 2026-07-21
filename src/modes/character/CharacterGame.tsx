@@ -47,7 +47,6 @@ import {
 } from '../../lib/ranked'
 import { recordBonusResult, recordDailyResult } from '../../lib/stats'
 import { syncAfterLocalChange } from '../../lib/sync'
-import { catalogSizePhrase } from '../../lib/catalogConfig'
 import { useDailyPuzzleAnswer } from '../../lib/useDailyPuzzleAnswer'
 import type { GameModeProps } from '../types'
 import { characterModeMeta } from './config'
@@ -632,7 +631,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
           <p className="mode-empty-body">
             Enable character images in the{' '}
             <a href="/library.html">library editor</a> (cast is included by default),
-            then this daily mode will unlock for the {catalogSizePhrase()}.
+            then this daily mode will unlock for the catalog.
           </p>
         </section>
       ) : (

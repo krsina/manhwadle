@@ -129,6 +129,20 @@ function bestKeyLeftover(name: string, queryKey: string): number {
 }
 
 /**
+ * True when the unmatched suffix is only a sequel shorthand (2, 3, NW, Season 3…).
+ * Prefer the real English title over these in dropdown labels.
+ */
+function isThinSequelAlias(name: string, queryKey: string): boolean {
+  for (const key of normalizeSearchKeys(name)) {
+    if (!key.startsWith(queryKey)) continue
+    const rest = key.slice(queryKey.length)
+    if (!rest) continue
+    if (/^(\d+|nw|newwaves|season\d+|part\d+)$/i.test(rest)) return true
+  }
+  return false
+}
+
+/**
  * Ranked autocomplete against English titles and all aliases.
  * Dropdown label mirrors the best-matching form (alias when that scored best).
  *
@@ -167,6 +181,20 @@ export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHi
       }
 
       if (score !== bestScore) continue
+
+      const candidateThin = !isPrimary && isThinSequelAlias(name, q)
+      const bestThin = matchedAlias && isThinSequelAlias(bestLabel, q)
+
+      // Keep "The Breaker: Eternal Force" over the shorter "The Breaker 3" alias.
+      if (isPrimary && bestThin) {
+        bestLabel = primary
+        matchedAlias = false
+        bestLeftover = leftover
+        continue
+      }
+      if (candidateThin && !matchedAlias) {
+        continue
+      }
 
       // Same rank: prefer the form that leaves less unmatched title after the query
       // ("doctor" → "Doctor's Rebirth" over the longer primary "Doctor, Live Again").

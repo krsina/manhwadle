@@ -77,6 +77,11 @@ export interface Manhwa {
   siteUrl: string
   /** Characters attached from catalog ETL (MAIN first) */
   characters: ManhwaCharacter[]
+  /**
+   * AniList popularity ordinal in the catalog band (1 = most popular).
+   * Present on the player client catalog; optional on older fixtures.
+   */
+  rank?: number | null
 }
 
 /** Cast members AniList marks as MAIN (often more than one co-lead). */

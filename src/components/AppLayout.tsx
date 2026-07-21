@@ -8,10 +8,10 @@ import { StreakBadge } from './StreakBadge'
 import { UsernameOnboarding } from './UsernameOnboarding'
 import { StatusBanner } from './StatusBanner'
 import { DevToolsLauncher } from './DevToolsModal'
-import { catalogSizeLabel } from '../lib/catalogConfig'
 import {
   ABOUT_PATH,
   ATTRIBUTION_PATH,
+  DATABASE_PATH,
   HOW_IT_WORKS_PATH,
   legacyPlayRedirectTarget,
   MODERATION_POLICY_PATH,
@@ -156,11 +156,12 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
           <a href="https://anilist.co" target="_blank" rel="noreferrer">
             AniList
           </a>
-          . {catalogSizeLabel()} Korean manhwa by popularity.
+          . Top Korean manhwa by popularity.
         </p>
-        <nav className="footer-legal" aria-label="Legal">
+        <nav className="footer-legal" aria-label="Site">
           <Link to={ABOUT_PATH}>About</Link>
           <Link to={HOW_IT_WORKS_PATH}>How it works</Link>
+          <Link to={DATABASE_PATH}>Manhwa Database</Link>
           <Link to={PRIVACY_PATH}>Privacy</Link>
           <Link to={TERMS_PATH}>Terms</Link>
           <Link to={ATTRIBUTION_PATH}>Attribution</Link>

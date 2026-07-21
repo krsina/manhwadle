@@ -2,12 +2,12 @@ import { LegalDoc } from './LegalDoc'
 
 export function PrivacyPage() {
   return (
-    <LegalDoc title="Privacy">
+    <LegalDoc title="Privacy" updated="July 21, 2026">
       <section>
         <h2>Overview</h2>
         <p>
-          Manhwadle is an unofficial fan project. You can play anonymously with progress stored
-          in this browser. Optional account features use Supabase Auth.
+          You can play anonymously with progress stored in this browser. Optional account features
+          use Supabase Auth.
         </p>
       </section>
       <section>
@@ -56,6 +56,15 @@ export function PrivacyPage() {
         <p>
           You can export or delete account data from Settings when signed in. Local-only play can
           be cleared by clearing site data in your browser.
+        </p>
+      </section>
+      <section>
+        <h2>Children&apos;s privacy</h2>
+        <p>
+          Manhwadle is not directed at children under 13, and we do not knowingly collect personal
+          information from anyone under 13. If you believe a child under 13 has created an account
+          or shared personal information with us, contact us using the email below and we will
+          delete that information.
         </p>
       </section>
       <section>

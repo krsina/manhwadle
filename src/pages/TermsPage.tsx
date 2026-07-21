@@ -4,12 +4,12 @@ export function TermsPage() {
   return (
     <LegalDoc title="Terms">
       <section>
-        <h2>Unofficial fan project</h2>
+        <h2>Affiliation</h2>
         <p>
-          Manhwadle is an unofficial fan project. It is not affiliated with, endorsed by, or
-          sponsored by AniList, YouTube, publishers, or any manhwa rights holders. The site may
-          show third-party display advertisements to help cover hosting and development costs.
-          In-game points and the avatar shop are virtual only and are not real-money purchases.
+          Manhwadle is not affiliated with, endorsed by, or sponsored by AniList, YouTube,
+          publishers, or any manhwa rights holders. The site may show third-party display
+          advertisements to help cover hosting and development costs. In-game points and the
+          avatar shop are virtual only and are not real-money purchases.
         </p>
       </section>
       <section>

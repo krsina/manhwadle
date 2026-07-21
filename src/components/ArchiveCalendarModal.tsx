@@ -244,7 +244,8 @@ export function ArchiveCalendarModal({
             Pick a past day
           </h2>
           <p id="archive-desc" className="archive-note">
-            Archive plays don't count towards stats. Streaks group days you finished any mode.
+            Archive plays are free practice. Progress stays on this device and does not count toward
+            streaks or verified stats.
           </p>
 
           <div className="archive-month-nav">

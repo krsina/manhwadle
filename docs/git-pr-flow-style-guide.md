@@ -128,11 +128,14 @@ Skip e2e only when the diff cannot affect the app shell, routes, or critical-pat
 **Symptom:** CI or Pages disagrees with local Node.  
 **Avoid:** Keep `.nvmrc`, `package.json` `engines`, and [deployment.md](./deployment.md) Pages Node setting in sync (22 LTS). Run `node -v` before preflight.
 
-### D. E2E written against a live backend
+### D. E2E written against a live backend / local `.env`
 
 **Symptom:** Search / leaderboard / auth tests pass locally with `.env` but fail in CI.  
 **Avoid:** Critical-path e2e must work with unconfigured / empty cloud. Prefer UI contract checks (submit path, scoped error/status) over “row X appears from staging.”
 
+**Auth chrome specifically:** `AuthButton` returns `null` when Supabase env is missing, so CI has **no** header “Sign in” control. Locally, `npm run build` embeds `VITE_*` from `.env` into `dist`, and `test:e2e` serves that preview — so Sign in appears locally even though CI never had those secrets. Do not require Sign in / account chip unless the test branches (present → assert; absent → OK), same pattern as shop unlock CTAs that accept `Sign in to unlock|Unavailable`.
+
+When adding auth-sensitive e2e: assert shell chrome that always exists (brand, Preferences, theme), or rebuild/`preview` without Supabase env before trusting a green local run.
 ### E. Migration timestamp collisions
 
 **Symptom:** `check:migrations` fails in CI.  

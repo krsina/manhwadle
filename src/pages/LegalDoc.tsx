@@ -9,9 +9,12 @@ import { useLegalSecretPing } from '../lib/useSecretPagePings'
 /** Shared legal page shell. Disclosures are informational, not legal advice. */
 export function LegalDoc({
   title,
+  updated,
   children,
 }: {
   title: string
+  /** Visible “Last updated” stamp when the policy text meaningfully changes. */
+  updated?: string
   children: ReactNode
 }) {
   useLegalSecretPing()
@@ -19,6 +22,7 @@ export function LegalDoc({
   return (
     <article className="legal-page">
       <h1 className="legal-title">{title}</h1>
+      {updated && <p className="legal-updated">Last updated: {updated}</p>}
       <p className="legal-disclaimer">
         This page describes how Manhwadle works today. It is not legal advice. Policies may
         change as the project evolves.

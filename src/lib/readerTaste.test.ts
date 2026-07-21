@@ -73,4 +73,61 @@ describe('classifyManhwaTaste overrides', () => {
       ),
     ).toBe('action')
   })
+
+  it('forces The Breaker New Waves to action despite Romance genre', () => {
+    expect(
+      classifyManhwaTaste(
+        makeManhwa({
+          id: 52651,
+          genres: ['Action', 'Comedy', 'Drama', 'Romance'],
+          tags: ['Martial Arts', 'Gangs'],
+        }),
+      ),
+    ).toBe('action')
+  })
+
+  it('forces Lookism and Wind Breaker to action', () => {
+    expect(
+      classifyManhwaTaste(
+        makeManhwa({
+          id: 86848,
+          genres: ['Action', 'Comedy', 'Drama', 'Supernatural'],
+          tags: ['School', 'Coming of Age', 'Heterosexual', 'Male Protagonist'],
+        }),
+      ),
+    ).toBe('action')
+    expect(
+      classifyManhwaTaste(
+        makeManhwa({
+          id: 86099,
+          genres: ['Action', 'Comedy', 'Drama', 'Romance', 'Sports'],
+          tags: ['School', 'Coming of Age', 'Male Protagonist'],
+        }),
+      ),
+    ).toBe('action')
+  })
+
+  it('forces Existence to action', () => {
+    expect(
+      classifyManhwaTaste(
+        makeManhwa({
+          id: 153987,
+          genres: ['Drama', 'Supernatural'],
+          tags: ['Male Protagonist', 'Super Power', 'Tragedy'],
+        }),
+      ),
+    ).toBe('action')
+  })
+
+  it("forces A Man's Man to action", () => {
+    expect(
+      classifyManhwaTaste(
+        makeManhwa({
+          id: 129956,
+          genres: ['Drama'],
+          tags: ['Male Protagonist', 'Age Regression', 'Work'],
+        }),
+      ),
+    ).toBe('action')
+  })
 })

@@ -10,12 +10,15 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('link', { name: /Play Character/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Play Cover/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Play Heardle/i })).toBeVisible()
-    await expect(page.getByRole('navigation', { name: /Legal/i })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: /Site/i })).toBeVisible()
     await expect(
-      page.getByRole('navigation', { name: /Legal/i }).getByRole('link', { name: 'Privacy' }),
+      page.getByRole('navigation', { name: /Site/i }).getByRole('link', { name: 'Privacy' }),
     ).toBeVisible()
     await expect(
-      page.getByRole('navigation', { name: /Legal/i }).getByRole('link', { name: 'Terms' }),
+      page.getByRole('navigation', { name: /Site/i }).getByRole('link', { name: 'Terms' }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole('navigation', { name: /Site/i }).getByRole('link', { name: 'Manhwa Database' }),
     ).toBeVisible()
   })
 
@@ -103,6 +106,28 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('button').filter({ hasText: 'Skybreaker Monk' })).toBeVisible()
   })
 
+  test('site header stays compact on mobile without Ko-fi', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+    const header = page.locator('.site-header')
+    await expect(header.getByRole('link', { name: /Manhwadle/i })).toBeVisible()
+    await expect(header.getByRole('link', { name: /Open avatar shop/i })).toBeVisible()
+    await expect(header.getByRole('link', { name: /Support on Ko-fi/i })).toBeHidden()
+    await expect(header.getByRole('button', { name: /Preferences/i })).toBeVisible()
+    await expect(header.getByRole('button', { name: /Switch to (light|dark) mode/i })).toBeVisible()
+    // AuthButton is null when Supabase env is missing (CI). Local .env may show Sign in.
+    const signIn = header.getByRole('button', { name: /Sign in/i })
+    if ((await signIn.count()) > 0) {
+      await expect(signIn).toBeVisible()
+    }
+
+    const brandBox = await header.locator('.site-brand').boundingBox()
+    const actionsBox = await header.locator('.site-actions').boundingBox()
+    expect(brandBox).toBeTruthy()
+    expect(actionsBox).toBeTruthy()
+    expect(brandBox!.x + brandBox!.width).toBeLessThanOrEqual(actionsBox!.x + 1)
+  })
+
   test('homepage leaderboard links to the full board without Show more', async ({ page }) => {
     await page.goto('/')
     const panel = page.locator('.leaderboard-panel')
@@ -161,6 +186,21 @@ test.describe('critical paths', () => {
     await expect(page.locator('#howto-title')).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(page.locator('#howto-title')).toHaveCount(0)
+  })
+
+  test('guest can open the archive calendar without signing in', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.removeItem('manhwadle:readerTaste')
+    })
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Open puzzle archive' }).click()
+    await expect(page.getByRole('heading', { name: /What do you usually read/i })).toBeVisible()
+    await page.getByRole('radio', { name: /Action/i }).click()
+    await page.getByRole('button', { name: /Continue/i }).click()
+    await expect(page.getByRole('heading', { name: /Pick a past day/i })).toBeVisible()
+    await expect(page.getByText(/does not count toward/i)).toBeVisible()
+    await page.getByRole('button', { name: 'Close' }).click()
+    await expect(page.getByRole('heading', { name: /Pick a past day/i })).toHaveCount(0)
   })
 
   test('homepage has no serious axe violations', async ({ page }) => {

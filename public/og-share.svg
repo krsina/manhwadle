@@ -10,6 +10,5 @@
   <circle cx="980" cy="120" r="220" fill="#c45c26" opacity="0.18"/>
   <circle cx="160" cy="520" r="180" fill="#d4a574" opacity="0.12"/>
   <text x="96" y="280" fill="#f4efe6" font-family="Georgia, 'Times New Roman', serif" font-size="92" font-weight="700">Manhwadle</text>
-  <text x="96" y="360" fill="#d8cfc0" font-family="system-ui, sans-serif" font-size="36">Daily manhwa guessing  Summary · Character · Cover · Heardle</text>
-  <text x="96" y="520" fill="#a89884" font-family="system-ui, sans-serif" font-size="24">Unofficial fan project</text>
+  <text x="96" y="360" fill="#d8cfc0" font-family="system-ui, sans-serif" font-size="36">Daily manhwa guessing ï¿½ Summary ï¿½ Character ï¿½ Cover ï¿½ Heardle</text>
 </svg>

@@ -245,7 +245,8 @@ export function ShopPage() {
           <p className="shop-kicker">Avatar shop</p>
           <h1>Avatar Shop</h1>
           <p>
-            Collect characters and scenic backgrounds for your homepage portrait.
+            Earn points by playing the game, then spend them on characters and scenic backgrounds
+            for your homepage portrait.
           </p>
         </div>
         <div className="shop-wallet" aria-label={`${balance} shop points`}>
