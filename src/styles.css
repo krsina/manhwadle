@@ -4924,6 +4924,7 @@ button.modal-share-mini-grid.is-button:active {
 
   .site-header-top {
     min-height: 4.25rem;
+    gap: 0.65rem;
   }
 
   .site-brand-tagline,
@@ -4931,9 +4932,52 @@ button.modal-share-mini-grid.is-button:active {
     display: none;
   }
 
+  .site-brand > div {
+    min-width: 0;
+  }
+
+  .site-brand-name {
+    font-size: 1.15rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .site-brand-mark {
     width: 2.1rem;
     height: 2.1rem;
+  }
+
+  .site-actions {
+    flex: 0 0 auto;
+    gap: 0.35rem;
+  }
+
+  .site-kofi-link {
+    display: none;
+  }
+
+  .auth-chip-btn {
+    width: 2.35rem;
+    min-width: 2.35rem;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .auth-chip-label,
+  .auth-chip-signed .auth-chevron {
+    display: none;
+  }
+
+  .auth-chip-signed {
+    padding: 0.25rem;
+    gap: 0;
+  }
+
+  .streak-badge {
+    padding: 0 0.5rem 0 0.35rem;
   }
 
   .site-nav {
