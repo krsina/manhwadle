@@ -4,6 +4,7 @@ import {
   ArchiveButton,
   ArchiveCalendarModal,
 } from '../components/ArchiveCalendarModal'
+import { ReaderTastePrompt } from '../components/ReaderTastePrompt'
 import { listModes, resolveActiveMode } from '../modes'
 import { ModeRow } from '../components/ModeRow'
 import { LeaderboardPanel } from '../components/LeaderboardPanel'
@@ -24,14 +25,17 @@ import { DEV_LEADERBOARD_EVENT } from '../lib/leaderboardDevFake'
 import { getTodayKey } from '../lib/daily'
 import { buildModeRowStatuses } from '../lib/modeCompletion'
 import type { AchievementAward } from '../lib/achievements'
-import type { ReaderTaste } from '../lib/readerTaste'
+import { saveReaderTaste, type ReaderTaste } from '../lib/readerTaste'
 import { MILESTONES_PATH, playPath } from '../lib/routes'
 import { createHomeIdleTracker, reportSecretEvent } from '../lib/secretEvents'
+import { syncAfterLocalChange } from '../lib/sync'
+
 interface HomePageProps {
   taste: ReaderTaste | null
+  setTaste: (taste: ReaderTaste) => void
 }
 
-export function HomePage({ taste }: HomePageProps) {
+export function HomePage({ taste, setTaste }: HomePageProps) {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [siteStatus, setSiteStatus] = useState<PublicSiteStatus | null>(null)
@@ -42,7 +46,28 @@ export function HomePage({ taste }: HomePageProps) {
   const [awardsReloadToken, setAwardsReloadToken] = useState(0)
   const [testPreview, setTestPreview] = useState<AchievementAward | null>(null)
   const [showArchive, setShowArchive] = useState(false)
+  const [archiveAfterTaste, setArchiveAfterTaste] = useState(false)
   const todayKey = getTodayKey()
+
+  function requestArchive() {
+    if (!taste) {
+      setArchiveAfterTaste(true)
+      return
+    }
+    setShowArchive(true)
+  }
+
+  function handleTasteSelect(next: ReaderTaste) {
+    saveReaderTaste(next)
+    setTaste(next)
+    syncAfterLocalChange(user?.id).taste(next)
+  }
+
+  useEffect(() => {
+    if (!taste || !archiveAfterTaste) return
+    setArchiveAfterTaste(false)
+    setShowArchive(true)
+  }, [taste, archiveAfterTaste])
 
   useEffect(() => {
     let cancelled = false
@@ -159,12 +184,7 @@ export function HomePage({ taste }: HomePageProps) {
               </p>
               <div className="home-archive-actions">
                 <span className="home-archive-label">Archive</span>
-                <ArchiveButton
-                  onClick={() => {
-                    if (!taste) return
-                    setShowArchive(true)
-                  }}
-                />
+                <ArchiveButton onClick={requestArchive} />
               </div>
             </div>
           </div>
@@ -227,6 +247,9 @@ export function HomePage({ taste }: HomePageProps) {
         onClose={() => setTestPreview(null)}
       />
 
+      {archiveAfterTaste && !taste && (
+        <ReaderTastePrompt onSelect={handleTasteSelect} />
+      )}
       {taste && (
         <ArchiveCalendarModal
           open={showArchive}

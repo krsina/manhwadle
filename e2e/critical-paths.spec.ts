@@ -163,6 +163,21 @@ test.describe('critical paths', () => {
     await expect(page.locator('#howto-title')).toHaveCount(0)
   })
 
+  test('guest can open the archive calendar without signing in', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.removeItem('manhwadle:readerTaste')
+    })
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Open puzzle archive' }).click()
+    await expect(page.getByRole('heading', { name: /What do you usually read/i })).toBeVisible()
+    await page.getByRole('radio', { name: /Action/i }).click()
+    await page.getByRole('button', { name: /Continue/i }).click()
+    await expect(page.getByRole('heading', { name: /Pick a past day/i })).toBeVisible()
+    await expect(page.getByText(/does not count toward/i)).toBeVisible()
+    await page.getByRole('button', { name: 'Close' }).click()
+    await expect(page.getByRole('heading', { name: /Pick a past day/i })).toHaveCount(0)
+  })
+
   test('homepage has no serious axe violations', async ({ page }) => {
     await page.goto('/')
     const results = await new AxeBuilder({ page })
