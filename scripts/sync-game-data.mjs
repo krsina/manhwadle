@@ -20,7 +20,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { loadCatalogConfig, topExportFileName } from './catalog-config.mjs'
 import { hasRealCharacterImage } from './lib/character-image.mjs'
-import { parsePublisher } from './lib/publisher.mjs'
+import { resolvePublisher } from './lib/publisher.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
@@ -300,7 +300,7 @@ function toGameManhwa(entry, characterById, appearancesByManhwa) {
     genres: Array.isArray(entry.genres) ? entry.genres : [],
     tags,
     status: mapStatus(entry.status),
-    publisher: parsePublisher(entry.description ?? ''),
+    publisher: resolvePublisher(entry.id, entry.description ?? ''),
     startDate: {
       year: entry.startYear ?? entry.startDate?.year ?? null,
       month: entry.startDate?.month ?? null,

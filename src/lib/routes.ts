@@ -14,6 +14,7 @@ export const ATTRIBUTION_PATH = '/attribution'
 export const MODERATION_POLICY_PATH = '/moderation'
 export const ABOUT_PATH = '/about'
 export const HOW_IT_WORKS_PATH = '/how-it-works'
+export const DATABASE_PATH = '/database'
 export const PLAY_PATH_PREFIX = '/play'
 
 const MODE_IDS = new Set(['summary', 'character', 'cover', 'heardle'])

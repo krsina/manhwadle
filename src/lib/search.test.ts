@@ -97,6 +97,25 @@ describe('searchCharacters', () => {
     expect(searchCharacters(cast, 'Seol')[0]?.label).toBe('Seol Kang')
   })
 
+  it('matches fan Lee romanization when AniList only lists Yi', () => {
+    const breakerCast = [
+      makeCharacter({
+        id: 21562,
+        name: {
+          full: 'Shi-Woon Yi',
+          native: '이시운',
+          alternative: ['Shioon', 'Yi Shi-Woon', 'Lee Shi-Woon', 'Shi-Woon Lee'],
+        },
+      }),
+    ]
+
+    expect(searchCharacters(breakerCast, 'Lee Shi-Woon')[0]).toMatchObject({
+      character: { id: 21562 },
+      label: 'Lee Shi-Woon',
+    })
+    expect(searchCharacters(breakerCast, 'Lee Shi')[0]?.character.id).toBe(21562)
+  })
+
   it('returns one row per character even when many aliases match', () => {
     const hits = searchCharacters(cast, 'Kang')
     expect(hits.filter((h) => h.character.id === 2)).toHaveLength(1)
@@ -288,5 +307,45 @@ describe('searchManhwa', () => {
     const short = searchManhwa(withPossessive, 'doctor')[0]
     expect(short?.manhwa.id).toBe(129579)
     expect(short?.label).toBe("Doctor's Rebirth")
+  })
+
+  it('prefers the English title over thin sequel-number aliases', () => {
+    const breaker = [
+      makeManhwa({
+        id: 38586,
+        title: {
+          english: 'THE BREAKER',
+          romaji: 'The Breaker',
+          native: null,
+        },
+        synonyms: ['브레이커'],
+      }),
+      makeManhwa({
+        id: 52651,
+        title: {
+          english: 'THE BREAKER - NEW WAVES',
+          romaji: 'The Breaker: New Waves',
+          native: null,
+        },
+        synonyms: ['The Breaker 2', 'The Breaker: NW'],
+      }),
+      makeManhwa({
+        id: 148677,
+        title: {
+          english: 'The Breaker: Eternal Force',
+          romaji: 'Eternal Force',
+          native: null,
+        },
+        synonyms: ['The Breaker 3', 'The Breaker Season 3'],
+      }),
+    ]
+
+    const hits = searchManhwa(breaker, 'the breaker')
+    expect(hits.map((h) => h.manhwa.id)).toEqual([38586, 52651, 148677])
+    expect(hits.map((h) => h.label)).toEqual([
+      'THE BREAKER',
+      'THE BREAKER - NEW WAVES',
+      'The Breaker: Eternal Force',
+    ])
   })
 })

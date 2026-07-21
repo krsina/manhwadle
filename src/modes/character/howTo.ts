@@ -1,5 +1,4 @@
 import type { HowToPlayGuide } from '../../lib/howto'
-import { catalogSizePhrase } from '../../lib/catalogConfig'
 
 export const characterHowTo: HowToPlayGuide = {
   title: 'How to play',
@@ -15,7 +14,7 @@ export const characterHowTo: HowToPlayGuide = {
     },
     {
       title: 'Type a title',
-      body: `Search the ${catalogSizePhrase()} list and submit a guess. Feedback covers genres, year, status, publisher, and tags.`,
+      body: 'Search the catalog and submit a guess. Feedback covers genres, year, status, publisher, and tags.',
     },
     {
       title: 'Read the colors',

@@ -16,10 +16,22 @@
     <loc>https://manhwadle.net/play/heardle</loc>
   </url>
   <url>
+    <loc>https://manhwadle.net/shop</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/leaderboard</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/milestones</loc>
+  </url>
+  <url>
     <loc>https://manhwadle.net/about</loc>
   </url>
   <url>
     <loc>https://manhwadle.net/how-it-works</loc>
+  </url>
+  <url>
+    <loc>https://manhwadle.net/database</loc>
   </url>
   <url>
     <loc>https://manhwadle.net/settings</loc>

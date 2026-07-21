@@ -44,6 +44,9 @@ const AboutPage = lazy(() =>
 const HowItWorksPage = lazy(() =>
   import('./pages/HowItWorksPage').then((m) => ({ default: m.HowItWorksPage })),
 )
+const DatabasePage = lazy(() =>
+  import('./pages/DatabasePage').then((m) => ({ default: m.DatabasePage })),
+)
 const TermsPage = lazy(() =>
   import('./pages/TermsPage').then((m) => ({ default: m.TermsPage })),
 )
@@ -170,6 +173,14 @@ function App() {
                 element={
                   <Suspense fallback={<RouteFallback />}>
                     <HowItWorksPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="database"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <DatabasePage taste={taste} />
                   </Suspense>
                 }
               />

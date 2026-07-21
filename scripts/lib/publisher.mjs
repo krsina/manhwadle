@@ -3,7 +3,33 @@
  * `(Source: …)` tags.
  */
 
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 const UNKNOWN = 'Unknown'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const OVERRIDES_PATH = join(__dirname, '../../src/data/publisherOverrides.json')
+
+/** @type {Map<number, string> | null} */
+let overrideCache = null
+
+function loadPublisherOverrides() {
+  if (overrideCache) return overrideCache
+  try {
+    const raw = JSON.parse(readFileSync(OVERRIDES_PATH, 'utf8'))
+    overrideCache = new Map(
+      Object.entries(raw.publishers || {}).map(([id, publisher]) => [
+        Number(id),
+        canonicalizePublisher(String(publisher)),
+      ]),
+    )
+  } catch {
+    overrideCache = new Map()
+  }
+  return overrideCache
+}
 
 /**
  * @param {string} raw
@@ -57,4 +83,16 @@ export function parsePublisher(description) {
 
   const firstPart = match[1].split(/[\/&]/)[0]
   return canonicalizePublisher(firstPart)
+}
+
+/**
+ * Prefer curated overrides when AniList has no usable Source tag.
+ * @param {number} manhwaId
+ * @param {string | null | undefined} description
+ * @returns {string}
+ */
+export function resolvePublisher(manhwaId, description) {
+  const override = loadPublisherOverrides().get(Number(manhwaId))
+  if (override && override !== UNKNOWN) return override
+  return parsePublisher(description)
 }

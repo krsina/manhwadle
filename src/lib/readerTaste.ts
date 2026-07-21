@@ -1,5 +1,4 @@
 import type { Manhwa } from './anilist-types'
-import { catalogSizePhrase } from './catalogConfig'
 import tasteLaneOverrides from '../data/tasteLaneOverrides.json'
 
 export type ReaderTaste = 'action' | 'romance' | 'both'
@@ -26,7 +25,7 @@ export const READER_TASTE_OPTIONS: ReaderTasteOption[] = [
   {
     id: 'both',
     label: 'Both',
-    description: `Draw today’s puzzle from the full ${catalogSizePhrase()} catalog.`,
+    description: 'Draw today’s puzzle from the full catalog.',
   },
 ]
 

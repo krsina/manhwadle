@@ -10,12 +10,15 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('link', { name: /Play Character/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Play Cover/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Play Heardle/i })).toBeVisible()
-    await expect(page.getByRole('navigation', { name: /Legal/i })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: /Site/i })).toBeVisible()
     await expect(
-      page.getByRole('navigation', { name: /Legal/i }).getByRole('link', { name: 'Privacy' }),
+      page.getByRole('navigation', { name: /Site/i }).getByRole('link', { name: 'Privacy' }),
     ).toBeVisible()
     await expect(
-      page.getByRole('navigation', { name: /Legal/i }).getByRole('link', { name: 'Terms' }),
+      page.getByRole('navigation', { name: /Site/i }).getByRole('link', { name: 'Terms' }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole('navigation', { name: /Site/i }).getByRole('link', { name: 'Manhwa Database' }),
     ).toBeVisible()
   })
 

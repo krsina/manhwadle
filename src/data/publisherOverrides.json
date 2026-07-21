@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "version": 1,
+    "notes": [
+      "Manual publisher overrides when AniList descriptions lack a usable (Source: …) tag.",
+      "Values should match canonicalizePublisher output (e.g. WEBTOON, Tapas)."
+    ]
+  },
+  "publishers": {
+    "75275": "WEBTOON"
+  }
+}

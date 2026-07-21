@@ -10,13 +10,3 @@ export const CATALOG_EXCLUDE_IDS: readonly number[] = Array.isArray(catalogConfi
 
 /** Expected shipped title count after exclusions. */
 export const CATALOG_SIZE: number = Math.max(0, CATALOG_TOP_N - CATALOG_EXCLUDE_IDS.length)
-
-/** UI label, e.g. "Top 1000" (source band; exclusions are applied at sync). */
-export function catalogSizeLabel(n: number = CATALOG_TOP_N): string {
-  return `Top ${n}`
-}
-
-/** Lowercase phrase for mid-sentence copy, e.g. "top 1000" */
-export function catalogSizePhrase(n: number = CATALOG_TOP_N): string {
-  return `top ${n}`
-}
