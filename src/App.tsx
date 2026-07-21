@@ -92,7 +92,7 @@ function App() {
                 index
                 element={
                   <Suspense fallback={<RouteFallback />}>
-                    <HomePage taste={taste} />
+                    <HomePage taste={taste} setTaste={handleTasteChange} />
                   </Suspense>
                 }
               />
