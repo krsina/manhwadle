@@ -3545,6 +3545,15 @@ a.site-icon-btn {
   line-height: 1.55;
 }
 
+.legal-body p + p {
+  margin-top: 0.65rem;
+}
+
+.legal-body a {
+  color: var(--accent);
+  text-underline-offset: 0.12em;
+}
+
 .route-fallback {
   padding: 2rem 0;
   color: var(--ink-soft);
@@ -5151,9 +5160,26 @@ button.modal-share-mini-grid.is-button:active {
 }
 
 .home-archive-label {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
   color: var(--ink-soft);
+  font: inherit;
   font-size: 0.9rem;
   font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.home-archive-label:hover,
+.home-archive-label:focus-visible {
+  color: var(--ink);
+}
+
+.home-archive-label:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .mode-row-list {
