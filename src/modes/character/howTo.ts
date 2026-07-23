@@ -2,15 +2,15 @@ import type { HowToPlayGuide } from '../../lib/howto'
 
 export const characterHowTo: HowToPlayGuide = {
   title: 'How to play',
-  intro: 'Guess today’s manhwa from a zoomed-in character still. One puzzle per day.',
+  intro: 'Guess today’s manhwa from a character still. One puzzle per day.',
   steps: [
     {
-      title: 'Study the crop',
-      body: 'You start extreme close-up on a character. Wrong guesses pull the camera back, or tap Reveal more to zoom out without spending a guess.',
+      title: 'Study the character',
+      body: 'You see a full character portrait. Use the face, outfit, and vibe to narrow the series.',
     },
     {
       title: 'Hard mode (optional)',
-      body: 'Hard Mode can show any cast member, including supporting roles, and forces black and white. A Color toggle unlocks on your last guess. Hard Mode locks after your first guess.',
+      body: 'Hard Mode can show any cast member, including supporting roles, forces black and white, and starts extreme close-up — wrong guesses zoom out, or tap Reveal more without spending a guess. A Color toggle unlocks on your last guess. Hard Mode locks after your first guess.',
     },
     {
       title: 'Type a title',
@@ -25,5 +25,5 @@ export const characterHowTo: HowToPlayGuide = {
       body: 'The Known panel collects what you’ve confirmed and ruled out across guesses.',
     },
   ],
-  footer: 'A new character crop arrives every day. Come back tomorrow if you miss this one.',
+  footer: 'A new character arrives every day. Come back tomorrow if you miss this one.',
 }

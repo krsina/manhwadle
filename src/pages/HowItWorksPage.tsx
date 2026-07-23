@@ -9,10 +9,10 @@ export function HowItWorksPage() {
       <section>
         <h2>Daily modes</h2>
         <p>
-          Four modes share the same UTC day. Summary uses written clues. Character and Cover
-          reveal visual hints as you guess. Heardle plays a short theme clip via YouTube embeds.
-          You get a limited number of guesses; hard mode and hints change the difficulty, not the
-          answer set for that day.
+          Four modes share the same UTC day. Summary uses written clues. Character shows a
+          portrait by default (Hard Mode keeps progressive zoom). Cover zooms out as you guess.
+          Heardle plays a short theme clip via YouTube embeds. You get a limited number of
+          guesses; hard mode and hints change the difficulty, not the answer set for that day.
         </p>
       </section>
       <section>

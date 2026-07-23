@@ -12,9 +12,14 @@ interface CharacterClueProps {
   onRevealMore?: () => void
   /** Optional grayscale filter (hard-mode helper) */
   grayscale?: boolean
+  /**
+   * Progressive zoom-out ladder. Hard mode keeps it; normal mode shows the
+   * full portrait from the start.
+   */
+  progressiveZoom?: boolean
 }
 
-/** Progressive zoom-out in a portrait frame (same height budget as the old 16:10 slot). */
+/** Character portrait clue in a fixed portrait frame. */
 export function CharacterClue({
   crop,
   failedGuesses,
@@ -23,8 +28,11 @@ export function CharacterClue({
   canRevealMore = false,
   onRevealMore,
   grayscale = false,
+  progressiveZoom = true,
 }: CharacterClueProps) {
-  const scale = cropZoomScale(failedGuesses, { finished })
+  const scale = progressiveZoom
+    ? cropZoomScale(failedGuesses, { finished })
+    : 1
   const focusX = clampFocus(crop.focusX)
   const focusY = clampFocus(crop.focusY, 28)
   const step = finished
@@ -36,9 +44,13 @@ export function CharacterClue({
       <div className="crop-clue-column">
         <div className="crop-clue-header">
           <p className="clue-label">
-            {finished ? 'Full reveal' : `Character clue ${step}/${maxGuesses}`}
+            {finished
+              ? 'Full reveal'
+              : progressiveZoom
+                ? `Character clue ${step}/${maxGuesses}`
+                : 'Character clue'}
           </p>
-          {!finished && (
+          {!finished && progressiveZoom && (
             <div className="clue-hint-row">
               <p className="clue-hint">Wrong guesses zoom out</p>
               {onRevealMore && (
@@ -61,7 +73,11 @@ export function CharacterClue({
             <MediaImage
               className={`crop-image${grayscale ? ' is-grayscale' : ''}`}
               src={crop.imageUrl}
-              alt="Today’s character clue. Wrong guesses zoom out the crop."
+              alt={
+                progressiveZoom
+                  ? 'Today’s character clue. Wrong guesses zoom out the crop.'
+                  : 'Today’s character clue.'
+              }
               fallbackLabel="Character image unavailable"
               draggable={false}
               referrerPolicy="no-referrer"

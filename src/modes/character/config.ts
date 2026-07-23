@@ -5,8 +5,9 @@ export const CHARACTER_MODE_ID = 'character'
 export const characterModeMeta = {
   id: CHARACTER_MODE_ID,
   name: 'Character',
-  tagline: 'Guess today’s manhwa from a zoomed-in character.',
-  description: 'Identify the series from a cropped character still that zooms out as you guess.',
+  tagline: 'Guess today’s manhwa from a character still.',
+  description:
+    'Identify the series from a character portrait. Hard Mode keeps the zoom-out ladder.',
   presentationKey: 'character' as const,
   availability: {
     requiredForAllMode: true,
