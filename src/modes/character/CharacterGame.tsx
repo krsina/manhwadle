@@ -88,7 +88,7 @@ function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): Gue
   })
 }
 
-/** Character mode: progressive zoom-out on a curated character still. */
+/** Character mode: full portrait by default; Hard Mode keeps progressive zoom-out. */
 export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
   const { id: _id, name, seedPrefix, storagePrefix, maxGuesses, tagline } =
     characterModeMeta
@@ -674,8 +674,9 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
                 failedGuesses={progress}
                 finished={finished}
                 maxGuesses={maxGuesses}
-                canRevealMore={canRevealMore}
-                onRevealMore={handleRevealMore}
+                progressiveZoom={hardMode}
+                canRevealMore={hardMode && canRevealMore}
+                onRevealMore={hardMode ? handleRevealMore : undefined}
                 grayscale={grayscale}
               />
             </div>
