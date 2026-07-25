@@ -1,13 +1,19 @@
 import type { Manhwa, ManhwaCharacter } from './anilist-types'
 import { displayTitle } from './daily'
 import {
+  highlightTitleMatches,
+  looseSearchKey,
   nameOrderVariants,
   namesMatch,
   normalizeSearchKey,
   normalizeSearchKeys,
   scoreSearchKey,
   scoreStrongSearchKey,
+  searchTokens,
 } from './nameMatch'
+
+export type { HighlightSegment } from './nameMatch'
+export { highlightTitleMatches }
 
 export interface SearchHit {
   manhwa: Manhwa
@@ -15,6 +21,11 @@ export interface SearchHit {
   label: string
   /** True when the query matched via an alias rather than the display title */
   matchedAlias: boolean
+  /**
+   * Alias that scored best when {@link label} was upgraded to the English
+   * primary (glued romanization / non-Latin match).
+   */
+  matchedAs?: string
 }
 
 export interface CharacterSearchHit {
@@ -115,14 +126,23 @@ export function collectCharacters(pool: Manhwa[]): ManhwaCharacter[] {
 }
 
 /** Minimum normalized query length before title search allows mid-string hits. */
-export const MANHWA_SEARCH_SUBSTRING_MIN_LENGTH = 4
+export const MANHWA_SEARCH_SUBSTRING_MIN_LENGTH = 3
+
+/** Default autocomplete rows for manhwa title search. */
+export const MANHWA_SEARCH_LIMIT = 12
 
 /** Shortest leftover after a query prefix/exact hit among a name's compact keys. */
-function bestKeyLeftover(name: string, queryKey: string): number {
+function bestKeyLeftover(name: string, queryKey: string, looseQueryKey: string): number {
   let best = Infinity
   for (const key of normalizeSearchKeys(name)) {
-    if (key === queryKey || key.startsWith(queryKey)) {
+    if (queryKey && (key === queryKey || key.startsWith(queryKey))) {
       best = Math.min(best, Math.max(0, key.length - queryKey.length))
+    }
+  }
+  if (looseQueryKey && looseQueryKey !== queryKey) {
+    const loose = looseSearchKey(name)
+    if (loose === looseQueryKey || loose.startsWith(looseQueryKey)) {
+      best = Math.min(best, Math.max(0, loose.length - looseQueryKey.length))
     }
   }
   return best
@@ -143,18 +163,44 @@ function isThinSequelAlias(name: string, queryKey: string): boolean {
 }
 
 /**
+ * Prefer the spaced English primary over glued romanization / non-Latin aliases
+ * in the main dropdown label ("Nakyangmunsajeon" → English title).
+ */
+function preferPrimaryOverAlias(name: string, primary: string): boolean {
+  const trimmed = name.trim()
+  const prim = primary.trim()
+  if (!trimmed || !prim || namesMatch(trimmed, prim)) return false
+  if (HANGUL.test(trimmed) || /[\u0e00-\u0e7f\u3040-\u30ff\u3400-\u9fff]/.test(trimmed)) {
+    return true
+  }
+  // Single glued Latin token vs multi-word English primary
+  return /^[A-Za-z]+$/.test(trimmed) && trimmed.length >= 8 && /\s/.test(prim)
+}
+
+/**
  * Ranked autocomplete against English titles and all aliases.
  * Dropdown label mirrors the best-matching form (alias when that scored best).
  *
  * Short queries (under {@link MANHWA_SEARCH_SUBSTRING_MIN_LENGTH}) match exact /
  * prefix only so single letters don't flood the list with mid-title hits.
- * Longer queries also allow substring matches for mid-word recall.
+ * Longer queries also allow substring, stopword-tolerant, and token-bag matches.
  */
-export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHit[] {
+export function searchManhwa(
+  pool: Manhwa[],
+  query: string,
+  limit = MANHWA_SEARCH_LIMIT,
+): SearchHit[] {
   const q = normalizeSearchKey(query)
-  if (!q) return []
+  const qLoose = looseSearchKey(query)
+  const qTokens = searchTokens(query)
+  if (!q && qTokens.length === 0) return []
 
   const allowSubstring = q.length >= MANHWA_SEARCH_SUBSTRING_MIN_LENGTH
+  const scoreOpts = {
+    allowSubstring,
+    looseQueryKey: qLoose || undefined,
+    queryTokens: qTokens,
+  }
   const scored: Array<SearchHit & { score: number }> = []
 
   for (const manhwa of pool) {
@@ -165,11 +211,11 @@ export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHi
     let bestLeftover = Infinity
 
     for (const name of allNames(manhwa)) {
-      const score = scoreSearchKey(name, q, { allowSubstring })
+      const score = scoreSearchKey(name, q, scoreOpts)
       if (score === Infinity) continue
 
       const label = name.trim() || primary
-      const leftover = bestKeyLeftover(name, q)
+      const leftover = bestKeyLeftover(name, q, qLoose)
       const isPrimary = namesMatch(name, primary)
 
       if (score < bestScore) {
@@ -220,10 +266,19 @@ export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHi
     }
 
     if (bestScore < Infinity) {
+      let label = bestLabel
+      let matchedAs: string | undefined
+      if (matchedAlias && preferPrimaryOverAlias(bestLabel, primary)) {
+        matchedAs = latinFriendlyDisplayLabel(bestLabel, query)
+        label = primary
+      } else {
+        label = latinFriendlyDisplayLabel(bestLabel, query)
+      }
       scored.push({
         manhwa,
-        label: latinFriendlyDisplayLabel(bestLabel, query),
+        label,
         matchedAlias,
+        ...(matchedAs ? { matchedAs } : {}),
         score: bestScore,
       })
     }
@@ -234,10 +289,11 @@ export function searchManhwa(pool: Manhwa[], query: string, limit = 8): SearchHi
     return a.label.localeCompare(b.label)
   })
 
-  return scored.slice(0, limit).map(({ manhwa, label, matchedAlias }) => ({
+  return scored.slice(0, limit).map(({ manhwa, label, matchedAlias, matchedAs }) => ({
     manhwa,
     label,
     matchedAlias,
+    ...(matchedAs ? { matchedAs } : {}),
   }))
 }
 

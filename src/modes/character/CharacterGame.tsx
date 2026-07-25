@@ -451,7 +451,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
   }
 
   function handleGuess(manhwa: Manhwa, matchedLabel?: string) {
-    if (!answerReady || !hasCrops) return
+    if (!answerReady || !hasCrops || dayState.status !== 'playing') return
 
     const useServer =
       shouldUseServerRankedAttempt({
@@ -616,9 +616,11 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
                   : finished
                     ? dayState.status === 'won'
                       ? `Solved in ${dayState.guessIds.length}`
-                      : isArchive
-                        ? 'Out of guesses'
-                        : 'Better luck tomorrow'
+                      : surrendered
+                        ? 'Gave up'
+                        : isArchive
+                          ? 'Out of guesses'
+                          : 'Better luck tomorrow'
                     : `${remaining} guess${remaining === 1 ? '' : 'es'} left`}
             </span>
           </p>
@@ -707,6 +709,9 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
             <GuessInput
               pool={guessPool}
               disabled={!answerReady || finished}
+              disabledPlaceholder={
+                surrendered ? 'You gave up — round over' : undefined
+              }
               excludedIds={excludedIds}
               onGuess={handleGuess}
             />

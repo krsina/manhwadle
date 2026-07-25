@@ -30,7 +30,20 @@ export function CharacterGuessInput({
   const rootRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
 
+  function clearSuggestions() {
+    setQuery('')
+    setHits([])
+    setOpen(false)
+    setNoResults(false)
+    setActiveIndex(0)
+  }
+
   useEffect(() => {
+    if (disabled) clearSuggestions()
+  }, [disabled])
+
+  useEffect(() => {
+    if (disabled) return
     if (!query.trim()) {
       setHits([])
       setOpen(false)
@@ -38,16 +51,13 @@ export function CharacterGuessInput({
       return
     }
 
-    const handle = window.setTimeout(() => {
-      const next = searchCharacters(characters, query, CHARACTER_SEARCH_LIMIT)
-      setHits(next)
-      setNoResults(next.length === 0)
-      setOpen(true)
-      setActiveIndex(0)
-    }, 120)
-
-    return () => window.clearTimeout(handle)
-  }, [query, characters])
+    // Cast search is cheap; run immediately so typing feels instant.
+    const next = searchCharacters(characters, query, CHARACTER_SEARCH_LIMIT)
+    setHits(next)
+    setNoResults(next.length === 0)
+    setOpen(true)
+    setActiveIndex(0)
+  }, [query, characters, disabled])
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -66,14 +76,13 @@ export function CharacterGuessInput({
   }, [activeIndex, open, hits])
 
   function selectHit(hit: CharacterSearchHit) {
+    if (disabled) return
     onGuess(hit.character, hit.label)
-    setQuery('')
-    setHits([])
-    setOpen(false)
-    setNoResults(false)
+    clearSuggestions()
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (disabled) return
     if (noResults && e.key === 'Enter') {
       e.preventDefault()
       return
@@ -113,7 +122,7 @@ export function CharacterGuessInput({
         placeholder={placeholder}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => hits.length > 0 && setOpen(true)}
+        onFocus={() => !disabled && hits.length > 0 && setOpen(true)}
         onKeyDown={onKeyDown}
         role="combobox"
         aria-expanded={open}
@@ -126,7 +135,7 @@ export function CharacterGuessInput({
         }
         autoFocus
       />
-      {open && (
+      {open && !disabled && (
         noResults ? (
           <div
             id={listId}
