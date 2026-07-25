@@ -115,7 +115,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
     pool,
     tasteSeed,
     dateKey,
-    Boolean(user?.id && !isArchive),
+    Boolean(!isArchive),
   )
 
   const [practiceIndex, setPracticeIndex] = useState<number | null>(null)
@@ -383,7 +383,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
   }
 
   function handleGuess(manhwa: Manhwa, matchedLabel?: string) {
-    if (!answerReady || !hasCovers) return
+    if (!answerReady || !hasCovers || dayState.status !== 'playing') return
 
     const useServer =
       shouldUseServerRankedAttempt({
@@ -542,9 +542,11 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
                   : finished
                     ? dayState.status === 'won'
                       ? `Solved in ${dayState.guessIds.length}`
-                      : isArchive
-                        ? 'Out of guesses'
-                        : 'Better luck tomorrow'
+                      : surrendered
+                        ? 'Gave up'
+                        : isArchive
+                          ? 'Out of guesses'
+                          : 'Better luck tomorrow'
                     : `${remaining} guess${remaining === 1 ? '' : 'es'} left`}
             </span>
           </p>
@@ -632,6 +634,9 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
             <GuessInput
               pool={guessPool}
               disabled={!answerReady || finished}
+              disabledPlaceholder={
+                surrendered ? 'You gave up — round over' : undefined
+              }
               excludedIds={excludedIds}
               onGuess={handleGuess}
             />

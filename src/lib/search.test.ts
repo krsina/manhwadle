@@ -258,11 +258,12 @@ describe('searchManhwa', () => {
     expect(oneChar.map((h) => h.manhwa.id)).toEqual([12])
     expect(oneChar.some((h) => h.manhwa.id === 11)).toBe(false)
 
-    // 3 chars is still under the substring gate
-    expect(searchManhwa(pool, 'igh').map((h) => h.manhwa.id)).toEqual([])
+    // 2 chars is still under the substring gate
+    expect(searchManhwa(pool, 'ig').map((h) => h.manhwa.id)).toEqual([])
   })
 
   it('allows substring matches once the query is long enough', () => {
+    expect(searchManhwa(pool, 'igh')[0]?.manhwa.id).toBe(10)
     expect(searchManhwa(pool, 'high')[0]?.manhwa.id).toBe(10)
     expect(searchManhwa(pool, 'level')[0]?.manhwa.id).toBe(11)
   })
@@ -347,5 +348,63 @@ describe('searchManhwa', () => {
       'THE BREAKER - NEW WAVES',
       'The Breaker: Eternal Force',
     ])
+  })
+
+  it('finds titles by English name and Hangul native, not only romanization', () => {
+    const scribe = [
+      makeManhwa({
+        id: 120966,
+        title: {
+          english: 'Tale of a Scribe Who Retires to the Countryside',
+          romaji: 'Nakyangmunsajeon',
+          native: '낙향문사전',
+        },
+        synonyms: [
+          '낙향문사전',
+          'Tale of a Scribe Who Retires to the Countryside',
+          'Nakyangmunsajeon',
+        ],
+      }),
+    ]
+
+    const byEnglish = searchManhwa(
+      scribe,
+      'Tale of a scribe who retires to the countryside',
+    )[0]
+    expect(byEnglish?.manhwa.id).toBe(120966)
+    expect(byEnglish?.label).toBe('Tale of a Scribe Who Retires to the Countryside')
+
+    const byHangul = searchManhwa(scribe, '낙향문사전')[0]
+    expect(byHangul?.manhwa.id).toBe(120966)
+    expect(byHangul?.label).toBe('Tale of a Scribe Who Retires to the Countryside')
+    expect(byHangul?.matchedAs).toBe('낙향문사전')
+
+    const byRomaji = searchManhwa(scribe, 'Nakyangmunsajeon')[0]
+    expect(byRomaji?.manhwa.id).toBe(120966)
+    expect(byRomaji?.label).toBe('Tale of a Scribe Who Retires to the Countryside')
+    expect(byRomaji?.matchedAs).toBe('Nakyangmunsajeon')
+  })
+
+  it('tolerates stop-word drift and unordered title tokens', () => {
+    const scribe = [
+      makeManhwa({
+        id: 120966,
+        title: {
+          english: 'Tale of a Scribe Who Retires to the Countryside',
+          romaji: 'Nakyangmunsajeon',
+          native: '낙향문사전',
+        },
+        synonyms: [],
+      }),
+    ]
+
+    // "the" vs "a" used to miss under contiguous compact matching
+    expect(
+      searchManhwa(scribe, 'Tale of the scribe who retires to the countryside')[0]
+        ?.manhwa.id,
+    ).toBe(120966)
+
+    expect(searchManhwa(scribe, 'scribe countryside')[0]?.manhwa.id).toBe(120966)
+    expect(searchManhwa(scribe, 'retires scribe')[0]?.manhwa.id).toBe(120966)
   })
 })

@@ -1,15 +1,44 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import type { Manhwa } from '../lib/anilist-types'
-import { searchManhwa, type SearchHit } from '../lib/search'
+import {
+  highlightTitleMatches,
+  MANHWA_SEARCH_LIMIT,
+  searchManhwa,
+  type SearchHit,
+} from '../lib/search'
 
 interface GuessInputProps {
   pool: Manhwa[]
   disabled: boolean
   excludedIds: Set<number>
   onGuess: (manhwa: Manhwa, matchedLabel?: string) => void
+  /** Shown when disabled; defaults to “Come back tomorrow”. */
+  disabledPlaceholder?: string
 }
 
-export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputProps) {
+function HighlightedTitle({ label, query }: { label: string; query: string }): ReactNode {
+  const segments = highlightTitleMatches(label, query)
+  if (segments.length === 0) return label
+  if (segments.length === 1 && !segments[0]?.matched) return label
+
+  return segments.map((seg, index) =>
+    seg.matched ? (
+      <mark key={index} className="guess-match">
+        {seg.text}
+      </mark>
+    ) : (
+      <span key={index}>{seg.text}</span>
+    ),
+  )
+}
+
+export function GuessInput({
+  pool,
+  disabled,
+  excludedIds,
+  onGuess,
+  disabledPlaceholder = 'Come back tomorrow',
+}: GuessInputProps) {
   const listId = useId()
   const [query, setQuery] = useState('')
   const [hits, setHits] = useState<SearchHit[]>([])
@@ -19,7 +48,22 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
   const rootRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
 
+  function clearSuggestions() {
+    setQuery('')
+    setHits([])
+    setOpen(false)
+    setNoResults(false)
+    setActiveIndex(0)
+  }
+
+  // After give-up / win / loss, drop any open suggestion list so clicks can't
+  // fire a silent no-op "phantom" guess.
   useEffect(() => {
+    if (disabled) clearSuggestions()
+  }, [disabled])
+
+  useEffect(() => {
+    if (disabled) return
     if (!query.trim()) {
       setHits([])
       setOpen(false)
@@ -27,17 +71,16 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
       return
     }
 
-    const handle = window.setTimeout(() => {
-      const next = searchManhwa(pool, query, 10).filter((h) => !excludedIds.has(h.manhwa.id))
-      setHits(next)
-      const empty = next.length === 0
-      setNoResults(empty)
-      setOpen(true)
-      setActiveIndex(0)
-    }, 120)
-
-    return () => window.clearTimeout(handle)
-  }, [query, pool, excludedIds])
+    // Catalog search is cheap (~1k titles); run immediately for snappier typing.
+    const next = searchManhwa(pool, query, MANHWA_SEARCH_LIMIT).filter(
+      (h) => !excludedIds.has(h.manhwa.id),
+    )
+    setHits(next)
+    const empty = next.length === 0
+    setNoResults(empty)
+    setOpen(true)
+    setActiveIndex(0)
+  }, [query, pool, excludedIds, disabled])
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -57,14 +100,13 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
   }, [activeIndex, open, hits])
 
   function selectHit(hit: SearchHit) {
+    if (disabled) return
     onGuess(hit.manhwa, hit.label)
-    setQuery('')
-    setHits([])
-    setOpen(false)
-    setNoResults(false)
+    clearSuggestions()
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (disabled) return
     if (noResults && e.key === 'Enter') {
       e.preventDefault()
       return
@@ -101,10 +143,10 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
         autoComplete="off"
         spellCheck={false}
         disabled={disabled}
-        placeholder={disabled ? 'Come back tomorrow' : 'Type a manhwa title…'}
+        placeholder={disabled ? disabledPlaceholder : 'Type a manhwa title…'}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => hits.length > 0 && setOpen(true)}
+        onFocus={() => !disabled && hits.length > 0 && setOpen(true)}
         onKeyDown={onKeyDown}
         role="combobox"
         aria-expanded={open}
@@ -114,7 +156,7 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
           open && hits[activeIndex] ? `${listId}-${hits[activeIndex].manhwa.id}` : undefined
         }
       />
-      {open && (
+      {open && !disabled && (
         noResults ? (
           <div
             id={listId}
@@ -137,7 +179,12 @@ export function GuessInput({ pool, disabled, excludedIds, onGuess }: GuessInputP
                 onMouseEnter={() => setActiveIndex(index)}
                 onClick={() => selectHit(hit)}
               >
-                <span className="guess-option-title">{hit.label}</span>
+                <span className="guess-option-title">
+                  <HighlightedTitle label={hit.label} query={query} />
+                </span>
+                {hit.matchedAs ? (
+                  <span className="guess-option-alias">{hit.matchedAs}</span>
+                ) : null}
               </button>
             </li>
           ))}

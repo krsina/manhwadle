@@ -11,8 +11,10 @@ import type { Manhwa } from '../lib/anilist-types'
 import { loadClientCatalog } from '../lib/clientCatalog'
 import { displayTitle } from '../lib/daily'
 import {
+  looseSearchKey,
   normalizeSearchKey,
   scoreSearchKey,
+  searchTokens,
 } from '../lib/nameMatch'
 import {
   filterPoolByTaste,
@@ -39,10 +41,17 @@ function allNames(manhwa: Manhwa): string[] {
 
 function matchesQuery(manhwa: Manhwa, query: string): boolean {
   const q = normalizeSearchKey(query)
-  if (!q) return true
+  const qLoose = looseSearchKey(query)
+  const qTokens = searchTokens(query)
+  if (!q && qTokens.length === 0) return true
   const allowSubstring = q.length >= MANHWA_SEARCH_SUBSTRING_MIN_LENGTH
   return allNames(manhwa).some(
-    (name) => scoreSearchKey(name, q, { allowSubstring }) < Infinity,
+    (name) =>
+      scoreSearchKey(name, q, {
+        allowSubstring,
+        looseQueryKey: qLoose || undefined,
+        queryTokens: qTokens,
+      }) < Infinity,
   )
 }
 
