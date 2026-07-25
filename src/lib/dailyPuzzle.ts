@@ -119,6 +119,48 @@ function unavailableHiddenAnswer(): Manhwa {
   }
 }
 
+function sortedStrings(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((entry): entry is string => typeof entry === 'string')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b))
+}
+
+function sameStringList(left: unknown, right: unknown): boolean {
+  const a = sortedStrings(left)
+  const b = sortedStrings(right)
+  if (a.length !== b.length) return false
+  return a.every((value, index) => value === b[index])
+}
+
+/**
+ * Bind a clue-safe answer fingerprint to a catalog title when exactly one
+ * playable entry matches. Lets guests (local guess validation) share the
+ * server-selected daily without the RPC returning answer_id.
+ */
+export function resolveUniqueByFingerprint(
+  pool: Manhwa[],
+  fingerprint: Record<string, unknown>,
+): Manhwa | null {
+  const year = typeof fingerprint.year === 'number' ? fingerprint.year : null
+  const status = typeof fingerprint.status === 'string' ? fingerprint.status : 'Unknown'
+  const publisher =
+    typeof fingerprint.publisher === 'string' ? fingerprint.publisher : ''
+
+  const matches = pool.filter((manhwa) => {
+    if ((manhwa.startDate?.year ?? null) !== year) return false
+    if ((manhwa.status || 'Unknown') !== status) return false
+    if ((manhwa.publisher || '') !== publisher) return false
+    if (!sameStringList(manhwa.genres, fingerprint.genres)) return false
+    if (!sameStringList(manhwa.tags, fingerprint.tags)) return false
+    return true
+  })
+
+  return matches.length === 1 ? matches[0]! : null
+}
+
 /**
  * Fetch a past/archive puzzle row (answer_id allowed).
  * Current UTC day is never read from the table — use get_daily_play_state.
@@ -150,8 +192,10 @@ export async function fetchDailyPuzzleRow(
  * Resolve today's (or archive) answer.
  *
  * - Archive (`dateKey < today`): remote SELECT may include answer_id.
- * - Today: clue-safe `get_daily_play_state` (never answer_id). Display uses
- *   local FNV until a terminal attempt reveals the server answer.
+ * - Today: clue-safe `get_daily_play_state` (never answer_id). When the
+ *   fingerprint uniquely matches a playable catalog title, bind that title so
+ *   guests and signed-in players share the same daily without a forgeable
+ *   today SELECT. Otherwise keep the fingerprint stub for ranked UI.
  * - Migration missing: local FNV only for today (no today SELECT / no ranked).
  */
 export async function getTodaysPuzzle(
@@ -211,16 +255,39 @@ export async function getTodaysPuzzle(
         }
       }
     }
+
+    if (payload) {
+      const bound = resolveUniqueByFingerprint(pool, payload.fingerprint)
+      if (bound) {
+        return {
+          answer: bound,
+          characterId: null,
+          source: 'play_state',
+          answerHidden: false,
+          meta: play.meta,
+          clue: payload.clue,
+          rankedClueReady: true,
+        }
+      }
+      return {
+        answer: fingerprintAnswer(payload.fingerprint, payload.clue),
+        characterId: null,
+        source: 'play_state',
+        answerHidden: true,
+        meta: play.meta,
+        clue: payload.clue,
+        rankedClueReady: true,
+      }
+    }
+
     return {
-      answer: payload
-        ? fingerprintAnswer(payload.fingerprint, payload.clue)
-        : unavailableHiddenAnswer(),
+      answer: unavailableHiddenAnswer(),
       characterId: null,
       source: 'play_state',
       answerHidden: true,
       meta: play.meta,
-      clue: payload?.clue ?? null,
-      rankedClueReady: Boolean(payload),
+      clue: null,
+      rankedClueReady: false,
     }
   }
 

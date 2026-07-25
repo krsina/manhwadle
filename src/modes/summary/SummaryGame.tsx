@@ -126,7 +126,7 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
     pool,
     tasteSeed,
     dateKey,
-    Boolean(user?.id && !isArchive),
+    Boolean(!isArchive),
   )
 
   /** When set, play a random practice title instead of today's answer (not persisted). */

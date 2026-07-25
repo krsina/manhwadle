@@ -34,10 +34,24 @@ describe('getTodaysPuzzle', () => {
     rpc.mockReset()
   })
 
-  it('uses clue-safe play state for today without answer_id', async () => {
+  it('uses clue-safe play state for today and binds a unique fingerprint', async () => {
     const { getTodaysPuzzle } = await import('./dailyPuzzle')
-    const local = makeManhwa({ id: 1 })
-    const other = makeManhwa({ id: 2 })
+    const local = makeManhwa({
+      id: 1,
+      genres: ['Action'],
+      tags: ['Dungeon'],
+      status: 'Ongoing',
+      publisher: 'WEBTOON',
+      startDate: { year: 2020, month: null, day: null },
+    })
+    const other = makeManhwa({
+      id: 2,
+      genres: ['Romance'],
+      tags: ['School'],
+      status: 'Completed',
+      publisher: 'Naver',
+      startDate: { year: 2019, month: null, day: null },
+    })
     rpc.mockResolvedValue({
       data: {
         ok: true,
@@ -77,15 +91,71 @@ describe('getTodaysPuzzle', () => {
     })
     expect(maybeSingle).not.toHaveBeenCalled()
     expect(result.source).toBe('play_state')
-    expect(result.answerHidden).toBe(true)
+    expect(result.answerHidden).toBe(false)
     expect(result.characterId).toBeNull()
     expect(result.rankedClueReady).toBe(true)
     expect(result.clue).toEqual({
       type: 'summary',
       blurbs: ['Opening clue.', 'Final clue.'],
     })
-    expect(result.answer.id).toBe(0)
+    expect(result.answer.id).toBe(1)
     expect(result.answer.genres).toEqual(['Action'])
+  })
+
+  it('keeps the fingerprint stub when multiple titles share the same fingerprint', async () => {
+    const { getTodaysPuzzle } = await import('./dailyPuzzle')
+    const twinA = makeManhwa({
+      id: 1,
+      genres: ['Action'],
+      tags: ['Dungeon'],
+      status: 'Ongoing',
+      publisher: 'WEBTOON',
+      startDate: { year: 2020, month: null, day: null },
+    })
+    const twinB = makeManhwa({
+      id: 2,
+      genres: ['Action'],
+      tags: ['Dungeon'],
+      status: 'Ongoing',
+      publisher: 'WEBTOON',
+      startDate: { year: 2020, month: null, day: null },
+    })
+    rpc.mockResolvedValue({
+      data: {
+        ok: true,
+        date_key: '2099-01-05',
+        mode: 'summary',
+        taste: 'both',
+        meta: {
+          clue: {
+            type: 'summary',
+            blurbs: ['Shared fingerprint clue.'],
+          },
+          fingerprint: {
+            genres: ['Action'],
+            tags: ['Dungeon'],
+            status: 'Ongoing',
+            publisher: 'WEBTOON',
+            year: 2020,
+          },
+        },
+        max_guesses: 6,
+        attempt: null,
+      },
+      error: null,
+    })
+
+    const result = await getTodaysPuzzle(
+      'summary',
+      'both',
+      [twinA, twinB],
+      [twinA, twinB],
+      'summary-both',
+      '2099-01-05',
+    )
+    expect(result.answerHidden).toBe(true)
+    expect(result.answer.id).toBe(0)
+    expect(result.rankedClueReady).toBe(true)
   })
 
   it('does not expose Character ids before terminal state', async () => {

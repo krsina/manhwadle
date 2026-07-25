@@ -33,7 +33,8 @@ export interface DailyPuzzleAnswerState {
 /**
  * Resolve today's answer. With Supabase configured, stays unsettled until the
  * remote lookup finishes. Today never receives answer_id from the table;
- * signed-in ranked play validates guesses via server attempts.
+ * guests and signed-in players both load clue-safe play state so they share
+ * the same daily. Signed-in ranked play still validates guesses via attempts.
  */
 export function useDailyPuzzleAnswer(
   mode: StatsModeId,
@@ -42,8 +43,11 @@ export function useDailyPuzzleAnswer(
   fallbackPool: Manhwa[],
   seedPrefix: string,
   dateKey: string,
-  /** Only signed-in current-day ranked play should request server-held clues. */
-  authoritativeToday = false,
+  /**
+   * When true (current-day / non-archive), fetch clue-safe play state instead
+   * of local FNV so guests and signed-in players share the server daily.
+   */
+  useServerToday = true,
 ): DailyPuzzleAnswerState {
   const pool = playablePool.length > 0 ? playablePool : fallbackPool
   const localAnswer = useMemo(
@@ -51,7 +55,7 @@ export function useDailyPuzzleAnswer(
     [pool, dateKey, seedPrefix],
   )
   const configured = isSupabaseConfigured()
-  const useRemote = configured && (dateKey < getTodayKey() || authoritativeToday)
+  const useRemote = configured && (dateKey < getTodayKey() || useServerToday)
 
   const [answer, setAnswer] = useState(localAnswer)
   const [source, setSource] = useState<DailyAnswerSource>('local')

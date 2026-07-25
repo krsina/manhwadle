@@ -115,7 +115,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
     pool,
     tasteSeed,
     dateKey,
-    Boolean(user?.id && !isArchive),
+    Boolean(!isArchive),
   )
 
   const [practiceIndex, setPracticeIndex] = useState<number | null>(null)
