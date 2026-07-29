@@ -4,7 +4,7 @@ Public changelog for `/updates`. Write for players, not for the git log.
 
 ## Latest published version
 
-**`1.0.1`** (Guest dailies stay on target)
+**`1.0.2`** (Clearer Archive, Character, and Updates)
 
 Keep this line in sync with the newest **published** row in `site_updates`. Whenever a new version ships (via `/write-site-update`, Moderation, or a manual edit), update:
 
@@ -30,18 +30,18 @@ Do not use em dashes (`—`). Prefer commas, periods, colons, or parentheses.
 
 ### Example (preferred)
 
-**Version:** `1.0.1`
+**Version:** `1.0.2`
 
-**Title:** Guest dailies stay on target
+**Title:** Clearer Archive, Character, and Updates
 
 **Body:**
 ```
-Playing as a guest now binds to today's real answer even when titles share similar clues, so correct guesses count again.
+Small polish across home, Character, and Updates so past puzzles, bonus names, and post times are easier to follow.
 
-• Guest rounds load the live daily instead of a blank placeholder title
-• Correct guest guesses match the shared daily without false rejects
-• Phone guess feedback fades in place without a flash
-• Tags stay compact on mobile for easier scanning
+• Archive label and calendar on home highlight together on hover
+• Character results put the cast name under the series title after you guess it
+• Bonus name suggestions scroll cleanly on phones without clipping celebrations
+• Updates timestamps show the UTC time, not just the date
 ```
 
 ## Versioning

@@ -171,17 +171,17 @@ Body:
 Matches **Latest published version** in `docs/updates-style-guide.md`:
 
 ```
-Version: 1.0.1
-Title: Guest dailies stay on target
-Slug: guest-dailies-stay-on-target
+Version: 1.0.2
+Title: Clearer Archive, Character, and Updates
+Slug: clearer-archive-character-and-updates
 
 Body:
-Playing as a guest now binds to today's real answer even when titles share similar clues, so correct guesses count again.
+Small polish across home, Character, and Updates so past puzzles, bonus names, and post times are easier to follow.
 
-• Guest rounds load the live daily instead of a blank placeholder title
-• Correct guest guesses match the shared daily without false rejects
-• Phone guess feedback fades in place without a flash
-• Tags stay compact on mobile for easier scanning
+• Archive label and calendar on home highlight together on hover
+• Character results put the cast name under the series title after you guess it
+• Bonus name suggestions scroll cleanly on phones without clipping celebrations
+• Updates timestamps show the UTC time, not just the date
 ```
 
 ## Anti-patterns
