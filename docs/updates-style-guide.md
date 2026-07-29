@@ -36,11 +36,12 @@ Do not use em dashes (`—`). Prefer commas, periods, colons, or parentheses.
 
 **Body:**
 ```
-Small polish across home, Character, and Updates so past puzzles, bonus names, and post times are easier to follow.
+Small polish across home, Character, and Updates so past puzzles, bonus names, tags, and post times are easier to follow.
 
 • Archive label and calendar on home highlight together on hover
 • Character results put the cast name under the series title after you guess it
 • Bonus name suggestions scroll cleanly on phones without clipping celebrations
+• Desktop guess rows stay even while tags scroll inside the cell
 • Updates timestamps show the UTC time, not just the date
 ```
 
