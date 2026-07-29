@@ -3293,6 +3293,8 @@ a.site-icon-btn {
 }
 
 .tile-tags {
+  display: flex;
+  flex-direction: column;
   align-content: start;
   background: var(--incorrect-bg);
   color: var(--ink-soft);
@@ -3304,6 +3306,8 @@ a.site-icon-btn {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   padding-right: 0.15rem;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar) transparent;
@@ -5371,6 +5375,7 @@ a.modal-character-subtitle:hover {
   .feedback-row {
     --feedback-cell-height: 5rem;
     grid-template-columns: 1.4fr repeat(5, 1fr);
+    grid-template-rows: var(--feedback-cell-height);
     align-items: stretch;
     gap: 0.45rem;
     padding: 0.85rem;
@@ -5388,19 +5393,23 @@ a.modal-character-subtitle:hover {
     height: var(--feedback-cell-height);
     min-height: var(--feedback-cell-height);
     max-height: var(--feedback-cell-height);
+    overflow: hidden;
   }
 
   .feedback-row > .flip-cell:last-child .flip-cell-inner,
   .feedback-row > .flip-cell:last-child .flip-cell-front,
   .feedback-row > .flip-cell:last-child .flip-cell-back {
+    height: 100%;
     min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
   }
 
-  .feedback-row > .tile-tags,
   .feedback-row > .flip-cell:last-child .tile-tags {
     height: 100%;
     min-height: 0;
-    max-height: none;
+    max-height: 100%;
+    overflow: hidden;
   }
 
   .feedback-title {
