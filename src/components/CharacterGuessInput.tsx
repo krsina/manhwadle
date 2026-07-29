@@ -75,6 +75,15 @@ export function CharacterGuessInput({
     active?.scrollIntoView({ block: 'nearest' })
   }, [activeIndex, open, hits])
 
+  useEffect(() => {
+    if (!open || disabled || !rootRef.current) return
+    // Keep the bonus guess field and suggestion list above the mobile keyboard.
+    const id = window.requestAnimationFrame(() => {
+      rootRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [open, disabled])
+
   function selectHit(hit: CharacterSearchHit) {
     if (disabled) return
     onGuess(hit.character, hit.label)
@@ -122,7 +131,13 @@ export function CharacterGuessInput({
         placeholder={placeholder}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => !disabled && hits.length > 0 && setOpen(true)}
+        onFocus={() => {
+          if (disabled) return
+          if (hits.length > 0) setOpen(true)
+          window.requestAnimationFrame(() => {
+            rootRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+          })
+        }}
         onKeyDown={onKeyDown}
         role="combobox"
         aria-expanded={open}

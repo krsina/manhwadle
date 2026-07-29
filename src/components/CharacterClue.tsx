@@ -17,7 +17,10 @@ interface CharacterClueProps {
    * full portrait from the start.
    */
   progressiveZoom?: boolean
-  /** Shown under the clue after the round ends (win or loss). */
+  /**
+   * Shown under the clue after the round ends. On a win, wait until the bonus
+   * name guess is answered so the clue board does not spoil it.
+   */
   revealName?: string | null
 }
 
