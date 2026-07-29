@@ -437,7 +437,31 @@ function archiveDayLabel(cell: CalendarCell): string {
   return `${cell.dateKey}${today}${play}, ${modes}`
 }
 
-export function ArchiveButton({ onClick }: { onClick: () => void }) {
+export function ArchiveButton({
+  onClick,
+  label,
+}: {
+  onClick: () => void
+  /** When set, renders text + calendar as one control (shared hover). */
+  label?: string
+}) {
+  if (label) {
+    return (
+      <button
+        type="button"
+        className="home-archive-actions"
+        onClick={onClick}
+        aria-label="Open puzzle archive"
+        title="Archive"
+      >
+        <span className="home-archive-label">{label}</span>
+        <span className="howto-btn archive-toggle" aria-hidden="true">
+          <CalendarIcon />
+        </span>
+      </button>
+    )
+  }
+
   return (
     <button
       type="button"
