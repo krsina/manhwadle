@@ -171,17 +171,17 @@ Body:
 Matches **Latest published version** in `docs/updates-style-guide.md`:
 
 ```
-Version: 1.0.0
-Title: Updates page release
-Slug: easier-play-on-phones
+Version: 1.0.1
+Title: Guest dailies stay on target
+Slug: guest-dailies-stay-on-target
 
 Body:
-This ship focuses on reading clues without the UI getting in the way, especially on smaller screens. Also the first release for the updates page!
+Playing as a guest now binds to today's real answer even when titles share similar clues, so correct guesses count again.
 
-• Known and Ruled out fold away behind short summaries on mobile
-• Guess feedback is lighter on phones (softer reveals, fewer overflowing tags)
-• After a Character round, the answer name appears under the portrait
-• Shop: free Explorer avatars, updated starter options
+• Guest rounds load the live daily instead of a blank placeholder title
+• Correct guest guesses match the shared daily without false rejects
+• Phone guess feedback fades in place without a flash
+• Tags stay compact on mobile for easier scanning
 ```
 
 ## Anti-patterns
