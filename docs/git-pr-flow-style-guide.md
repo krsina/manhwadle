@@ -87,6 +87,7 @@ Skip e2e only when the diff cannot affect the app shell, routes, or critical-pat
 
 - Wait for **`quality`** (required). Cloudflare Pages preview is useful QA, not a substitute for `quality`.
 - If `quality` fails: fix on the **same PR**, push, re-wait. Do not merge and open a follow-up “CI fix” on main unless you already merged by mistake — then fix immediately with another PR.
+- When shipping via the agent (`/git-pr-flow` / “open a PR” / “ship this”), **merge automatically once `quality` is green** unless the user asked for a draft or explicitly said not to merge.
 
 ### Merge
 
@@ -165,6 +166,8 @@ gh pr merge <n> --merge --delete-branch
 # if using develop:
 git checkout develop && git pull && git merge origin/main && git push
 ```
+
+Default agent behavior for “open a PR” / “ship this”: run through **merge** after green `quality`. Stop before merge only if the user asks for a draft or says not to merge.
 
 Do not start interactive `gh auth login --web` in non-interactive agent shells; use an existing credential / `GH_TOKEN`.
 
