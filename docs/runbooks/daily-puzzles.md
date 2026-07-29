@@ -20,6 +20,7 @@ Production expects **4 modes × 3 tastes = 12** shared daily lanes.
 | --- | --- | --- |
 | Mode shows empty / error | Missing lane row or pool | Re-run selection for that date after fixing pool |
 | Wrong title | Bad seed / stale client cache | Confirm server row; hard-refresh; do not rewrite history casually |
+| Guest sees Manhwa #0 / correct title rejected | Pre-guest-answer_id play state + ambiguous fingerprint | Confirm `get_daily_play_state` returns `answer_id` for anon; hard-refresh |
 | Heardle clip dead | YouTube removal / region | Leave fallback UI; schedule replacement only for future days |
 | Character image missing | CDN / crop URL | Client shows fallback; fix catalog offline |
 

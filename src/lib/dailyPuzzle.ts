@@ -192,10 +192,10 @@ export async function fetchDailyPuzzleRow(
  * Resolve today's (or archive) answer.
  *
  * - Archive (`dateKey < today`): remote SELECT may include answer_id.
- * - Today: clue-safe `get_daily_play_state` (never answer_id). When the
- *   fingerprint uniquely matches a playable catalog title, bind that title so
- *   guests and signed-in players share the same daily without a forgeable
- *   today SELECT. Otherwise keep the fingerprint stub for ranked UI.
+ * - Today: `get_daily_play_state`. Guests receive top-level answer_id for
+ *   local validation (Wordle-style). Authenticated callers omit answer_id
+ *   until terminal; they bind via unique fingerprint when possible, else keep
+ *   a stub for ranked UI (guesses still validate server-side).
  * - Migration missing: local FNV only for today (no today SELECT / no ranked).
  */
 export async function getTodaysPuzzle(
@@ -236,7 +236,7 @@ export async function getTodaysPuzzle(
     }
   }
 
-  // Current day: clue-safe RPC only.
+  // Current day: play-state RPC (guest answer_id or authenticated clue-safe).
   const play = await fetchDailyPlayState(mode, taste)
   if (play.ok) {
     const payload = parsePublicPayload(mode, play.meta)
@@ -247,6 +247,22 @@ export async function getTodaysPuzzle(
         return {
           answer: revealed,
           characterId: play.attempt?.characterId ?? null,
+          source: 'play_state',
+          answerHidden: false,
+          meta: play.meta,
+          clue: payload?.clue ?? null,
+          rankedClueReady: Boolean(payload),
+        }
+      }
+    }
+
+    // Anon/guest: server returns the live answer_id for local validation.
+    if (play.answerId != null) {
+      const guestAnswer = findById(pool, play.answerId)
+      if (guestAnswer) {
+        return {
+          answer: guestAnswer,
+          characterId: play.characterId,
           source: 'play_state',
           answerHidden: false,
           meta: play.meta,

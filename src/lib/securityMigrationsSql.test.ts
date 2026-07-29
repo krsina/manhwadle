@@ -16,6 +16,10 @@ const playMigration = readSql(
   'supabase/migrations/20260720094451_server_authoritative_daily_play.sql',
 )
 
+const guestAnswerMigration = readSql(
+  'supabase/migrations/20260729180146_guest_play_state_answer_id.sql',
+)
+
 describe('private ledger hardening migration contracts', () => {
   it('enables RLS on point_transactions and keeps client DML revoked', () => {
     expect(ledgerMigration).toContain(
@@ -152,6 +156,21 @@ describe('server-authoritative daily play migration contracts', () => {
     )
     expect(playMigration).toContain(
       "consume_rpc_rate_limit(v_uid, 'finalize_daily_attempt', 20, 60)",
+    )
+  })
+})
+
+describe('guest play-state answer_id migration contracts', () => {
+  it('returns answer_id for anon and hides it for authenticated callers', () => {
+    expect(guestAnswerMigration).toContain('v_guest boolean := (v_uid is null)')
+    expect(guestAnswerMigration).toContain(
+      "'answer_id', case when v_guest then v_answer_id else null end",
+    )
+    expect(guestAnswerMigration).toContain(
+      "'character_id', case when v_guest then v_character_id else null end",
+    )
+    expect(guestAnswerMigration).toContain(
+      'Guests (anon) receive answer_id for local validation',
     )
   })
 })

@@ -67,7 +67,9 @@ Apply the security / daily-play migrations and deploy Edge Functions (`moderatio
 - Direct client DML on locked economy tables (`user_achievements`, `user_point_balances`, `user_rewarded_ad_claims`, `daily_completions`) and `app_private.point_transactions`
 - Self-owner grant via `moderation_grant_role` / `user_roles`
 - Spoofed `actor_id` / unauthenticated Edge calls (`moderation`, `account-data`); cron probe without `CRON_SECRET` for `select-daily-puzzles`
-- Today’s `daily_puzzles.answer_id` not selectable; active attempt RPCs omit `answer_id`
+- Today’s `daily_puzzles.answer_id` not selectable via table SELECT
+- Authenticated `get_daily_play_state` / active attempt RPCs omit `answer_id`
+- Anon `get_daily_play_state` may include `answer_id` for guest local validation (Wordle-style)
 - Guess idempotency + past-max / terminal rejection; deprecated `complete_daily_mode_with_reward`
 - Deprecated bonus boolean, wrong bonus guess, disabled `claim_rewarded_ad_points`, idempotent cosmetic `report_secret_event`
 

@@ -9,17 +9,15 @@ interface FeedbackGridProps {
 
 /** Desktop 3D flip duration. */
 const FLIP_DURATION_MS = 700
-/** Mobile soft-fade duration. */
+/** Mobile soft-fade duration per cell. */
 const MOBILE_REVEAL_DURATION_MS = 480
 const FLIP_STAGGER_MS = 360
 /** Snappier stagger on condensed mobile cards. */
 const MOBILE_REVEAL_STAGGER_MS = 220
 const CELL_COUNT = 6
 const DESKTOP_RAIL_MQ = '(min-width: 960px)'
-/** Compact mobile tags: shared first, then mute, then +N more. */
+/** Mobile tags stay compact: shared first, then mute, then +N more. */
 const COMPACT_TAG_LIMIT = 6
-
-type TagDisplayMode = 'all' | 'compact'
 
 function yearLabel(row: GuessFeedback): string {
   const { year, direction } = row.year
@@ -50,13 +48,7 @@ function GenreValue({ row }: { row: GuessFeedback }) {
   return <span className="tile-value">{genres.join(', ')}</span>
 }
 
-function TagValue({
-  row,
-  mode,
-}: {
-  row: GuessFeedback
-  mode: TagDisplayMode
-}) {
+function TagValue({ row, compact }: { row: GuessFeedback; compact: boolean }) {
   const tags = row.tags.guessed
   if (tags.length === 0) {
     return <span className="tile-value">None</span>
@@ -69,7 +61,7 @@ function TagValue({
   ]
 
   const visible =
-    mode === 'compact' && ordered.length > COMPACT_TAG_LIMIT
+    compact && ordered.length > COMPACT_TAG_LIMIT
       ? ordered.slice(0, COMPACT_TAG_LIMIT)
       : ordered
   const hiddenCount = ordered.length - visible.length
@@ -102,6 +94,7 @@ function FlipCell({
   title,
   ariaLabel,
   children,
+  reveal,
 }: {
   animate: boolean
   delayMs: number
@@ -109,7 +102,24 @@ function FlipCell({
   title?: string
   ariaLabel?: string
   children: ReactNode
+  /** Mobile fade keeps stable DOM (no remount flash). Desktop uses 3D flip shell. */
+  reveal: 'fade' | 'flip'
 }) {
+  const style = animate ? ({ '--flip-delay': `${delayMs}ms` } as CSSProperties) : undefined
+
+  if (reveal === 'fade') {
+    return (
+      <div
+        className={`${className}${animate ? ' is-cell-revealing' : ''}`}
+        style={style}
+        title={title}
+        aria-label={ariaLabel}
+      >
+        {children}
+      </div>
+    )
+  }
+
   if (!animate) {
     return (
       <div className={className} title={title} aria-label={ariaLabel}>
@@ -117,8 +127,6 @@ function FlipCell({
       </div>
     )
   }
-
-  const style = { '--flip-delay': `${delayMs}ms` } as CSSProperties
 
   return (
     <div className="flip-cell" style={style}>
@@ -136,21 +144,20 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
   const isDesktop = useMatchMedia(DESKTOP_RAIL_MQ)
   const prevLenRef = useRef(rows.length)
   const [flippingIndex, setFlippingIndex] = useState<number | null>(null)
-  const [tagMode, setTagMode] = useState<TagDisplayMode>('compact')
   const staggerMs = isDesktop ? FLIP_STAGGER_MS : MOBILE_REVEAL_STAGGER_MS
-  const durationMs = isDesktop ? FLIP_DURATION_MS : MOBILE_REVEAL_DURATION_MS
-  const effectiveTagMode: TagDisplayMode = isDesktop ? 'all' : tagMode
+  const reveal: 'fade' | 'flip' = isDesktop ? 'flip' : 'fade'
 
   useEffect(() => {
     if (rows.length > prevLenRef.current) {
       setFlippingIndex(rows.length - 1)
-      const totalMs = durationMs + (CELL_COUNT - 1) * staggerMs + 80
+      const cellDuration = isDesktop ? FLIP_DURATION_MS : MOBILE_REVEAL_DURATION_MS
+      const totalMs = cellDuration + (CELL_COUNT - 1) * staggerMs + 80
       const timer = window.setTimeout(() => setFlippingIndex(null), totalMs)
       prevLenRef.current = rows.length
       return () => window.clearTimeout(timer)
     }
     prevLenRef.current = rows.length
-  }, [rows.length, durationMs, staggerMs])
+  }, [rows.length, isDesktop, staggerMs])
 
   if (rows.length === 0) {
     return (
@@ -163,33 +170,12 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
   }
 
   return (
-    <section
-      className={`feedback${!isDesktop ? ` tags-${tagMode}` : ''}`}
-      aria-label="Guess feedback"
-    >
-      <div className="feedback-toolbar">
-        <p className="feedback-section-label">Guesses</p>
-        {!isDesktop ? (
-          <div className="feedback-tag-toggle" role="group" aria-label="Tag display">
-            <button
-              type="button"
-              className={`feedback-tag-toggle-btn${tagMode === 'all' ? ' is-active' : ''}`}
-              aria-pressed={tagMode === 'all'}
-              onClick={() => setTagMode('all')}
-            >
-              All tags
-            </button>
-            <button
-              type="button"
-              className={`feedback-tag-toggle-btn${tagMode === 'compact' ? ' is-active' : ''}`}
-              aria-pressed={tagMode === 'compact'}
-              onClick={() => setTagMode('compact')}
-            >
-              Compact
-            </button>
-          </div>
-        ) : null}
-      </div>
+    <section className="feedback" aria-label="Guess feedback">
+      {!isDesktop ? (
+        <div className="feedback-toolbar">
+          <p className="feedback-section-label">Guesses</p>
+        </div>
+      ) : null}
       <div className="feedback-head">
         <span>Title</span>
         <span>Genres</span>
@@ -205,9 +191,16 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
           return (
             <li
               key={`${row.manhwa.id}-${index}`}
-              className={`feedback-row${row.isCorrect ? ' is-correct' : ''}${animate ? ' is-flipping' : ''}`}
+              className={`feedback-row${row.isCorrect ? ' is-correct' : ''}${
+                animate && isDesktop ? ' is-flipping' : ''
+              }`}
             >
-              <FlipCell animate={animate} delayMs={0} className="feedback-title">
+              <FlipCell
+                animate={animate}
+                delayMs={0}
+                className="feedback-title"
+                reveal={reveal}
+              >
                 {row.manhwa.coverImage && (
                   <img
                     className="feedback-title-cover"
@@ -227,6 +220,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
                 className={`tile tone-${row.genres.tone}`}
                 title={row.genres.guessed.join(', ')}
                 ariaLabel={`Genres, ${toneMatchLabel(row.genres.tone)}`}
+                reveal={reveal}
               >
                 <span className="tile-label">Genres</span>
                 <span className="tile-tone-status">{toneMatchLabel(row.genres.tone)}</span>
@@ -237,6 +231,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
                 delayMs={staggerMs * 2}
                 className={`tile tone-${row.year.tone}`}
                 ariaLabel={`Year, ${toneMatchLabel(row.year.tone)}`}
+                reveal={reveal}
               >
                 <span className="tile-label">Year</span>
                 <span className="tile-tone-status">{toneMatchLabel(row.year.tone)}</span>
@@ -247,6 +242,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
                 delayMs={staggerMs * 3}
                 className={`tile tone-${row.status.tone}`}
                 ariaLabel={`Status, ${toneMatchLabel(row.status.tone)}`}
+                reveal={reveal}
               >
                 <span className="tile-label">Status</span>
                 <span className="tile-tone-status">{toneMatchLabel(row.status.tone)}</span>
@@ -257,6 +253,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
                 delayMs={staggerMs * 4}
                 className={`tile tone-${row.publisher.tone}`}
                 ariaLabel={`Publisher, ${toneMatchLabel(row.publisher.tone)}`}
+                reveal={reveal}
               >
                 <span className="tile-label">Publisher</span>
                 <span className="tile-tone-status">{toneMatchLabel(row.publisher.tone)}</span>
@@ -267,10 +264,11 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
                 delayMs={staggerMs * 5}
                 className="tile tile-tags"
                 ariaLabel={`Tags, ${tagsMatch}`}
+                reveal={reveal}
               >
                 <span className="tile-label">Tags</span>
                 <span className="tile-tone-status">{tagsMatch}</span>
-                <TagValue row={row} mode={effectiveTagMode} />
+                <TagValue row={row} compact={!isDesktop} />
               </FlipCell>
             </li>
           )
