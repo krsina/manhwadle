@@ -102,6 +102,68 @@ describe('getTodaysPuzzle', () => {
     expect(result.answer.genres).toEqual(['Action'])
   })
 
+  it('uses guest answer_id from play state even when fingerprints collide', async () => {
+    const { getTodaysPuzzle } = await import('./dailyPuzzle')
+    const twinA = makeManhwa({
+      id: 1,
+      genres: ['Action'],
+      tags: ['Dungeon'],
+      status: 'Ongoing',
+      publisher: 'WEBTOON',
+      startDate: { year: 2020, month: null, day: null },
+    })
+    const twinB = makeManhwa({
+      id: 2,
+      genres: ['Action'],
+      tags: ['Dungeon'],
+      status: 'Ongoing',
+      publisher: 'WEBTOON',
+      startDate: { year: 2020, month: null, day: null },
+    })
+    rpc.mockResolvedValue({
+      data: {
+        ok: true,
+        date_key: '2099-01-05',
+        mode: 'summary',
+        taste: 'both',
+        answer_id: 2,
+        character_id: null,
+        meta: {
+          clue: {
+            type: 'summary',
+            blurbs: ['Shared fingerprint clue.'],
+          },
+          fingerprint: {
+            genres: ['Action'],
+            tags: ['Dungeon'],
+            status: 'Ongoing',
+            publisher: 'WEBTOON',
+            year: 2020,
+          },
+        },
+        max_guesses: 6,
+        attempt: null,
+      },
+      error: null,
+    })
+
+    const result = await getTodaysPuzzle(
+      'summary',
+      'both',
+      [twinA, twinB],
+      [twinA, twinB],
+      'summary-both',
+      '2099-01-05',
+    )
+    expect(result.answerHidden).toBe(false)
+    expect(result.answer.id).toBe(2)
+    expect(result.rankedClueReady).toBe(true)
+    expect(result.clue).toEqual({
+      type: 'summary',
+      blurbs: ['Shared fingerprint clue.'],
+    })
+  })
+
   it('keeps the fingerprint stub when multiple titles share the same fingerprint', async () => {
     const { getTodaysPuzzle } = await import('./dailyPuzzle')
     const twinA = makeManhwa({
@@ -126,6 +188,9 @@ describe('getTodaysPuzzle', () => {
         date_key: '2099-01-05',
         mode: 'summary',
         taste: 'both',
+        // Authenticated / pre-migration: no top-level answer_id
+        answer_id: null,
+        character_id: null,
         meta: {
           clue: {
             type: 'summary',

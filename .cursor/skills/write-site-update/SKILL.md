@@ -26,16 +26,28 @@ Hard rules from the guide:
 - Always include a **version** (`MAJOR.MINOR.PATCH`).
 - Never use em dashes (`—`).
 - Do not put version or date in the title.
+- Keep **Latest published version** + examples in the guide and this skill in sync after every publish.
+
+## Version sync (required)
+
+The guide’s **Latest published version** line is the human-facing stamp of what is live.
+
+1. **Before drafting:** read that line and/or query `site_updates` versions. Next version must be newer and unused.
+2. **After publishing to Supabase:** in the **same follow-up commit/PR** (or immediately in-repo if already shipping docs), update:
+   - `docs/updates-style-guide.md` → **Latest published version**
+   - `docs/updates-style-guide.md` → **Example (preferred)** (version, title, body of the post just shipped)
+   - This file → **Good example** (same version / title / slug / body)
+3. Never leave guide or skill examples on an older version after a successful publish.
 
 ## Workflow
 
-Treat “write an update” / `/write-site-update` as **draft → approve → publish to Supabase**, unless the user asks for a draft only.
+Treat “write an update” / `/write-site-update` as **draft → approve → publish to Supabase → sync guide + skill versions**, unless the user asks for a draft only.
 
 1. **Gather what shipped**
    - Prefer `git status` / `git diff` / recent commits against the tracking branch (and merged PRs if that is the ship).
    - Translate changes into **player outcomes**. Drop migrations, tests, refactors, and tooling unless they change something visible.
-   - Choose a version bump: MINOR for themed features, PATCH for small fixes (see the guide).
-   - Check existing versions first (see Publish) so you do not reuse one.
+   - Choose a version bump from the guide (MINOR vs PATCH). Manhwadle is on public `1.x`.
+   - Check **Latest published version** + live DB so you do not reuse a version.
 
 2. **Draft in Brief form**
    - Version required.
@@ -58,6 +70,10 @@ Treat “write an update” / `/write-site-update` as **draft → approve → pu
    - Do **not** publish while the matching UI/code is still unreleased unless they explicitly want that announcement live early.
    - After publish, verify with `get_public_site_updates` (or a select on `site_updates`) and report the public URL (`/updates` and `/updates/<slug>`).
 
+5. **Sync docs (required after publish)**
+   - Update guide + this skill examples to the new version (see **Version sync**).
+   - Ship those doc/skill edits through the normal `/git-pr-flow` unless the user forbids a PR.
+
 ## Publish via Supabase MCP
 
 Project ref: `snzhnkcccbxkwerbaido`.
@@ -71,7 +87,7 @@ order by published_at desc nulls last, created_at desc
 limit 20;
 ```
 
-Pick the next unused semver. Do not reuse a version.
+Cross-check against **Latest published version** in the style guide. Pick the next unused semver.
 
 ### 2. Resolve an owner actor id
 
@@ -82,7 +98,7 @@ where ur.role = 'owner'
 limit 1;
 ```
 
-If that shape differs, use whatever lookup `app_private.has_role(..., 'owner')` is backed by. Never invent a random UUID.
+Never invent a random UUID.
 
 ### 3. Create or update (published)
 
@@ -131,6 +147,10 @@ select public.get_public_site_update('<kebab-slug>');
 
 Confirm `ok: true`, `published`, version, and body. Tell the user it is live on `/updates`.
 
+### 5. Sync guide + skill
+
+Update both files to the post you just published, then open/merge a PR via `/git-pr-flow`.
+
 ## Output template (chat)
 
 ```
@@ -148,18 +168,20 @@ Body:
 
 ## Good example
 
+Matches **Latest published version** in `docs/updates-style-guide.md`:
+
 ```
-Version: 1.1.0
-Title: Easier play on phones
+Version: 1.0.0
+Title: Updates page release
 Slug: easier-play-on-phones
 
 Body:
-This ship focuses on reading clues without the UI getting in the way, especially on smaller screens.
+This ship focuses on reading clues without the UI getting in the way, especially on smaller screens. Also the first release for the updates page!
 
 • Known and Ruled out fold away behind short summaries on mobile
 • Guess feedback is lighter on phones (softer reveals, fewer overflowing tags)
 • After a Character round, the answer name appears under the portrait
-• Shop: free Explorer avatars, updated starter options, and refreshed Style A art (including Plum Blossom Blade)
+• Shop: free Explorer avatars, updated starter options
 ```
 
 ## Anti-patterns
@@ -168,8 +190,10 @@ This ship focuses on reading clues without the UI getting in the way, especially
 - Git-log tone (“refactored KnownInfoPanel”, “added RLS policies”)
 - Vague hype (“huge improvements”, “exciting update”)
 - Missing version, or version stuffed into the title
-- Drafting in chat only and never writing to Supabase (post will not appear on the site)
+- Drafting in chat only and never writing to Supabase
+- Publishing without updating guide + skill version examples
 - More than five bullets
 - Skipping the lead sentence
 - Publishing internal-only work
 - Reusing an existing `version` string
+- Leaving examples on `0.x` now that the public product is on `1.x`

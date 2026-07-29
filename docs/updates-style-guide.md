@@ -2,6 +2,18 @@
 
 Public changelog for `/updates`. Write for players, not for the git log.
 
+## Latest published version
+
+**`1.0.0`** (Updates page release)
+
+Keep this line in sync with the newest **published** row in `site_updates`. Whenever a new version ships (via `/write-site-update`, Moderation, or a manual edit), update:
+
+1. This **Latest published version** line
+2. The **Example (preferred)** version / title / body below so they match that post
+3. The **Good example** in `.cursor/skills/write-site-update/SKILL.md`
+
+Do not leave the guide or skill pointing at an older version after a publish.
+
 ## Canonical format: Brief
 
 Every update uses this shape:
@@ -18,25 +30,25 @@ Do not use em dashes (`—`). Prefer commas, periods, colons, or parentheses.
 
 ### Example (preferred)
 
-**Version:** `0.2.0`
+**Version:** `1.0.0`
 
-**Title:** Easier play on phones
+**Title:** Updates page release
 
 **Body:**
 ```
-This ship focuses on reading clues without the UI getting in the way, especially on smaller screens.
+This ship focuses on reading clues without the UI getting in the way, especially on smaller screens. Also the first release for the updates page!
 
 • Known and Ruled out fold away behind short summaries on mobile
 • Guess feedback is lighter on phones (softer reveals, fewer overflowing tags)
 • After a Character round, the answer name appears under the portrait
-• Shop: free Explorer avatars, updated starter options, and refreshed Style A art (including Plum Blossom Blade)
+• Shop: free Explorer avatars, updated starter options
 ```
 
 ## Versioning
 
 Each published post carries a **version** string shown next to the date.
 
-Use **semver-style** `MAJOR.MINOR.PATCH`:
+Manhwadle is a **public `1.x` product**. Use **semver-style** `MAJOR.MINOR.PATCH`:
 
 | Bump | When |
 | --- | --- |
@@ -48,10 +60,10 @@ Rules:
 
 - Version is required for published posts.
 - One version per post. Do not reuse a version on a later post.
-- Versions should move forward over time (`0.2.0` then `0.2.1` or `0.3.0`, never go backwards).
+- Versions must move forward (`1.0.0` → `1.0.1` or `1.1.0`, never backwards).
 - Put the version in the **version field**, not in the title. Titles stay thematic; the page shows version + date.
-
-Starting point for early Manhwadle: `0.x.y` until you declare a public `1.0.0`.
+- Before choosing a number, read **Latest published version** above and/or query live `site_updates` versions.
+- After publishing, update **Latest published version** and both examples (this guide + the skill) in the same change.
 
 ## Voice
 
@@ -63,7 +75,7 @@ Starting point for early Manhwadle: `0.x.y` until you declare a public `1.0.0`.
 ## Title rules
 
 - Name the theme, not every bullet.
-- Good: `Easier play on phones`
+- Good: `Updates page release`
 - Avoid: `Various bug fixes and improvements`
 - Do not put the version or date in the title (both are shown automatically).
 
@@ -89,6 +101,7 @@ Starting point for early Manhwadle: `0.x.y` until you declare a public `1.0.0`.
 - Do write the lead so someone could skim title + lead and still get the idea.
 - Do keep bullets concrete and scannable.
 - Do set a version that matches how big the ship feels (MINOR vs PATCH).
+- Do keep this guide and the write-site-update skill examples on the latest published version.
 - Don’t list every file or avatar slug unless the name is shop-facing.
 - Don’t announce the Updates page every time. Only on first launch or major changes to it.
 - Don’t promise upcoming work in the same post as shipped changes (use a separate post if needed).
@@ -97,10 +110,11 @@ Starting point for early Manhwadle: `0.x.y` until you declare a public `1.0.0`.
 
 ## Checklist before publish
 
-- [ ] Version set and not reused?
+- [ ] Version set and not reused (newer than **Latest published version**)?
 - [ ] Title + lead make sense without reading the bullets?
 - [ ] Would a casual player understand every bullet?
 - [ ] Is anything in here only useful to you as the developer?
 - [ ] Slug looks shareable (`easier-play-on-phones`, not `update-7-29`)?
 - [ ] No em dashes in title or body?
 - [ ] Published only when the matching code is actually live for players?
+- [ ] After publish: guide + skill examples updated to the new version?

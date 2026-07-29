@@ -32,9 +32,9 @@ export interface DailyPuzzleAnswerState {
 
 /**
  * Resolve today's answer. With Supabase configured, stays unsettled until the
- * remote lookup finishes. Today never receives answer_id from the table;
- * guests and signed-in players both load clue-safe play state so they share
- * the same daily. Signed-in ranked play still validates guesses via attempts.
+ * remote lookup finishes. Guests receive answer_id from play state for local
+ * validation; authenticated ranked play omits answer_id until terminal and
+ * validates guesses via attempts. Both share the same live daily.
  */
 export function useDailyPuzzleAnswer(
   mode: StatsModeId,

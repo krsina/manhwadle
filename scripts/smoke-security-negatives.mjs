@@ -524,9 +524,10 @@ async function main() {
       } else if (jsonHasAnswerId(playState) && playState?.attempt?.status === 'active') {
         fail('get_daily_play_state leaked answer_id on active attempt')
       } else if (playState?.ok && playState.attempt == null && jsonHasAnswerId(playState)) {
+        // Authenticated clients must not receive top-level answer_id (guests may).
         fail('get_daily_play_state leaked answer_id without attempt')
       } else if (playState?.ok) {
-        ok('get_daily_play_state omits answer_id for non-terminal state')
+        ok('get_daily_play_state omits answer_id for authenticated non-terminal state')
       } else {
         skip(`get_daily_play_state not ok: ${JSON.stringify(playState)}`)
       }

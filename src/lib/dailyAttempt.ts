@@ -47,6 +47,13 @@ export interface DailyPlayState {
   taste: ReaderTaste
   meta: Record<string, unknown> | null
   maxGuesses: number
+  /**
+   * Present for anon/guest play-state so local validation matches the live
+   * daily. Authenticated ranked play omits this until the attempt is terminal.
+   */
+  answerId: number | null
+  /** Guest-only companion to {@link answerId} (Character mode). */
+  characterId: number | null
   attempt: DailyAttemptPublic | null
 }
 
@@ -149,8 +156,8 @@ export function parseDailyCompletionReward(raw: unknown): DailyCompletionReward 
 }
 
 /**
- * Clue-safe today play state. Never includes answer_id (attempt may reveal it
- * only when terminal).
+ * Today play state. Guests may receive top-level answer_id for local
+ * validation; authenticated callers get answer_id only on a terminal attempt.
  */
 export async function fetchDailyPlayState(
   mode: StatsModeId,
@@ -187,6 +194,8 @@ export async function fetchDailyPlayState(
       taste: (typeof data.taste === 'string' ? data.taste : taste) as ReaderTaste,
       meta: isRecord(data.meta) ? data.meta : null,
       maxGuesses: parseNonNegInt(data.max_guesses, 6) || 6,
+      answerId: parseOptionalInt(data.answer_id),
+      characterId: parseOptionalInt(data.character_id),
       attempt: parseDailyAttemptPublic(data.attempt),
     }
   } catch (err) {

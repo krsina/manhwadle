@@ -3061,46 +3061,6 @@ a.site-icon-btn {
   margin: 0;
 }
 
-.feedback-tag-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.15rem;
-  padding: 0.12rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel-muted);
-}
-
-.feedback-tag-toggle-btn {
-  margin: 0;
-  padding: 0.28rem 0.55rem;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-soft);
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 650;
-  line-height: 1.2;
-  cursor: pointer;
-}
-
-.feedback-tag-toggle-btn.is-active {
-  background: var(--panel);
-  color: var(--ink);
-}
-
-.feedback-tag-toggle-btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-.tag-chip-more {
-  background: transparent;
-  color: var(--ink-soft);
-  border: 1px dashed var(--line);
-}
-
 .feedback-head {
   display: none;
   grid-template-columns: 1.4fr repeat(5, 1fr);
@@ -3141,6 +3101,20 @@ a.site-icon-btn {
 
 .feedback-row.is-flipping {
   perspective: none;
+}
+
+.tag-chip-more {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px dashed var(--line);
+}
+
+/* Mobile stagger: fade the cell itself (stable DOM — no remount flash).
+   The whole tags tile (all chips) shares one opacity — chips do not stagger. */
+.feedback-title.is-cell-revealing,
+.tile.is-cell-revealing {
+  animation: tile-reveal-fade 480ms ease-out both;
+  animation-delay: var(--flip-delay, 0ms);
 }
 
 .flip-cell {
@@ -3212,8 +3186,8 @@ a.site-icon-btn {
 .feedback-row > .flip-cell:last-child .tile-tags {
   height: auto;
   min-height: var(--feedback-cell-height);
-  /* Compact stays short via chip count; All tags expands fully (no scroll clamp). */
   max-height: none;
+  contain: layout;
 }
 
 .feedback-title {
@@ -5256,7 +5230,7 @@ a.modal-character-name:hover {
   }
 }
 
-/* Mobile guess reveal: soft opacity fade. */
+/* Mobile guess reveal: soft opacity fade (one per cell; tags chips inherit together). */
 @keyframes tile-reveal-fade {
   from {
     opacity: 0;
@@ -5593,6 +5567,15 @@ a.modal-character-name:hover {
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  .feedback-row.is-revealing {
+    opacity: 1;
+  }
+
+  .feedback-title.is-cell-revealing,
+  .tile.is-cell-revealing {
+    opacity: 1;
   }
 
   .flip-cell-inner {

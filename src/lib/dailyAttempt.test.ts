@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  fetchDailyPlayState,
   isMissingRpcError,
   parseDailyAttemptPublic,
   startDailyAttempt,
@@ -27,6 +28,30 @@ describe('dailyAttempt RPC helpers', () => {
       ),
     ).toBe(true)
     expect(isMissingRpcError('rate_limited')).toBe(false)
+  })
+
+  it('parses guest answer_id from play state', async () => {
+    rpc.mockResolvedValue({
+      data: {
+        ok: true,
+        date_key: '2026-07-29',
+        mode: 'summary',
+        taste: 'action',
+        meta: { clue: { type: 'summary', blurbs: ['a'] }, fingerprint: {} },
+        max_guesses: 6,
+        answer_id: 182139,
+        character_id: null,
+        attempt: null,
+      },
+      error: null,
+    })
+    const result = await fetchDailyPlayState('summary', 'action')
+    expect(result).toMatchObject({
+      ok: true,
+      answerId: 182139,
+      characterId: null,
+      attempt: null,
+    })
   })
 
   it('parses attempt public state and omits non-terminal answer ids', () => {
