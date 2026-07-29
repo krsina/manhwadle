@@ -2,9 +2,9 @@
 name: git-pr-flow
 description: >-
   Ships Manhwadle changes via the repo git/PR flow: feature branch, local
-  preflight, push, PR, wait for quality, merge only when green. Use when the
-  user asks to open a PR, create a pull request, ship a branch, run preflight,
-  merge a PR, or follow the git/PR flow style guide.
+  preflight, push, PR, wait for quality, then merge when green and sync
+  develop. Use when the user asks to open a PR, create a pull request, ship a
+  branch, run preflight, merge a PR, or follow the git/PR flow style guide.
 ---
 
 # Git / PR flow
@@ -17,26 +17,28 @@ Before acting, read and follow:
 
 `docs/git-pr-flow-style-guide.md` (repo root)
 
-That guide is canonical. Also respect the user’s git safety rules (no force-push to main/master, no amend unless allowed, no committing secrets, only commit when asked, only push/PR when asked).
+That guide is canonical. Also respect the user’s git safety rules (no force-push to main/master, no amend unless allowed, no committing secrets).
 
 Related: `docs/deployment.md` for Pages / Supabase / branch protection topology.
 
 ## Default flow
 
 ```text
-main (or develop) → feat/<short-name> → PR → wait for quality → merge
+main (or develop) → feat/<short-name> → PR → wait for quality → merge → sync develop
 ```
 
 1. Start from an up-to-date base (`main` for release-bound work; `develop` if that is the integration branch).
 2. One concern per branch / PR.
 3. Preflight locally (§2 of the guide).
 4. Push, open PR into the **correct base**, wait for **`quality`**.
-5. Merge only when `quality` is green. Never merge red to “fix after.”
-6. If both `develop` and `main` are used, sync `develop` ← `main` after a release merge.
+5. When `quality` is green, **merge automatically** (merge commit + delete feature branch). Never merge red.
+6. Sync `develop` ← `main` after the merge when both branches are in use.
 
 Never push straight to `main` when protection is on. Prefer a PR even for tiny fixes.
 
 ## When the user asks to ship / open a PR
+
+Treat “open a PR” / “ship this” as the **full flow through merge**, unless they explicitly say not to merge (e.g. “PR only” / “don’t merge yet”).
 
 Copy this checklist and work it in order:
 
@@ -45,11 +47,11 @@ PR Progress:
 - [ ] Confirm base branch and branch name (feat|fix|docs)/<short-name>
 - [ ] Confirm only intended files will be committed
 - [ ] Run preflight appropriate to the diff
-- [ ] Commit (only if user asked) with a short “why” message
+- [ ] Commit with a short “why” message
 - [ ] Push -u and create PR with Summary + Test plan
 - [ ] Watch quality; fix on the same PR if red
-- [ ] Merge only when green (only if user asked)
-- [ ] Delete feature branch; sync develop if needed
+- [ ] Merge when quality is green (--merge --delete-branch)
+- [ ] Sync develop ← main; pull local main/develop
 ```
 
 ### Preflight (mirror CI)
@@ -86,7 +88,8 @@ Use `gh pr create` with a HEREDOC body. Push with `-u` if the branch has no upst
 
 - Wait for **`quality`** (required). Pages preview is useful QA, not a substitute.
 - On failure: fix on the **same PR**, push, re-wait.
-- Merge with the repo’s usual strategy; delete the feature branch after.
+- On green: `gh pr merge <n> --merge --delete-branch`, then sync `develop` ← `main` and update local checkouts.
+- Return the PR URL and merge result.
 
 ## Hard rules (do not violate)
 
@@ -96,7 +99,7 @@ Use `gh pr create` with a HEREDOC body. Push with `-u` if the branch has no upst
 - If a hook/CI fix is needed, add a **new** commit (no force-push on shared branches unless alone and stated).
 - Never update git config.
 - Never force-push to `main` / `master`.
-- Only commit / push / open / merge when the user asked for that step (or clearly asked to “ship” end-to-end).
+- Skip auto-merge only when the user says so (draft PR, “don’t merge”, review-only).
 
 ## Recurring failure patterns
 
@@ -111,6 +114,6 @@ Before push, skim guide §6. Especially:
 
 1. Local preflight green (or honestly N/A for docs-only).
 2. PR `quality` green.
-3. PR merged (when requested).
+3. PR merged (default for ship / open-PR requests).
 4. `develop` caught up if used.
 5. Supabase migrations applied before/with the app that needs them (`docs/deployment.md`, `docs/runbooks/migration-drift.md`).
