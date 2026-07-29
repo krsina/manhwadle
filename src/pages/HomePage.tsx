@@ -182,16 +182,7 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
               <p className="home-section-blurb">
                 Four daily puzzles, give it your best shot!
               </p>
-              <div className="home-archive-actions">
-                <button
-                  type="button"
-                  className="home-archive-label"
-                  onClick={requestArchive}
-                >
-                  Archive
-                </button>
-                <ArchiveButton onClick={requestArchive} />
-              </div>
+              <ArchiveButton onClick={requestArchive} label="Archive" />
             </div>
           </div>
           <div className="mode-row-list" role="list">

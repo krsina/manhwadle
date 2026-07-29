@@ -51,8 +51,11 @@ describe('updatesPath', () => {
 })
 
 describe('formatUpdateDate', () => {
-  it('formats UTC dates', () => {
-    expect(formatUpdateDate('2026-07-29T12:00:00Z')).toMatch(/2026/)
+  it('formats UTC date and time', () => {
+    const label = formatUpdateDate('2026-07-29T12:00:00Z')
+    expect(label).toMatch(/2026/)
+    expect(label).toMatch(/12/)
+    expect(label).toMatch(/UTC|GMT/i)
     expect(formatUpdateDate(null)).toBe('')
   })
 })
