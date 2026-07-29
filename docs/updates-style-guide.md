@@ -4,7 +4,7 @@ Public changelog for `/updates`. Write for players, not for the git log.
 
 ## Latest published version
 
-**`1.0.0`** (Updates page release)
+**`1.0.1`** (Guest dailies stay on target)
 
 Keep this line in sync with the newest **published** row in `site_updates`. Whenever a new version ships (via `/write-site-update`, Moderation, or a manual edit), update:
 
@@ -30,18 +30,18 @@ Do not use em dashes (`—`). Prefer commas, periods, colons, or parentheses.
 
 ### Example (preferred)
 
-**Version:** `1.0.0`
+**Version:** `1.0.1`
 
-**Title:** Updates page release
+**Title:** Guest dailies stay on target
 
 **Body:**
 ```
-This ship focuses on reading clues without the UI getting in the way, especially on smaller screens. Also the first release for the updates page!
+Playing as a guest now binds to today's real answer even when titles share similar clues, so correct guesses count again.
 
-• Known and Ruled out fold away behind short summaries on mobile
-• Guess feedback is lighter on phones (softer reveals, fewer overflowing tags)
-• After a Character round, the answer name appears under the portrait
-• Shop: free Explorer avatars, updated starter options
+• Guest rounds load the live daily instead of a blank placeholder title
+• Correct guest guesses match the shared daily without false rejects
+• Phone guess feedback fades in place without a flash
+• Tags stay compact on mobile for easier scanning
 ```
 
 ## Versioning
@@ -75,7 +75,7 @@ Rules:
 ## Title rules
 
 - Name the theme, not every bullet.
-- Good: `Updates page release`
+- Good: `Guest dailies stay on target`
 - Avoid: `Various bug fixes and improvements`
 - Do not put the version or date in the title (both are shown automatically).
 
