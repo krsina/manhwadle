@@ -13,7 +13,7 @@ import {
 } from './avatarComposition'
 
 const STARTER_IDS = ['avatar_default_female', 'avatar_default_male'] as const
-const LIMITED_TIME_IDS = ['avatar_quest_recruit', 'avatar_spark_apprentice'] as const
+const LIMITED_TIME_IDS = ['avatar_explorer_a', 'avatar_explorer_b'] as const
 const LEGACY_PREMIUM_IDS = ['avatar_shadow_hunter', 'avatar_skybreaker_monk'] as const
 const WAVE1_IDS = [
   'avatar_plum_blossom_blade',
@@ -78,17 +78,19 @@ describe('avatarComposition', () => {
       starter: true,
       description: 'A plain starter look',
     })
-    expect(getAvatarCharacterMeta('avatar_quest_recruit')).toMatchObject({
+    expect(getAvatarCharacterMeta('avatar_explorer_a')).toMatchObject({
       price: 0,
       rarity: 'common',
       starter: false,
       limitedTime: true,
+      description: 'First steps on the journey. Limited-time free claim.',
     })
-    expect(getAvatarCharacterMeta('avatar_spark_apprentice')).toMatchObject({
+    expect(getAvatarCharacterMeta('avatar_explorer_b')).toMatchObject({
       price: 0,
       rarity: 'common',
       starter: false,
       limitedTime: true,
+      description: 'First steps on the journey. Limited-time free claim.',
     })
   })
 
@@ -118,8 +120,8 @@ describe('avatarComposition', () => {
 
   it('lists limited-time claim ids separately from starters', () => {
     expect(limitedTimeAvatarIds().sort()).toEqual([
-      'avatar_quest_recruit',
-      'avatar_spark_apprentice',
+      'avatar_explorer_a',
+      'avatar_explorer_b',
     ])
   })
 
@@ -127,13 +129,13 @@ describe('avatarComposition', () => {
     const sorted = [
       { id: 'avatar_shadow_hunter', price: 4000 },
       { id: 'avatar_default_female', price: 0 },
-      { id: 'avatar_quest_recruit', price: 0, limitedTime: true },
+      { id: 'avatar_explorer_a', price: 0, limitedTime: true },
       { id: 'avatar_ice_sovereign', price: 7000 },
-      { id: 'avatar_spark_apprentice', price: 0, limitedTime: true },
+      { id: 'avatar_explorer_b', price: 0, limitedTime: true },
     ].sort(compareShopItemsByPrice)
     expect(sorted.map((row) => row.id)).toEqual([
-      'avatar_quest_recruit',
-      'avatar_spark_apprentice',
+      'avatar_explorer_a',
+      'avatar_explorer_b',
       'avatar_default_female',
       'avatar_shadow_hunter',
       'avatar_ice_sovereign',
@@ -150,8 +152,8 @@ describe('avatarComposition', () => {
     expect(avatarAssetUrl('avatar_ice_sovereign')).toMatch(
       new RegExp(`^${STYLE_A_BASE}/ice-sovereign\\.png\\?v=\\d+$`),
     )
-    expect(avatarAssetUrl('avatar_quest_recruit')).toMatch(
-      new RegExp(`^${STYLE_A_BASE}/quest-recruit\\.png\\?v=\\d+$`),
+    expect(avatarAssetUrl('avatar_explorer_a')).toMatch(
+      new RegExp(`^${STYLE_A_BASE}/explorer-a\\.png\\?v=\\d+$`),
     )
     expect(avatarAssetUrl('not-a-character')).toBe(avatarAssetUrl(DEFAULT_AVATAR_ID))
   })

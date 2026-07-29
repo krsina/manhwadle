@@ -125,8 +125,8 @@ describe('parseAvatarShopSnapshot', () => {
     expect(AVATAR_CATALOG_FALLBACK.filter((item) => item.owned)).toHaveLength(2)
     expect(AVATAR_CATALOG_FALLBACK.filter((item) => item.limitedTime)).toHaveLength(2)
     expect(AVATAR_CATALOG_FALLBACK.slice(0, 2).map((item) => item.id)).toEqual([
-      'avatar_quest_recruit',
-      'avatar_spark_apprentice',
+      'avatar_explorer_a',
+      'avatar_explorer_b',
     ])
     expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === DEFAULT_AVATAR_ID)?.equipped).toBe(
       true,

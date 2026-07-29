@@ -19,6 +19,9 @@ const limitedTimeMigrationPath = path.resolve(
 const skyMeadowLimitedTimeMigrationPath = path.resolve(
   'supabase/migrations/20260720174500_avatar_limited_time_sky_meadow.sql',
 )
+const explorerReplaceMigrationPath = path.resolve(
+  'supabase/migrations/20260722120000_avatar_explorer_ab_replace_newbies.sql',
+)
 const stageMigrationPath = path.resolve('supabase/migrations/20260719110000_avatar_stage_shop.sql')
 const hasWholeCharacterMigration = fs.existsSync(wholeCharacterMigrationPath)
 const wholeCharacterMigration = hasWholeCharacterMigration
@@ -33,10 +36,13 @@ const limitedTimeMigration = fs.existsSync(limitedTimeMigrationPath)
 const skyMeadowLimitedTimeMigration = fs.existsSync(skyMeadowLimitedTimeMigrationPath)
   ? fs.readFileSync(skyMeadowLimitedTimeMigrationPath, 'utf8')
   : ''
+const explorerReplaceMigration = fs.existsSync(explorerReplaceMigrationPath)
+  ? fs.readFileSync(explorerReplaceMigrationPath, 'utf8')
+  : ''
 const stageMigration = fs.existsSync(stageMigrationPath)
   ? fs.readFileSync(stageMigrationPath, 'utf8')
   : ''
-const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}\n${limitedTimeMigration}\n${skyMeadowLimitedTimeMigration}`
+const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}\n${limitedTimeMigration}\n${skyMeadowLimitedTimeMigration}\n${explorerReplaceMigration}`
 
 describe('avatar shop migration contracts', () => {
   it('makes point sources idempotent and balances non-negative', () => {
@@ -139,6 +145,22 @@ describe.runIf(Boolean(revokeLimitedTimeMigration))('revoke autoclaimed limited-
     expect(revokeLimitedTimeMigration).toContain("si.id = 'stage_blossom_courtyard'")
     expect(revokeLimitedTimeMigration).not.toMatch(
       /item_type = 'avatar_stage'[\s\S]*and si\.price = 0/,
+    )
+  })
+})
+
+describe.runIf(Boolean(explorerReplaceMigration))('explorer A/B replace limited-time newbies', () => {
+  it('retires Quest Recruit / Spark Apprentice and seeds Explorer A / B', () => {
+    expect(explorerReplaceMigration).toContain('avatar_explorer_a')
+    expect(explorerReplaceMigration).toContain('avatar_explorer_b')
+    expect(explorerReplaceMigration).toContain("active = false")
+    expect(explorerReplaceMigration).toContain('avatar_quest_recruit')
+    expect(explorerReplaceMigration).toContain('avatar_spark_apprentice')
+    expect(explorerReplaceMigration).toContain(
+      "si.id in ('avatar_explorer_a', 'avatar_explorer_b')",
+    )
+    expect(explorerReplaceMigration).toContain(
+      'First steps on the journey. Limited-time free claim.',
     )
   })
 })

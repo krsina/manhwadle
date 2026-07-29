@@ -53,12 +53,12 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('tab', { name: 'Backgrounds' })).toBeVisible()
 
     // Limited-time free claims sort first in the guest catalog.
-    const questRecruit = page.getByRole('button').filter({ hasText: 'Quest Recruit' })
-    await expect(questRecruit).toBeVisible()
-    await questRecruit.click()
-    await expect(questRecruit).toHaveAttribute('aria-pressed', 'true')
+    const explorerA = page.getByRole('button').filter({ hasText: 'Explorer A' })
+    await expect(explorerA).toBeVisible()
+    await explorerA.click()
+    await expect(explorerA).toHaveAttribute('aria-pressed', 'true')
     await expect(
-      page.locator('.avatar-shop-meta').getByRole('heading', { name: 'Quest Recruit' }),
+      page.locator('.avatar-shop-meta').getByRole('heading', { name: 'Explorer A' }),
     ).toBeVisible()
     await expect(page.locator('.avatar-shop-meta').getByText('Limited-time', { exact: true })).toBeVisible()
     // Without Supabase env in CI the CTA is Unavailable; with auth configured it prompts sign-in.
@@ -68,7 +68,7 @@ test.describe('critical paths', () => {
         .filter({ hasText: /Sign in to unlock|Unavailable/ }),
     ).toBeVisible()
 
-    await expect(page.getByRole('button').filter({ hasText: 'Spark Apprentice' })).toBeVisible()
+    await expect(page.getByRole('button').filter({ hasText: 'Explorer B' })).toBeVisible()
 
     const shadowHunter = page.getByRole('button').filter({ hasText: 'Shadow Hunter' })
     await expect(shadowHunter).toBeVisible()
@@ -102,7 +102,7 @@ test.describe('critical paths', () => {
     await page.goto('/shop')
     await expect(page.getByRole('heading', { name: 'Avatar Shop' })).toBeVisible()
     await expect(page.locator('.avatar-shop-preview .pixel-avatar')).toBeVisible()
-    await expect(page.getByRole('button').filter({ hasText: 'Quest Recruit' })).toBeVisible()
+    await expect(page.getByRole('button').filter({ hasText: 'Explorer A' })).toBeVisible()
     await expect(page.getByRole('button').filter({ hasText: 'Skybreaker Monk' })).toBeVisible()
   })
 

@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useAuth } from './AuthProvider'
 import { Dialog } from './Dialog'
+import { ModerationUpdatesPanel } from './ModerationUpdatesPanel'
 import { handleTabListKeyDown } from '../lib/focusTabs'
 import {
   TEMP_DURATION_OPTIONS,
@@ -24,7 +25,7 @@ import {
 } from '../lib/moderationApi'
 import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
 
-type Tab = 'search' | 'reports' | 'appeals' | 'audit' | 'status'
+type Tab = 'search' | 'reports' | 'appeals' | 'audit' | 'status' | 'updates'
 
 interface ModerationDashboardProps {
   open: boolean
@@ -181,6 +182,10 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
       }
       return
     }
+    if (next === 'updates') {
+      setBusy(false)
+      return
+    }
     setBusy(false)
   }
 
@@ -226,7 +231,12 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
               { id: 'reports' as const, label: 'Reports' },
               { id: 'appeals' as const, label: 'Appeals' },
               { id: 'audit' as const, label: 'Audit' },
-              ...(isOwner ? [{ id: 'status' as const, label: 'Status' }] : []),
+              ...(isOwner
+                ? [
+                    { id: 'status' as const, label: 'Status' },
+                    { id: 'updates' as const, label: 'Updates' },
+                  ]
+                : []),
             ]
           ).map(({ id, label }) => (
             <button
@@ -686,6 +696,15 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
               </button>
             </div>
           </div>
+        )}
+
+        {tab === 'updates' && isOwner && (
+          <ModerationUpdatesPanel
+            busy={busy}
+            setBusy={setBusy}
+            setError={setError}
+            setNotice={setNotice}
+          />
         )}
     </Dialog>
   )

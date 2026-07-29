@@ -14,8 +14,14 @@ export const ATTRIBUTION_PATH = '/attribution'
 export const MODERATION_POLICY_PATH = '/moderation'
 export const ABOUT_PATH = '/about'
 export const HOW_IT_WORKS_PATH = '/how-it-works'
+export const UPDATES_PATH = '/updates'
 export const DATABASE_PATH = '/database'
 export const PLAY_PATH_PREFIX = '/play'
+
+export function updatesPath(slug?: string | null): string {
+  if (!slug) return UPDATES_PATH
+  return `${UPDATES_PATH}/${encodeURIComponent(slug)}`
+}
 
 const MODE_IDS = new Set(['summary', 'character', 'cover', 'heardle'])
 

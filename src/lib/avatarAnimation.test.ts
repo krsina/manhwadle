@@ -29,8 +29,9 @@ describe('avatar inspiration context', () => {
   it('includes Mount Hua context on Plum Blossom Blade', () => {
     const plum = AVATAR_CHARACTER_META.find((r) => r.id === 'avatar_plum_blossom_blade')
     expect(plum?.inspirationSeries).toMatch(/Mount Hua|murim/i)
-    expect(plum?.traits.outfit).toMatch(/White murim/i)
-    expect(plum?.traits.outfit).toMatch(/BLACK waist sash/i)
+    expect(plum?.traits.outfit).toMatch(/murim robe/i)
+    expect(plum?.traits.outfit).toMatch(/pink trim/i)
+    expect(plum?.traits.eyes).toMatch(/crimson|red/i)
     expect(avatarIdentityPromptLines('avatar_plum_blossom_blade').join(' ')).toMatch(/plum/i)
   })
 })

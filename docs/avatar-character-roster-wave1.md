@@ -21,9 +21,9 @@ Machine-readable twin: [scripts/avatar-roster/wave-1.json](../scripts/avatar-ros
 | --- | --- |
 | Shop | Plum Blossom Blade — 4000 rare |
 | Trope (internal) | Mount Hua / murim swordsman |
-| Hair | Long neat black hair tied partly back |
-| Eyes | Calm dark eyes |
-| Outfit | White murim martial robes with soft pink sash accents |
+| Hair | Voluminous messy jet-black hair with thick bangs and a high ponytail |
+| Eyes | Simple Style A crimson irises (limited pupil/highlight), stern brows; tiny closed mouth; no scars |
+| Outfit | Light grey/white cross-collar murim robe with thin pink trim, dark sash, bracers, dark pants/boots |
 | Props | **MUST** hold ONE long straight sword |
 | Aura | Floating pink plum blossom petals (compact) |
 | Output | `public/avatar-characters/style-a/plum-blossom-blade.png` |
