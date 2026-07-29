@@ -164,7 +164,7 @@ export function ResultModal({
       null
     : answer.coverImage
 
-  // Series stays the answer title; depicted cast name is a caption under the art.
+  // Series stays the answer title; depicted cast name sits under it once revealed.
   const titleText = displayTitle(answer)
   const titleHref = answer.siteUrl || null
   const characterHref = showCharacterName
@@ -362,6 +362,21 @@ export function ResultModal({
               titleText
             )}
           </h2>
+          {characterNameText && (
+            characterHref ? (
+              <a
+                className="modal-character-subtitle"
+                href={characterHref}
+                target="_blank"
+                rel="noreferrer"
+                title={`Open ${characterNameText} on AniList`}
+              >
+                {characterNameText}
+              </a>
+            ) : (
+              <p className="modal-character-subtitle">{characterNameText}</p>
+            )
+          )}
           {firstTry && (
             <p className="modal-score">
               <span className="modal-first-try-note">Nailed it on the opening guess</span>
@@ -391,11 +406,7 @@ export function ResultModal({
           )}
 
           {heroImage && (
-            <div
-              className={`modal-hero${showCharacter ? ' is-character' : ''}${
-                showCharacterName ? ' has-caption' : ''
-              }`}
-            >
+            <div className={`modal-hero${showCharacter ? ' is-character' : ''}`}>
               <MediaImage
                 className={`modal-cover${showCharacter ? ' is-portrait' : ''}`}
                 src={heroImage}
@@ -410,24 +421,6 @@ export function ResultModal({
                 loading="lazy"
                 referrerPolicy="no-referrer"
               />
-              {characterNameText && (
-                <div className="modal-character-caption">
-                  <p className="modal-character-kicker">Depicted character</p>
-                  {characterHref ? (
-                    <a
-                      className="modal-character-name"
-                      href={characterHref}
-                      target="_blank"
-                      rel="noreferrer"
-                      title={`Open ${characterNameText} on AniList`}
-                    >
-                      {characterNameText}
-                    </a>
-                  ) : (
-                    <p className="modal-character-name">{characterNameText}</p>
-                  )}
-                </div>
-              )}
             </div>
           )}
 

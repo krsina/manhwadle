@@ -121,6 +121,7 @@ export function AuthProvider({
           }
         } catch (err) {
           lastMergedUserIdRef.current = null
+          setAccountLoading(false)
           console.warn('[auth] merge on sign-in failed:', err)
         }
       })()
@@ -136,8 +137,15 @@ export function AuthProvider({
     void supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return
       setSession(data.session)
-      setLoading(false)
-      if (data.session?.user) void syncUser(data.session.user.id)
+      if (data.session?.user) {
+        // Keep owner-dev routes from treating a signed-in owner as a guest
+        // while merge + get_my_account are still in flight.
+        setAccountLoading(true)
+        setLoading(false)
+        void syncUser(data.session.user.id)
+      } else {
+        setLoading(false)
+      }
     })
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
@@ -145,11 +153,13 @@ export function AuthProvider({
       if (event === 'SIGNED_OUT') {
         lastMergedUserIdRef.current = null
         setAccount(null)
+        setAccountLoading(false)
         syncOwnerDevSession(null)
         markPendingReauth()
         return
       }
       if (event === 'SIGNED_IN' && next?.user) {
+        setAccountLoading(true)
         void syncUser(next.user.id)
         if (consumePendingReauth()) {
           void reportSecretEvent('reauth')
