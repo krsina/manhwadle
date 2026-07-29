@@ -60,7 +60,9 @@ tmp-secret-query.json
 .vscode/*
 !.vscode/extensions.json
 .idea
-.cursor/
+.cursor/*
+!.cursor/skills/
+!.cursor/skills/**
 .DS_Store
 *.suo
 *.ntvs*

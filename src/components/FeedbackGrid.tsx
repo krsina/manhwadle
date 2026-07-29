@@ -1,14 +1,25 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { GuessFeedback } from '../lib/anilist-types'
 import { displayTitle } from '../lib/daily'
+import { useMatchMedia } from '../hooks/useMatchMedia'
 
 interface FeedbackGridProps {
   rows: GuessFeedback[]
 }
 
+/** Desktop 3D flip duration. */
 const FLIP_DURATION_MS = 700
+/** Mobile soft-fade duration. */
+const MOBILE_REVEAL_DURATION_MS = 480
 const FLIP_STAGGER_MS = 360
+/** Snappier stagger on condensed mobile cards. */
+const MOBILE_REVEAL_STAGGER_MS = 220
 const CELL_COUNT = 6
+const DESKTOP_RAIL_MQ = '(min-width: 960px)'
+/** Compact mobile tags: shared first, then mute, then +N more. */
+const COMPACT_TAG_LIMIT = 6
+
+type TagDisplayMode = 'all' | 'compact'
 
 function yearLabel(row: GuessFeedback): string {
   const { year, direction } = row.year
@@ -36,20 +47,16 @@ function GenreValue({ row }: { row: GuessFeedback }) {
     return <span className="tile-value">{row.genres.tone === 'close' ? 'Partial' : 'None'}</span>
   }
 
-  return (
-    <div className="tile-scroll" tabIndex={0} role="region" aria-label="Guess genres">
-      <ul className="genre-chips">
-        {genres.map((genre) => (
-          <li key={genre} className="genre-chip">
-            {genre}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
+  return <span className="tile-value">{genres.join(', ')}</span>
 }
 
-function TagValue({ row }: { row: GuessFeedback }) {
+function TagValue({
+  row,
+  mode,
+}: {
+  row: GuessFeedback
+  mode: TagDisplayMode
+}) {
   const tags = row.tags.guessed
   if (tags.length === 0) {
     return <span className="tile-value">None</span>
@@ -61,10 +68,16 @@ function TagValue({ row }: { row: GuessFeedback }) {
     ...tags.filter((tag) => !sharedSet.has(tag.trim().toLowerCase())),
   ]
 
+  const visible =
+    mode === 'compact' && ordered.length > COMPACT_TAG_LIMIT
+      ? ordered.slice(0, COMPACT_TAG_LIMIT)
+      : ordered
+  const hiddenCount = ordered.length - visible.length
+
   return (
     <div className="tile-scroll" tabIndex={0} role="region" aria-label="Guess tags">
       <ul className="tag-chips">
-        {ordered.map((tag) => {
+        {visible.map((tag) => {
           const shared = sharedSet.has(tag.trim().toLowerCase())
           return (
             <li key={tag} className={`tag-chip${shared ? ' is-shared' : ' is-muted'}`}>
@@ -72,6 +85,11 @@ function TagValue({ row }: { row: GuessFeedback }) {
             </li>
           )
         })}
+        {hiddenCount > 0 ? (
+          <li className="tag-chip tag-chip-more" title={ordered.slice(COMPACT_TAG_LIMIT).join(', ')}>
+            +{hiddenCount} more
+          </li>
+        ) : null}
       </ul>
     </div>
   )
@@ -115,19 +133,24 @@ function FlipCell({
 }
 
 export function FeedbackGrid({ rows }: FeedbackGridProps) {
+  const isDesktop = useMatchMedia(DESKTOP_RAIL_MQ)
   const prevLenRef = useRef(rows.length)
   const [flippingIndex, setFlippingIndex] = useState<number | null>(null)
+  const [tagMode, setTagMode] = useState<TagDisplayMode>('compact')
+  const staggerMs = isDesktop ? FLIP_STAGGER_MS : MOBILE_REVEAL_STAGGER_MS
+  const durationMs = isDesktop ? FLIP_DURATION_MS : MOBILE_REVEAL_DURATION_MS
+  const effectiveTagMode: TagDisplayMode = isDesktop ? 'all' : tagMode
 
   useEffect(() => {
     if (rows.length > prevLenRef.current) {
       setFlippingIndex(rows.length - 1)
-      const totalMs = FLIP_DURATION_MS + (CELL_COUNT - 1) * FLIP_STAGGER_MS + 80
+      const totalMs = durationMs + (CELL_COUNT - 1) * staggerMs + 80
       const timer = window.setTimeout(() => setFlippingIndex(null), totalMs)
       prevLenRef.current = rows.length
       return () => window.clearTimeout(timer)
     }
     prevLenRef.current = rows.length
-  }, [rows.length])
+  }, [rows.length, durationMs, staggerMs])
 
   if (rows.length === 0) {
     return (
@@ -140,7 +163,33 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
   }
 
   return (
-    <section className="feedback" aria-label="Guess feedback">
+    <section
+      className={`feedback${!isDesktop ? ` tags-${tagMode}` : ''}`}
+      aria-label="Guess feedback"
+    >
+      <div className="feedback-toolbar">
+        <p className="feedback-section-label">Guesses</p>
+        {!isDesktop ? (
+          <div className="feedback-tag-toggle" role="group" aria-label="Tag display">
+            <button
+              type="button"
+              className={`feedback-tag-toggle-btn${tagMode === 'all' ? ' is-active' : ''}`}
+              aria-pressed={tagMode === 'all'}
+              onClick={() => setTagMode('all')}
+            >
+              All tags
+            </button>
+            <button
+              type="button"
+              className={`feedback-tag-toggle-btn${tagMode === 'compact' ? ' is-active' : ''}`}
+              aria-pressed={tagMode === 'compact'}
+              onClick={() => setTagMode('compact')}
+            >
+              Compact
+            </button>
+          </div>
+        ) : null}
+      </div>
       <div className="feedback-head">
         <span>Title</span>
         <span>Genres</span>
@@ -174,7 +223,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
               </FlipCell>
               <FlipCell
                 animate={animate}
-                delayMs={FLIP_STAGGER_MS}
+                delayMs={staggerMs}
                 className={`tile tone-${row.genres.tone}`}
                 title={row.genres.guessed.join(', ')}
                 ariaLabel={`Genres, ${toneMatchLabel(row.genres.tone)}`}
@@ -185,7 +234,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
               </FlipCell>
               <FlipCell
                 animate={animate}
-                delayMs={FLIP_STAGGER_MS * 2}
+                delayMs={staggerMs * 2}
                 className={`tile tone-${row.year.tone}`}
                 ariaLabel={`Year, ${toneMatchLabel(row.year.tone)}`}
               >
@@ -195,7 +244,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
               </FlipCell>
               <FlipCell
                 animate={animate}
-                delayMs={FLIP_STAGGER_MS * 3}
+                delayMs={staggerMs * 3}
                 className={`tile tone-${row.status.tone}`}
                 ariaLabel={`Status, ${toneMatchLabel(row.status.tone)}`}
               >
@@ -205,7 +254,7 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
               </FlipCell>
               <FlipCell
                 animate={animate}
-                delayMs={FLIP_STAGGER_MS * 4}
+                delayMs={staggerMs * 4}
                 className={`tile tone-${row.publisher.tone}`}
                 ariaLabel={`Publisher, ${toneMatchLabel(row.publisher.tone)}`}
               >
@@ -215,13 +264,13 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
               </FlipCell>
               <FlipCell
                 animate={animate}
-                delayMs={FLIP_STAGGER_MS * 5}
+                delayMs={staggerMs * 5}
                 className="tile tile-tags"
                 ariaLabel={`Tags, ${tagsMatch}`}
               >
                 <span className="tile-label">Tags</span>
                 <span className="tile-tone-status">{tagsMatch}</span>
-                <TagValue row={row} />
+                <TagValue row={row} mode={effectiveTagMode} />
               </FlipCell>
             </li>
           )

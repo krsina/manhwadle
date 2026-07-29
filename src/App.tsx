@@ -58,6 +58,12 @@ const ModerationAppealsPage = lazy(() =>
     default: m.ModerationAppealsPage,
   })),
 )
+const UpdatesPage = lazy(() =>
+  import('./pages/UpdatesPage').then((m) => ({ default: m.UpdatesPage })),
+)
+const UpdateDetailPage = lazy(() =>
+  import('./pages/UpdateDetailPage').then((m) => ({ default: m.UpdateDetailPage })),
+)
 
 function RouteFallback() {
   return (
@@ -173,6 +179,22 @@ function App() {
                 element={
                   <Suspense fallback={<RouteFallback />}>
                     <HowItWorksPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="updates"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <UpdatesPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="updates/:slug"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <UpdateDetailPage />
                   </Suspense>
                 }
               />

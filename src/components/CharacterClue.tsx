@@ -17,6 +17,8 @@ interface CharacterClueProps {
    * full portrait from the start.
    */
   progressiveZoom?: boolean
+  /** Shown under the clue after the round ends (win or loss). */
+  revealName?: string | null
 }
 
 /** Character portrait clue in a fixed portrait frame. */
@@ -29,6 +31,7 @@ export function CharacterClue({
   onRevealMore,
   grayscale = false,
   progressiveZoom = true,
+  revealName = null,
 }: CharacterClueProps) {
   const scale = progressiveZoom
     ? cropZoomScale(failedGuesses, { finished })
@@ -38,6 +41,7 @@ export function CharacterClue({
   const step = finished
     ? maxGuesses
     : Math.min(failedGuesses + 1, maxGuesses)
+  const shownName = finished ? revealName?.trim() || null : null
 
   return (
     <section className="crop-clue" aria-label="Today's character clue">
@@ -62,27 +66,37 @@ export function CharacterClue({
             </div>
           )}
         </div>
-        <div className="crop-frame crop-frame-portrait">
-          <div
-            className="crop-zoom"
-            style={{
-              transform: `scale(${scale})`,
-              transformOrigin: `${focusX}% ${focusY}%`,
-            }}
-          >
-            <MediaImage
-              className={`crop-image${grayscale ? ' is-grayscale' : ''}`}
-              src={crop.imageUrl}
-              alt={
-                progressiveZoom
-                  ? 'Today’s character clue. Wrong guesses zoom out the crop.'
-                  : 'Today’s character clue.'
-              }
-              fallbackLabel="Character image unavailable"
-              draggable={false}
-              referrerPolicy="no-referrer"
-            />
+        <div className={`crop-reveal-stage${shownName ? ' has-name' : ''}`}>
+          <div className="crop-frame crop-frame-portrait">
+            <div
+              className="crop-zoom"
+              style={{
+                transform: `scale(${scale})`,
+                transformOrigin: `${focusX}% ${focusY}%`,
+              }}
+            >
+              <MediaImage
+                className={`crop-image${grayscale ? ' is-grayscale' : ''}`}
+                src={crop.imageUrl}
+                alt={
+                  shownName
+                    ? `Portrait of ${shownName}`
+                    : progressiveZoom
+                      ? 'Today’s character clue. Wrong guesses zoom out the crop.'
+                      : 'Today’s character clue.'
+                }
+                fallbackLabel="Character image unavailable"
+                draggable={false}
+                referrerPolicy="no-referrer"
+              />
+            </div>
           </div>
+          {shownName && (
+            <div className="crop-clue-reveal" aria-live="polite">
+              <p className="crop-clue-reveal-kicker">Depicted character</p>
+              <p className="crop-clue-reveal-name">{shownName}</p>
+            </div>
+          )}
         </div>
       </div>
     </section>

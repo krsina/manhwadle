@@ -154,6 +154,9 @@ export function ResultModal({
   // Don't spoil the bonus: reveal the depicted name only after it's answered
   // (or on a loss, when there is no bonus).
   const showCharacterName = showCharacter && !bonusPending
+  const characterNameText = showCharacterName
+    ? characterDisplayName(revealCharacter!)
+    : null
 
   const heroImage = showCharacter
     ? characterImageUrlOverride?.trim() ||
@@ -161,13 +164,12 @@ export function ResultModal({
       null
     : answer.coverImage
 
-  const titleText = showCharacterName
-    ? characterDisplayName(revealCharacter!)
-    : displayTitle(answer)
-
-  const titleHref = showCharacterName
+  // Series stays the answer title; depicted cast name is a caption under the art.
+  const titleText = displayTitle(answer)
+  const titleHref = answer.siteUrl || null
+  const characterHref = showCharacterName
     ? revealCharacter?.siteUrl || null
-    : answer.siteUrl || null
+    : null
 
   const bonusAnswerLabel = useMemo(() => {
     const names = acceptedBonusCharacters.map(characterDisplayName)
@@ -352,11 +354,7 @@ export function ResultModal({
                 href={titleHref}
                 target="_blank"
                 rel="noreferrer"
-                title={
-                  showCharacterName
-                    ? `Open ${titleText} on AniList`
-                    : `Open ${displayTitle(answer)} on AniList`
-                }
+                title={`Open ${titleText} on AniList`}
               >
                 {titleText}
               </a>
@@ -393,42 +391,52 @@ export function ResultModal({
           )}
 
           {heroImage && (
-            <MediaImage
-              className={`modal-cover${showCharacter ? ' is-portrait' : ''}`}
-              src={heroImage}
-              alt={
-                showCharacter
-                  ? showCharacterName
-                    ? `Portrait of ${titleText}`
-                    : 'Character portrait for today’s puzzle'
-                  : `Cover of ${displayTitle(answer)}`
-              }
-              fallbackLabel="Artwork unavailable"
-              loading="lazy"
-              referrerPolicy="no-referrer"
-            />
+            <div
+              className={`modal-hero${showCharacter ? ' is-character' : ''}${
+                showCharacterName ? ' has-caption' : ''
+              }`}
+            >
+              <MediaImage
+                className={`modal-cover${showCharacter ? ' is-portrait' : ''}`}
+                src={heroImage}
+                alt={
+                  showCharacter
+                    ? characterNameText
+                      ? `Portrait of ${characterNameText}`
+                      : 'Character portrait for today’s puzzle'
+                    : `Cover of ${titleText}`
+                }
+                fallbackLabel="Artwork unavailable"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
+              {characterNameText && (
+                <div className="modal-character-caption">
+                  <p className="modal-character-kicker">Depicted character</p>
+                  {characterHref ? (
+                    <a
+                      className="modal-character-name"
+                      href={characterHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={`Open ${characterNameText} on AniList`}
+                    >
+                      {characterNameText}
+                    </a>
+                  ) : (
+                    <p className="modal-character-name">{characterNameText}</p>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           <div className="modal-meta">
             {showCharacter ? (
               <>
-                <span>
-                  from{' '}
-                  {answer.siteUrl ? (
-                    <a
-                      className="modal-inline-link"
-                      href={answer.siteUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      title={`Open ${displayTitle(answer)} on AniList`}
-                    >
-                      {displayTitle(answer)}
-                    </a>
-                  ) : (
-                    displayTitle(answer)
-                  )}
-                </span>
                 <span>{answer.startDate.year ?? '—'}</span>
+                <span>{answer.status}</span>
+                <span>{answer.genres.slice(0, 2).join(' · ')}</span>
               </>
             ) : (
               <>

@@ -23,6 +23,7 @@ import {
   type CharacterCropFile,
 } from '../../lib/crops'
 import { isArchiveDate } from '../../lib/archive'
+import { characterDisplayName } from '../../lib/characterNames'
 import { displayTitle } from '../../lib/daily'
 import { useOwnerDevAccess } from '../../lib/useOwnerDevAccess'
 import { buildKnownInfo } from '../../lib/knowledge'
@@ -124,6 +125,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
     migrationMissing,
     clue,
     rankedClueReady,
+    characterId: puzzleCharacterId,
   } = useDailyPuzzleAnswer(
       'character',
       taste,
@@ -157,22 +159,50 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
   const localOnlyToday = wantsRanked && (migrationMissing || forcedLocalOnly)
   const rankedPayloadMissing = wantsRanked && !migrationMissing && !rankedClueReady
   const answerReady = isPractice || (answerSettled && !rankedPayloadMissing)
+  /** Server-revealed cast id (terminal attempt / archive row). */
+  const knownCharacterId = isPractice
+    ? null
+    : rankedReveal?.characterId ?? puzzleCharacterId ?? null
 
   const crop = useMemo(
     () => {
+      // Prefer the opaque server clue image, but keep cast identity so the
+      // result modal can reveal the character name after a win/loss. Identity
+      // must use the normal MAIN seed — hard mode's local pick can differ.
       if (
         !isPractice &&
-        !rankedReveal &&
         clue?.type === 'character' &&
         typeof clue.image_url === 'string'
       ) {
+        const clueIdentity =
+          answer.id > 0
+            ? resolveDailyCharacterCrop(
+                answer,
+                dateKey,
+                tasteSeed,
+                cropsByManhwa.get(answer.id) ?? [],
+                {
+                  mainOnly: true,
+                  preferredCharacterId: knownCharacterId,
+                },
+              )
+            : null
         return {
-          manhwaId: 0,
+          manhwaId: answer.id || 0,
           imageUrl: clue.image_url,
           focusX: typeof clue.focus_x === 'number' ? clue.focus_x : 50,
           focusY: typeof clue.focus_y === 'number' ? clue.focus_y : 28,
+          ...(clueIdentity?.characterId != null
+            ? {
+                characterId: clueIdentity.characterId,
+                characterName: clueIdentity.characterName,
+              }
+            : knownCharacterId != null
+              ? { characterId: knownCharacterId }
+              : {}),
         }
       }
+      if (answer.id <= 0) return null
       return resolveDailyCharacterCrop(
         answer,
         isPractice ? `${dateKey}:practice:${answer.id}` : dateKey,
@@ -180,20 +210,30 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
         cropsByManhwa.get(answer.id) ?? [],
         {
           mainOnly: !hardMode,
-          preferredCharacterId: isPractice ? null : rankedReveal?.characterId ?? null,
+          preferredCharacterId: knownCharacterId,
         },
       )
     },
-    [answer, dateKey, charSeed, isPractice, hardMode, rankedReveal, clue],
+    [
+      answer,
+      dateKey,
+      charSeed,
+      tasteSeed,
+      isPractice,
+      hardMode,
+      knownCharacterId,
+      clue,
+    ],
   )
 
   const revealCharacter = useMemo(() => {
-    if (!crop?.characterId) return null
+    const characterId = crop?.characterId ?? knownCharacterId
+    if (!characterId) return null
     const found =
-      (answer.characters || []).find((character) => character.id === crop.characterId) ||
+      (answer.characters || []).find((character) => character.id === characterId) ||
       null
     if (!found) return null
-    const cropName = crop.characterName?.trim()
+    const cropName = crop?.characterName?.trim()
     if (!cropName) return found
     const known = new Set(
       [found.name.full, found.name.native, ...(found.name.alternative || [])]
@@ -208,7 +248,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
         alternative: [...(found.name.alternative || []), cropName],
       },
     }
-  }, [answer, crop])
+  }, [answer, crop, knownCharacterId])
 
   const [dayState, setDayState] = useState<DayState>(() => {
     if (!hasCrops) {
@@ -680,6 +720,9 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
                 canRevealMore={hardMode && canRevealMore}
                 onRevealMore={hardMode ? handleRevealMore : undefined}
                 grayscale={grayscale}
+                revealName={
+                  revealCharacter ? characterDisplayName(revealCharacter) : null
+                }
               />
             </div>
             {(ownerDev || (isArchive && !isPractice)) && (

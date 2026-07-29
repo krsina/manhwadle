@@ -46,43 +46,43 @@ export const DEFAULT_AVATAR_ID = 'avatar_default_female'
 
 export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
   {
-    id: 'avatar_quest_recruit',
-    name: 'Quest Recruit',
-    description: 'Limited-time free claim. Wooden practice sword and day-one adventurer energy.',
-    assetPath: 'quest-recruit.png',
-    assetKey: 'avatar_quest_recruit',
+    id: 'avatar_explorer_a',
+    name: 'Explorer A',
+    description: 'First steps on the journey. Limited-time free claim.',
+    assetPath: 'explorer-a.png',
+    assetKey: 'avatar_explorer_a',
     starter: false,
     limitedTime: true,
     price: 0,
     rarity: 'common',
     inspirationSeries: 'Newbie adventurer',
-    inspirationCharacter: 'Village quest recruit',
+    inspirationCharacter: 'Field rookie male',
     traits: {
-      hair: 'Messy warm-brown spikes with a cute cowlick',
-      eyes: 'Bright amber-brown eyes with an eager slight smile',
-      outfit: 'Cream laced tunic under an open sky-blue vest, brown shorts, hip pouch, tan boots',
-      props: 'MUST hold ONE oversized wooden practice sword',
-      aura: 'A few tiny soft warm-yellow sparkles (compact)',
+      hair: 'Short messy black crop',
+      eyes: 'Dark brown anime eyes',
+      outfit: 'Plain white short-sleeve tee, brown belt with gold buckle, brown shorts, brown wrist bands, hip satchel, tan boots',
+      props: 'MUST hold ONE thick wooden club',
+      aura: 'None',
     },
   },
   {
-    id: 'avatar_spark_apprentice',
-    name: 'Spark Apprentice',
-    description: 'Limited-time free claim. Mint twin tails and a wooden beginner staff.',
-    assetPath: 'spark-apprentice.png',
-    assetKey: 'avatar_spark_apprentice',
+    id: 'avatar_explorer_b',
+    name: 'Explorer B',
+    description: 'First steps on the journey. Limited-time free claim.',
+    assetPath: 'explorer-b.png',
+    assetKey: 'avatar_explorer_b',
     starter: false,
     limitedTime: true,
     price: 0,
     rarity: 'common',
-    inspirationSeries: 'Newbie mage apprentice',
-    inspirationCharacter: 'Village spark apprentice',
+    inspirationSeries: 'Newbie adventurer',
+    inspirationCharacter: 'Field rookie female',
     traits: {
-      hair: 'Soft pastel mint twin tails with bangs and a cream hair clip',
-      eyes: 'Bright soft green eyes with a curious hopeful smile',
-      outfit: 'Sky-blue beginner mage tunic with cream trim, belt, knee socks, brown shoes',
-      props: 'MUST hold ONE wooden beginner staff with a pale-yellow orb tip',
-      aura: 'A few tiny soft mint and pale-yellow sparkles (compact)',
+      hair: 'Wavy black shoulder-length hair with a small cream hair clip',
+      eyes: 'Dark brown anime eyes',
+      outfit: 'Plain white short-sleeve tee, brown belt with gold buckle, brown shorts, brown wrist bands, hip satchel, tan boots',
+      props: 'MUST hold ONE thick wooden club',
+      aura: 'None',
     },
   },
   {
@@ -173,9 +173,9 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
     inspirationSeries: 'Mount Hua / murim',
     inspirationCharacter: 'Murim swordsman',
     traits: {
-      hair: 'Long neat black hair tied partly back with white skull ornament',
-      eyes: 'Calm dark eyes',
-      outfit: 'White murim martial robes with thin pink trim; BLACK waist sash/belt with black tassel (not pink)',
+      hair: 'Voluminous messy jet-black hair with thick bangs and a high ponytail',
+      eyes: 'Simple Style A anime eyes with deep crimson irises, limited pupil/highlight pixels, stern angled brows; tiny closed mouth; no scars',
+      outfit: 'Light grey/white cross-collar murim robe with thin pink trim, dark sash, brown wrist bracers, dark pants, dark boots',
       props: 'MUST hold ONE long straight sword clearly in hand',
       aura: 'A few floating pink plum blossom petals around the figure (compact)',
     },
@@ -435,7 +435,7 @@ export function compareShopItemsByPrice(
 export function avatarAssetUrl(id: string | null | undefined): string {
   const meta = getAvatarCharacterMeta(id) ?? getAvatarCharacterMeta(DEFAULT_AVATAR_ID)!
   // Cache-bust when sprite plates are reprocessed (magenta fringe cleanup, etc.).
-  return `${STYLE_A_BASE}/${meta.assetPath}?v=5`
+  return `${STYLE_A_BASE}/${meta.assetPath}?v=11`
 }
 
 /** Identity bullets for sequential animation prompts (internal). */

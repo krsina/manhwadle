@@ -26,7 +26,10 @@ type Action =
   | "set_site_status"
   | "set_mode_status"
   | "set_outage_exemption"
-  | "set_account_flags";
+  | "set_account_flags"
+  | "list_site_updates"
+  | "upsert_site_update"
+  | "delete_site_update";
 
 function corsFor(req: Request): Record<string, string> {
   return buildCorsHeaders({
@@ -392,6 +395,45 @@ Deno.serve(async (req: Request) => {
           p_is_suspicious:
             typeof body.is_suspicious === "boolean" ? body.is_suspicious : null,
           p_notes: asString(body.notes),
+        });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
+      }
+
+      case "list_site_updates": {
+        const { data, error } = await rpc("moderation_list_site_updates", {
+          p_actor_id: actorId,
+        });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
+      }
+
+      case "upsert_site_update": {
+        const title = asString(body.title);
+        const updateBody = asString(body.body);
+        if (!title || !updateBody) {
+          return jsonResponse(req, { error: "title and body required" }, 400);
+        }
+        const { data, error } = await rpc("moderation_upsert_site_update", {
+          p_actor_id: actorId,
+          p_id: asString(body.id),
+          p_title: title,
+          p_body: updateBody,
+          p_slug: asString(body.slug),
+          p_published:
+            typeof body.published === "boolean" ? body.published : null,
+          p_version: asString(body.version),
+        });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
+      }
+
+      case "delete_site_update": {
+        const id = asString(body.id);
+        if (!id) return jsonResponse(req, { error: "id required" }, 400);
+        const { data, error } = await rpc("moderation_delete_site_update", {
+          p_actor_id: actorId,
+          p_id: id,
         });
         if (error) return jsonResponse(req, { error: error.message }, 400);
         return jsonResponse(req, { ok: true, result: data });

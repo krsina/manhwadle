@@ -21,6 +21,9 @@ export type ModerationAction =
   | 'set_mode_status'
   | 'set_outage_exemption'
   | 'set_account_flags'
+  | 'list_site_updates'
+  | 'upsert_site_update'
+  | 'delete_site_update'
 
 export interface UserLookupResult {
   ok: boolean
@@ -326,4 +329,31 @@ export async function moderationSetAccountFlags(input: {
     is_suspicious: typeof input.isSuspicious === 'boolean' ? input.isSuspicious : null,
     notes: input.notes ?? null,
   })
+}
+
+/** Owner-only public changelog (/updates). */
+export async function moderationListSiteUpdates() {
+  return invokeModeration('list_site_updates')
+}
+
+export async function moderationUpsertSiteUpdate(input: {
+  id?: string | null
+  title: string
+  body: string
+  slug?: string | null
+  published?: boolean
+  version?: string | null
+}) {
+  return invokeModeration('upsert_site_update', {
+    id: input.id ?? null,
+    title: input.title,
+    body: input.body,
+    slug: input.slug ?? null,
+    published: typeof input.published === 'boolean' ? input.published : null,
+    version: input.version ?? null,
+  })
+}
+
+export async function moderationDeleteSiteUpdate(id: string) {
+  return invokeModeration('delete_site_update', { id })
 }
