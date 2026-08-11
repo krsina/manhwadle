@@ -4,6 +4,7 @@ import { AuthProvider } from './components/AuthProvider'
 import { AppLayout } from './components/AppLayout'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { OwnerDevRoute } from './components/OwnerDevRoute'
+import { LocalDevOrOwnerRoute } from './components/LocalDevOrOwnerRoute'
 import { StaffRoute } from './components/StaffRoute'
 import {
   loadReaderTaste,
@@ -39,6 +40,9 @@ const AnimationCreatorPage = lazy(() =>
 )
 const ActionStripPreviewPage = lazy(() =>
   import('./pages/ActionStripPreviewPage').then((m) => ({ default: m.ActionStripPreviewPage })),
+)
+const AvatarBustCropPage = lazy(() =>
+  import('./pages/AvatarBustCropPage').then((m) => ({ default: m.AvatarBustCropPage })),
 )
 const PrivacyPage = lazy(() =>
   import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
@@ -196,6 +200,16 @@ function App() {
                       <ActionStripPreviewPage />
                     </Suspense>
                   </OwnerDevRoute>
+                }
+              />
+              <Route
+                path="dev/avatar-bust-crops"
+                element={
+                  <LocalDevOrOwnerRoute>
+                    <Suspense fallback={<RouteFallback />}>
+                      <AvatarBustCropPage />
+                    </Suspense>
+                  </LocalDevOrOwnerRoute>
                 }
               />
               <Route

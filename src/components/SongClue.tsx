@@ -370,10 +370,10 @@ export function SongClue({
           {finished
             ? showVideo
               ? 'Full reveal'
-              : `Today’s clip · ${label}`
+              : `Song clip · ${label}`
             : showVideo
               ? `Clip clue ${step}/${maxGuesses} · ${label}`
-              : `Today’s clip · ${label}`}
+              : `Song clip · ${label}`}
         </p>
         {!finished && (
           <div className="clue-hint-row">

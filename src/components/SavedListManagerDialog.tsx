@@ -74,6 +74,7 @@ export function SavedListManagerDialog({
   const [error, setError] = useState<string | null>(null)
   const headRef = useRef<HTMLDivElement>(null)
   const nameRef = useRef<HTMLInputElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
   const catalogById = useMemo(
     () => new Map(catalog.map((manhwa) => [manhwa.id, manhwa])),
@@ -95,6 +96,8 @@ export function SavedListManagerDialog({
     return sortCatalogByRank(matched)
   }, [catalog, deferredQuery, lane])
   const visible = ranked.slice(0, visibleCount)
+  const hasMore = visibleCount < ranked.length
+  const autoLoads = typeof IntersectionObserver !== 'undefined'
 
   const scrollToTop = useCallback(() => {
     const panel = headRef.current?.closest('.modal')
@@ -122,6 +125,22 @@ export function SavedListManagerDialog({
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
   }, [deferredQuery, lane, editingId])
+
+  // Re-observing after each page keeps loading while the sentinel stays in view.
+  // `editingId` matters too: the sentinel only exists once the editor mounts.
+  useEffect(() => {
+    const node = sentinelRef.current
+    if (!node || !hasMore || !autoLoads) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return
+        setVisibleCount((count) => count + PAGE_SIZE)
+      },
+      { root: node.closest('.modal'), rootMargin: '600px 0px' },
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [autoLoads, editingId, hasMore, visibleCount])
 
   function leaveEditor() {
     setEditingId(undefined)
@@ -242,7 +261,6 @@ export function SavedListManagerDialog({
           </button>
         )}
         <div className="saved-list-bar-copy">
-          <p className="versus-kicker">Private to your account</p>
           <h2 id="saved-list-manager-title">
             {editing
               ? editingId === null ? 'New list' : 'Edit list'
@@ -453,16 +471,23 @@ export function SavedListManagerDialog({
               })}
             </ul>
           )}
-          {visibleCount < ranked.length && (
-            <button
-              className="btn saved-list-more"
-              type="button"
-              onClick={() =>
-                setVisibleCount((count) => Math.min(count + PAGE_SIZE, ranked.length))
-              }
-            >
-              Show more titles
-            </button>
+          <div className="saved-list-sentinel" ref={sentinelRef} aria-hidden="true" />
+          {hasMore && (
+            autoLoads ? (
+              <p className="versus-muted saved-list-more" role="status">
+                Loading more titles…
+              </p>
+            ) : (
+              <button
+                className="btn saved-list-more"
+                type="button"
+                onClick={() =>
+                  setVisibleCount((count) => count + PAGE_SIZE)
+                }
+              >
+                Show more titles
+              </button>
+            )
           )}
           <div className="saved-list-bar is-bottom">
             {error ? (

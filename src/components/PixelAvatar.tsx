@@ -3,6 +3,10 @@ import {
   resolveAvatarPresentation,
   type AwakeningLevel,
 } from '../lib/avatarAwakening'
+import {
+  AVATAR_BUST_CROPS_EVENT,
+  avatarBustCropStyle,
+} from '../lib/avatarBustCrop'
 import { describeAvatar, normalizeEquippedAvatarId } from '../lib/avatarComposition'
 import { snapPixelArtScale } from '../lib/pixelArtScale'
 
@@ -50,6 +54,16 @@ export function PixelAvatar({
   const rootRef = useRef<HTMLDivElement>(null)
   const [frame, setFrame] = useState(0)
   const [snapStyle, setSnapStyle] = useState<CSSProperties | undefined>(undefined)
+  const [bustTick, setBustTick] = useState(0)
+
+  useEffect(() => {
+    if (!bust) return
+    function onChange() {
+      setBustTick((n) => n + 1)
+    }
+    window.addEventListener(AVATAR_BUST_CROPS_EVENT, onChange)
+    return () => window.removeEventListener(AVATAR_BUST_CROPS_EVENT, onChange)
+  }, [bust])
 
   useEffect(() => {
     setFrame(0)
@@ -85,7 +99,6 @@ export function PixelAvatar({
       if (available < 2) return
       const dpr = window.devicePixelRatio || 1
       const { cssPx } = snapPixelArtScale(available, dpr)
-      // Never exceed the laid-out stage — avoids blowing the podium grid up.
       const side = Math.min(cssPx, available)
       setSnapStyle((prev) => {
         const next = {
@@ -122,7 +135,14 @@ export function PixelAvatar({
       } as CSSProperties)
     : undefined
 
-  const mergedStyle = snapStyle || style ? { ...style, ...snapStyle } : style
+  const bustStyle = bust
+    ? (avatarBustCropStyle(safeId) as CSSProperties)
+    : undefined
+  void bustTick
+  const mergedStyle =
+    snapStyle || style || bustStyle
+      ? { ...bustStyle, ...style, ...snapStyle }
+      : undefined
 
   return (
     <div

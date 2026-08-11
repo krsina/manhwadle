@@ -14,6 +14,8 @@ interface AchievementBadgesProps {
   loading?: boolean
   error?: string | null
   emptyLabel?: string
+  /** Cap how many earned tiles render (homepage preview). Ignored for catalog. */
+  limit?: number
   /** Show the full catalog with locked tiles for unearned milestones. */
   catalog?: boolean
   /** Group catalog tiles by category with section headings. */
@@ -58,6 +60,7 @@ export function AchievementBadges({
   loading = false,
   error = null,
   emptyLabel = 'Finish daily modes to earn milestones. Progress is verified on the server.',
+  limit,
   catalog = false,
   groupByCategory = false,
 }: AchievementBadgesProps) {
@@ -71,7 +74,11 @@ export function AchievementBadges({
 
   const tiles = useMemo(() => {
     if (!catalog) {
-      return awards.map((award) => ({ award, earned: true }))
+      const preview =
+        typeof limit === 'number' && limit >= 0 && awards.length > limit
+          ? awards.slice(-limit)
+          : awards
+      return preview.map((award) => ({ award, earned: true }))
     }
     return ACHIEVEMENT_DEFINITIONS.map((def) => {
       const earned = earnedById.get(def.id)
@@ -80,7 +87,7 @@ export function AchievementBadges({
         earned: Boolean(earned),
       }
     })
-  }, [awards, catalog, earnedById])
+  }, [awards, catalog, earnedById, limit])
 
   if (loading) {
     return (

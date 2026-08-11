@@ -442,7 +442,7 @@ export function ArchiveButton({
   label,
 }: {
   onClick: () => void
-  /** When set, renders text + calendar as one control (shared hover). */
+  /** When set, renders text + calendar as one control (shared hover box). */
   label?: string
 }) {
   if (label) {
@@ -455,7 +455,7 @@ export function ArchiveButton({
         title="Archive"
       >
         <span className="home-archive-label">{label}</span>
-        <span className="howto-btn archive-toggle" aria-hidden="true">
+        <span className="home-archive-icon" aria-hidden="true">
           <CalendarIcon />
         </span>
       </button>
@@ -477,7 +477,7 @@ export function ArchiveButton({
 
 function CalendarIcon() {
   return (
-    <svg className="archive-toggle-icon" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="archive-toggle-icon" viewBox="2.5 2.5 19 19" aria-hidden="true">
       <rect
         x="3.5"
         y="5.5"
