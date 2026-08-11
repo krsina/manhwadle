@@ -8,7 +8,12 @@ import {
 } from 'react'
 import type { Provider, Session, User } from '@supabase/supabase-js'
 import type { ReaderTaste } from '../lib/readerTaste'
-import { syncOwnerDevSession } from '../lib/devAccess'
+import { OWNER_USER_MODE_EVENT, setOwnerUserModeEnabled, syncOwnerDevSession } from '../lib/devAccess'
+import {
+  applyLocalOwnerPreview,
+  getLocalOwnerUser,
+  isLocalOwnerPreviewActive,
+} from '../lib/localOwnerPreview'
 import {
   changeUsername as apiChangeUsername,
   claimUsername as apiClaimUsername,
@@ -75,13 +80,14 @@ export function AuthProvider({
 
   async function refreshAccount(): Promise<AccountSnapshot | null> {
     if (!supabase) {
-      setAccount(null)
-      syncOwnerDevSession(null)
-      return null
+      const local = applyLocalOwnerPreview(null)
+      setAccount(local)
+      syncOwnerDevSession(local?.staffRole ?? null)
+      return local
     }
     setAccountLoading(true)
     try {
-      const next = await fetchMyAccount()
+      const next = applyLocalOwnerPreview(await fetchMyAccount())
       setAccount(next)
       syncOwnerDevSession(next?.staffRole ?? null)
       return next
@@ -95,7 +101,19 @@ export function AuthProvider({
   }, [account?.staffRole])
 
   useEffect(() => {
+    if (!import.meta.env.DEV) return
+    if (isLocalOwnerPreviewActive()) {
+      syncOwnerDevSession('owner')
+    }
+  }, [])
+
+  useEffect(() => {
     if (!supabase) {
+      if (isLocalOwnerPreviewActive()) {
+        const local = applyLocalOwnerPreview(null)
+        setAccount(local)
+        syncOwnerDevSession(local?.staffRole ?? null)
+      }
       setLoading(false)
       return
     }
@@ -159,7 +177,12 @@ export function AuthProvider({
         return
       }
       if (event === 'SIGNED_IN' && next?.user) {
-        setAccountLoading(true)
+        // Magic-link redirects often emit getSession + SIGNED_IN together.
+        // Avoid flipping accountLoading again when sync already owns this user;
+        // that remount race can leave the username dialog inert/unfocusable.
+        if (lastMergedUserIdRef.current !== next.user.id && !mergeInFlightRef.current) {
+          setAccountLoading(true)
+        }
         void syncUser(next.user.id)
         if (consumePendingReauth()) {
           void reportSecretEvent('reauth')
@@ -221,11 +244,21 @@ export function AuthProvider({
   }
 
   async function signOut() {
-    if (!supabase) return
+    if (!supabase) {
+      // Local owner preview: flip into user mode so the guest UI is visible.
+      if (import.meta.env.DEV) setOwnerUserModeEnabled(true)
+      setAccount(null)
+      syncOwnerDevSession(null)
+      return
+    }
     lastMergedUserIdRef.current = null
     setAccount(null)
     syncOwnerDevSession(null)
     markPendingReauth()
+    if (import.meta.env.DEV && !session) {
+      setOwnerUserModeEnabled(true)
+      return
+    }
     await supabase.auth.signOut()
   }
 
@@ -256,17 +289,36 @@ export function AuthProvider({
   }
 
   const needsUsername = Boolean(session?.user && account?.needsUsername)
+  const [ownerPreviewTick, setOwnerPreviewTick] = useState(0)
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    function onUserModeChange() {
+      setOwnerPreviewTick((n) => n + 1)
+      syncOwnerDevSession(
+        isLocalOwnerPreviewActive() ? 'owner' : (account?.staffRole ?? null),
+      )
+    }
+    window.addEventListener(OWNER_USER_MODE_EVENT, onUserModeChange)
+    return () => window.removeEventListener(OWNER_USER_MODE_EVENT, onUserModeChange)
+  }, [account?.staffRole])
+
+  const localOwnerActive = isLocalOwnerPreviewActive()
+  void ownerPreviewTick
+  const effectiveUser = session?.user ?? (localOwnerActive ? getLocalOwnerUser() : null)
+  const effectiveAccount = localOwnerActive
+    ? applyLocalOwnerPreview(account)
+    : account
 
   return (
     <AuthContext.Provider
       value={{
-        user: session?.user ?? null,
+        user: effectiveUser,
         session,
         loading,
-        configured,
-        account,
+        configured: configured || localOwnerActive,
+        account: effectiveAccount,
         accountLoading,
-        needsUsername,
+        needsUsername: localOwnerActive ? false : needsUsername,
         refreshAccount,
         claimUsername,
         changeUsername,

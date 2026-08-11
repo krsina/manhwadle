@@ -72,10 +72,12 @@ export function Dialog({
     previouslyFocused.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null
 
-    const panel = panelRef.current
     const unregister = pushDialog({
       id: dialogId,
       setInert: (inert) => {
+        // Always read the live panel node. Capturing at effect start can miss the
+        // first paint and leave a dialog stuck with `inert`, which blocks typing.
+        const panel = panelRef.current
         if (!panel) return
         // `inert` can reset scrollTop in Chromium; keep nested panels in place.
         const { scrollTop, scrollLeft } = panel
@@ -90,14 +92,14 @@ export function Dialog({
       },
     })
 
-    const focusTarget =
-      initialFocusRef?.current ??
-      panel?.querySelector<HTMLElement>('[data-dialog-initial-focus]') ??
-      listFocusable(panel ?? document.body)[0] ??
-      panel
-
-    // Defer so portal content is mounted.
+    // Defer so portal content is mounted and nested open/close races settle.
     const frame = window.requestAnimationFrame(() => {
+      const panel = panelRef.current
+      const focusTarget =
+        initialFocusRef?.current ??
+        panel?.querySelector<HTMLElement>('[data-dialog-initial-focus]') ??
+        listFocusable(panel ?? document.body)[0] ??
+        panel
       focusTarget?.focus({ preventScroll: true })
     })
 

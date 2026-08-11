@@ -4,6 +4,7 @@ import {
   parsePlayModeParam,
   playPath,
   readLegacyModeId,
+  STAFF_COMMENTS_PATH,
 } from './routes'
 
 describe('playPath', () => {
@@ -83,5 +84,11 @@ describe('readLegacyModeId', () => {
     expect(readLegacyModeId('?mode=cover', '#summary')).toBe('cover')
     expect(readLegacyModeId('', '#character')).toBe('character')
     expect(readLegacyModeId('?mode=nope', '')).toBeNull()
+  })
+})
+
+describe('staff paths', () => {
+  it('keeps comment moderation on its own route', () => {
+    expect(STAFF_COMMENTS_PATH).toBe('/staff/comments')
   })
 })

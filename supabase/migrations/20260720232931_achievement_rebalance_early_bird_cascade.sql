@@ -6,10 +6,6 @@
 -- - Cascade requires 3+ new awards in one pass
 -- - Restore award_all_modes_day_points on completion insert
 
--- ---------------------------------------------------------------------------
--- Catalog: deactivate removed ladders; hush-ify hiatus; seed Early Bird
--- ---------------------------------------------------------------------------
-
 update public.achievement_definitions
 set active = false
 where id in (
@@ -69,10 +65,6 @@ set
   threshold = excluded.threshold,
   active = excluded.active,
   point_reward = excluded.point_reward;
-
--- ---------------------------------------------------------------------------
--- Early Bird: signup within [epoch, epoch + 4 months]
--- ---------------------------------------------------------------------------
 
 create or replace function app_private.try_award_early_bird(p_user_id uuid)
 returns boolean
@@ -138,10 +130,6 @@ begin
 end;
 $$;
 
--- ---------------------------------------------------------------------------
--- Award path: metric-backed hush (hiatus) + Cascade at 3+
--- ---------------------------------------------------------------------------
-
 create or replace function app_private.award_achievements(p_user_id uuid)
 returns integer
 language plpgsql
@@ -162,7 +150,6 @@ begin
     return 0;
   end if;
 
-  -- Metric-backed awards only (includes hush hiatus returns; excludes secret_flag).
   for v_def in
     select *
     from public.achievement_definitions
@@ -220,7 +207,6 @@ revoke all on function app_private.award_achievements(uuid)
 grant execute on function app_private.award_achievements(uuid)
   to postgres, service_role;
 
--- Preserve restore_hush semantics: hard mode / no-hint are cosmetic for Cascade count.
 create or replace function app_private.award_secrets_from_completion(
   p_user_id uuid,
   p_outcome text,
@@ -321,7 +307,6 @@ begin
     new.surrendered,
     new.completed_at
   );
-  -- Cascade needs a real burst (3+), not forced twins like Full Party + Clean Sweep.
   if (v_ladder + v_secrets) >= 3 then
     perform app_private.try_award_secret(new.user_id, 'secret_cascade');
   end if;
@@ -334,7 +319,6 @@ revoke all on function app_private.on_daily_completion_insert()
 grant execute on function app_private.on_daily_completion_insert()
   to postgres, service_role;
 
--- Hydrate path: award Early Bird for existing early signups on account load.
 create or replace function public.get_my_account()
 returns jsonb
 language plpgsql

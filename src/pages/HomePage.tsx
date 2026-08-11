@@ -9,6 +9,7 @@ import { listModes, resolveActiveMode } from '../modes'
 import { ModeRow } from '../components/ModeRow'
 import { LeaderboardPanel } from '../components/LeaderboardPanel'
 import { CharacterPanel } from '../components/CharacterPanel'
+import { HomeNewsPanel } from '../components/HomeNewsPanel'
 import { AchievementBadges } from '../components/AchievementBadges'
 import { AchievementTestLauncher } from '../components/AchievementTestModal'
 import { SolveSoundTestLauncher } from '../components/SolveSoundTestModal'
@@ -209,35 +210,38 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
         </aside>
       </div>
 
-      <section className="home-achievements" aria-labelledby="home-achievements-heading">
-        <div className="home-achievements-head">
-          <div>
-            <h2 id="home-achievements-heading" className="home-section-title">
-              Milestones
-            </h2>
-            <p className="home-section-blurb">
-              Little medals for sticking with the daily grind.
-            </p>
+      <div className="home-lower">
+        <section className="home-achievements" aria-labelledby="home-achievements-heading">
+          <div className="home-achievements-head">
+            <div>
+              <h2 id="home-achievements-heading" className="home-section-title">
+                Milestones
+              </h2>
+              <p className="home-section-blurb">
+                Little medals for sticking with the daily grind.
+              </p>
+            </div>
+            <div className="home-achievements-actions">
+              <Link to={MILESTONES_PATH} className="home-section-all">
+                All milestones
+              </Link>
+              <AchievementTestLauncher onPreview={setTestPreview} />
+              <SolveSoundTestLauncher />
+            </div>
           </div>
-          <div className="home-achievements-actions">
-            <Link to={MILESTONES_PATH} className="home-achievements-all">
-              All milestones
-            </Link>
-            <AchievementTestLauncher onPreview={setTestPreview} />
-            <SolveSoundTestLauncher />
-          </div>
-        </div>
-        <AchievementBadges
-          awards={awards}
-          loading={Boolean(user) && awardsLoading}
-          error={user ? awardsError : null}
-          emptyLabel={
-            user
-              ? 'No milestones yet. Finish today’s puzzles or just stop by to start collecting.'
-              : 'Sign in to track verified milestones across devices.'
-          }
-        />
-      </section>
+          <AchievementBadges
+            awards={awards}
+            loading={Boolean(user) && awardsLoading}
+            error={user ? awardsError : null}
+            emptyLabel={
+              user
+                ? 'No milestones yet. Finish today’s puzzles or just stop by to start collecting.'
+                : 'Sign in to track verified milestones across devices.'
+            }
+          />
+        </section>
+        <HomeNewsPanel />
+      </div>
 
       <AchievementUnlockModal
         award={testPreview}

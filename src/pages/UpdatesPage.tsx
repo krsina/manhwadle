@@ -33,20 +33,20 @@ export function UpdatesPage() {
 
   return (
     <div className="legal-page updates-page">
-      <h1 className="legal-title">Updates</h1>
+      <h1 className="legal-title">News</h1>
       <p className="legal-updated">
-        Public changelog for Manhwadle: site changes, fixes, and feature notes.
+        Announcements, release updates, fixes, and feature notes from Manhwadle.
       </p>
 
       {updates === null && (
         <p className="updates-status" role="status">
-          Loading updates…
+          Loading news…
         </p>
       )}
 
       {error && (
         <p className="auth-modal-error" role="alert">
-          Could not load updates right now.
+          Could not load news right now.
         </p>
       )}
 

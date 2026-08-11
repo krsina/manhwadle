@@ -4,7 +4,7 @@ import {
   parseSiteUpdate,
   splitUpdateBody,
 } from './siteUpdatesApi'
-import { updatesPath } from './routes'
+import { newsPath, updatesPath } from './routes'
 
 describe('parseSiteUpdate', () => {
   it('parses a valid row', () => {
@@ -13,6 +13,7 @@ describe('parseSiteUpdate', () => {
       slug: 'shop-rebalance',
       title: 'Shop rebalance',
       body: 'Prices adjusted.',
+      kind: 'update',
       version: '0.2.0',
       published: true,
       published_at: '2026-07-29T12:00:00Z',
@@ -24,6 +25,7 @@ describe('parseSiteUpdate', () => {
       slug: 'shop-rebalance',
       title: 'Shop rebalance',
       body: 'Prices adjusted.',
+      kind: 'update',
       version: '0.2.0',
       published: true,
       publishedAt: '2026-07-29T12:00:00Z',
@@ -35,6 +37,23 @@ describe('parseSiteUpdate', () => {
   it('rejects incomplete rows', () => {
     expect(parseSiteUpdate({ slug: 'x' })).toBeNull()
   })
+
+  it('parses announcements and rejects unknown kinds', () => {
+    const row = {
+      id: '11111111-1111-1111-1111-111111111111',
+      slug: 'maintenance-window',
+      title: 'Maintenance window',
+      body: 'A short maintenance window is planned.',
+      version: null,
+      published: true,
+      published_at: '2026-08-11T12:00:00Z',
+      created_at: '2026-08-11T11:00:00Z',
+      updated_at: '2026-08-11T12:00:00Z',
+    }
+    expect(parseSiteUpdate({ ...row, kind: 'announcement' })?.kind).toBe('announcement')
+    expect(parseSiteUpdate({ ...row, kind: 'other' })).toBeNull()
+    expect(parseSiteUpdate(row)?.kind).toBe('update')
+  })
 })
 
 describe('splitUpdateBody', () => {
@@ -43,8 +62,13 @@ describe('splitUpdateBody', () => {
   })
 })
 
-describe('updatesPath', () => {
-  it('builds list and detail paths', () => {
+describe('news paths', () => {
+  it('builds canonical list and detail paths', () => {
+    expect(newsPath()).toBe('/news')
+    expect(newsPath('shop-rebalance')).toBe('/news/shop-rebalance')
+  })
+
+  it('retains legacy update paths for redirects', () => {
     expect(updatesPath()).toBe('/updates')
     expect(updatesPath('shop-rebalance')).toBe('/updates/shop-rebalance')
   })

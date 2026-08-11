@@ -21,6 +21,7 @@
     "test:e2e": "playwright test",
     "test:live": "node scripts/smoke-supabase.mjs",
     "test:live:auth": "node scripts/smoke-auth-sync.mjs",
+    "test:live:news": "node scripts/smoke-news-comments.mjs",
     "test:live:security": "node scripts/smoke-security-negatives.mjs",
     "check:dist": "node scripts/check-dist-artifacts.mjs",
     "check:contact": "node scripts/check-contact-configured.mjs",

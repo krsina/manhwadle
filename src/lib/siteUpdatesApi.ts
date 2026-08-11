@@ -1,10 +1,14 @@
+import { getDevSiteUpdate, isNewsDevFakeActive, listDevSiteUpdates } from './newsDevFake'
 import { isSupabaseConfigured, supabase } from './supabase'
+
+export type SiteUpdateKind = 'update' | 'announcement'
 
 export interface SiteUpdate {
   id: string
   slug: string
   title: string
   body: string
+  kind: SiteUpdateKind
   version: string | null
   published: boolean
   publishedAt: string | null
@@ -18,11 +22,15 @@ export function parseSiteUpdate(raw: unknown): SiteUpdate | null {
   if (typeof row.id !== 'string' || typeof row.slug !== 'string') return null
   if (typeof row.title !== 'string' || typeof row.body !== 'string') return null
   if (typeof row.created_at !== 'string' || typeof row.updated_at !== 'string') return null
+  if (row.kind !== undefined && row.kind !== 'update' && row.kind !== 'announcement') {
+    return null
+  }
   return {
     id: row.id,
     slug: row.slug,
     title: row.title,
     body: row.body,
+    kind: row.kind === 'announcement' ? 'announcement' : 'update',
     version: typeof row.version === 'string' ? row.version : null,
     published: row.published === true,
     publishedAt: typeof row.published_at === 'string' ? row.published_at : null,
@@ -59,6 +67,9 @@ export function splitUpdateBody(body: string): string[] {
 export async function fetchPublicSiteUpdates(limit = 50): Promise<
   { ok: true; updates: SiteUpdate[] } | { ok: false; error: string }
 > {
+  if (isNewsDevFakeActive()) {
+    return { ok: true, updates: listDevSiteUpdates(limit) }
+  }
   if (!isSupabaseConfigured() || !supabase) {
     return { ok: false, error: 'unconfigured' }
   }
@@ -79,6 +90,10 @@ export async function fetchPublicSiteUpdates(limit = 50): Promise<
 export async function fetchPublicSiteUpdate(slug: string): Promise<
   { ok: true; update: SiteUpdate } | { ok: false; error: string }
 > {
+  if (isNewsDevFakeActive()) {
+    const update = getDevSiteUpdate(slug)
+    return update ? { ok: true, update } : { ok: false, error: 'not_found' }
+  }
   if (!isSupabaseConfigured() || !supabase) {
     return { ok: false, error: 'unconfigured' }
   }

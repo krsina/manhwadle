@@ -20,7 +20,7 @@ const skyMeadowLimitedTimeMigrationPath = path.resolve(
   'supabase/migrations/20260720174500_avatar_limited_time_sky_meadow.sql',
 )
 const explorerReplaceMigrationPath = path.resolve(
-  'supabase/migrations/20260722120000_avatar_explorer_ab_replace_newbies.sql',
+  'supabase/migrations/20260811041103_fix_free_claim_explorers.sql',
 )
 const freeClaimExplorersMigrationPath = path.resolve(
   'supabase/migrations/20260811041103_fix_free_claim_explorers.sql',

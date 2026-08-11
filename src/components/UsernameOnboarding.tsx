@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useAuth } from './AuthProvider'
 import { Dialog } from './Dialog'
 import {
@@ -16,9 +16,23 @@ export function UsernameOnboarding() {
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [stableOpen, setStableOpen] = useState(false)
 
   const forced = Boolean(account?.usernameChangeRequired)
-  const open = Boolean(user && needsUsername && !accountLoading)
+  const shouldOpen = Boolean(user && needsUsername && !accountLoading)
+
+  // Wait one frame after auth settles so magic-link getSession/SIGNED_IN
+  // churn cannot leave this dialog stuck inert or unfocused.
+  useEffect(() => {
+    if (!shouldOpen) {
+      setStableOpen(false)
+      return
+    }
+    const frame = window.requestAnimationFrame(() => setStableOpen(true))
+    return () => window.cancelAnimationFrame(frame)
+  }, [shouldOpen])
+
+  const open = stableOpen
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -36,6 +50,7 @@ export function UsernameOnboarding() {
 
   return (
     <Dialog
+      key={user?.id ?? 'username-onboarding'}
       open={open}
       onClose={() => undefined}
       titleId={titleId}
@@ -43,6 +58,7 @@ export function UsernameOnboarding() {
       backdropClassName="auth-backdrop"
       panelClassName="auth-modal"
       closeOnBackdrop={false}
+      closeOnEscape={false}
       initialFocusRef={inputRef}
     >
       <p className="modal-kicker">{forced ? 'Required' : 'Almost there'}</p>

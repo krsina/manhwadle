@@ -15,9 +15,9 @@ import {
   HOW_IT_WORKS_PATH,
   legacyPlayRedirectTarget,
   MODERATION_POLICY_PATH,
+  NEWS_PATH,
   PRIVACY_PATH,
   TERMS_PATH,
-  UPDATES_PATH,
 } from '../lib/routes'
 import {
   fetchPublicSiteStatus,
@@ -162,7 +162,7 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
         <nav className="footer-legal" aria-label="Site">
           <Link to={ABOUT_PATH}>About</Link>
           <Link to={HOW_IT_WORKS_PATH}>How it works</Link>
-          <Link to={UPDATES_PATH}>Updates</Link>
+          <Link to={NEWS_PATH}>News</Link>
           <Link to={DATABASE_PATH}>Manhwa Database</Link>
           <Link to={PRIVACY_PATH}>Privacy</Link>
           <Link to={TERMS_PATH}>Terms</Link>
