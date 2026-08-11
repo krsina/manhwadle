@@ -100,14 +100,21 @@ async function main() {
       .from('puzzle_pool_entries')
       .select('manhwa_id')
       .eq('mode', 'summary')
-      .limit(100)
+      .limit(600)
     if (poolError) throw new Error(`Pool lookup: ${poolError.message}`)
     const candidateIds = [...new Set((poolRows ?? []).map((row) => row.manhwa_id))]
-    assert(candidateIds.length >= 12, 'Need 12 summary catalog titles for collaborative smoke')
+    assert(
+      candidateIds.length >= 120,
+      'Need 120 summary catalog titles to prove lists exceed the old cap',
+    )
+    // The host list intentionally passes the retired 100-title ceiling.
+    const hostListSize = 120
     const savedListIds = []
     for (let index = 0; index < clients.length; index += 1) {
       const offset = index * 2
-      const listIds = candidateIds.slice(offset, offset + 8)
+      const listIds = index === 0
+        ? candidateIds.slice(0, hostListSize)
+        : candidateIds.slice(offset, offset + 8)
       const saved = await rpc(clients[index], 'saved_list_create', {
         p_name: `Smoke picks ${index + 1}`,
         p_manhwa_ids: listIds,
@@ -166,6 +173,12 @@ async function main() {
       hostShare.state.pool_summary.contributor_count === 1,
       'Host contribution was not counted',
     )
+    assert(
+      hostShare.state.list_contributions.find(
+        (item) => item.user_id === users[0],
+      )?.entry_count === hostListSize,
+      'A list larger than the retired 100-title cap was truncated',
+    )
     for (let index = 1; index < clients.length; index += 1) {
       const ready = await rpc(clients[index], 'multiplayer_set_ready', {
         p_room_id: room.id,
@@ -200,10 +213,9 @@ async function main() {
       'Unexpected mode in summary-only schedule',
     )
     assert(
-      started.state.pool_summary.combined_eligible_count >= 3 &&
-        started.state.pool_summary.combined_eligible_count <
-          clients.length * 8,
-      'Overlapping contribution entries were not deduplicated',
+      started.state.pool_summary.combined_eligible_count > 100 &&
+        started.state.pool_summary.combined_eligible_count <= hostListSize,
+      'Overlapping contribution entries were not deduplicated across lists',
     )
 
     const left = await rpc(clients[2], 'multiplayer_leave_room', {
