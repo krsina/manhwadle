@@ -1,10 +1,14 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { GameModeDefinition } from '../modes'
-import { playPath } from '../lib/routes'
+import { ModeGlyph } from './ModeGlyph'
+import { playPath, VERSUS_PATH } from '../lib/routes'
 import {
   statusLabel,
   type ModeCompletionStatus,
 } from '../lib/modeCompletion'
+import { useAuth } from './AuthProvider'
+import { SignInModal } from './AuthButton'
 
 interface ModeRowProps {
   mode: GameModeDefinition
@@ -45,7 +49,7 @@ export function ModeRow({
   const body = (
     <>
       <div className="mode-row-icon" aria-hidden="true" data-mode={mode.presentationKey}>
-        <ModeIcon presentationKey={mode.presentationKey} />
+        <ModeGlyph presentationKey={mode.presentationKey} />
       </div>
       <div className="mode-row-body">
         <div className="mode-row-heading">
@@ -93,72 +97,70 @@ export function ModeRow({
   )
 }
 
+/** Versus entry point, styled as a mode row so the home list reads as one family. */
+export function VersusModeRow() {
+  const { user, configured, signInWithMagicLink, signInWithOAuth } = useAuth()
+  const [signInOpen, setSignInOpen] = useState(false)
+  const signedIn = Boolean(user)
+
+  const body = (
+    <>
+      <div className="mode-row-icon" aria-hidden="true" data-mode="versus">
+        <ModeGlyph presentationKey="versus" />
+      </div>
+      <div className="mode-row-body">
+        <div className="mode-row-heading">
+          <h2 id="mode-row-title-versus" className="mode-row-title">
+            Versus
+          </h2>
+          <p className="mode-row-status mode-row-status-cue">
+            <PlayGlyph className="mode-row-status-glyph" />
+            {signedIn ? 'Live' : 'Sign in'}
+          </p>
+        </div>
+        <p className="mode-row-desc">Compete against your friends!</p>
+      </div>
+    </>
+  )
+
+  if (signedIn) {
+    return (
+      <Link
+        className="mode-row mode-row-versus"
+        to={VERSUS_PATH}
+        aria-label="Play Versus"
+      >
+        {body}
+      </Link>
+    )
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="mode-row mode-row-versus"
+        aria-label="Sign in to play Versus"
+        disabled={!configured}
+        onClick={() => setSignInOpen(true)}
+      >
+        {body}
+      </button>
+      {signInOpen && (
+        <SignInModal
+          onClose={() => setSignInOpen(false)}
+          onSignIn={signInWithMagicLink}
+          onOAuth={signInWithOAuth}
+        />
+      )}
+    </>
+  )
+}
+
 function PlayGlyph({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M8.5 6.2v11.6L18.2 12 8.5 6.2z" fill="currentColor" />
     </svg>
   )
-}
-
-function ModeIcon({ presentationKey }: { presentationKey: string }) {
-  switch (presentationKey) {
-    case 'character':
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.7" />
-          <path
-            d="M5 19c1-3.2 3.2-5 7-5s6 1.8 7 5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinecap="round"
-          />
-        </svg>
-      )
-    case 'cover':
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect
-            x="5"
-            y="3.5"
-            width="14"
-            height="17"
-            rx="2"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.7"
-          />
-          <path d="M8 8h8M8 12h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-        </svg>
-      )
-    case 'heardle':
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M9 18V7l10-2v11"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle cx="7" cy="18" r="2.2" fill="none" stroke="currentColor" strokeWidth="1.7" />
-          <circle cx="17" cy="16" r="2.2" fill="none" stroke="currentColor" strokeWidth="1.7" />
-        </svg>
-      )
-    default:
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M6 5h12v14H6z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinejoin="round"
-          />
-          <path d="M9 9h6M9 13h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-        </svg>
-      )
-  }
 }

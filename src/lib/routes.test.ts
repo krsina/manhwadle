@@ -5,6 +5,7 @@ import {
   playPath,
   readLegacyModeId,
   STAFF_COMMENTS_PATH,
+  versusRoomPath,
 } from './routes'
 
 describe('playPath', () => {
@@ -90,5 +91,12 @@ describe('readLegacyModeId', () => {
 describe('staff paths', () => {
   it('keeps comment moderation on its own route', () => {
     expect(STAFF_COMMENTS_PATH).toBe('/staff/comments')
+  })
+})
+
+describe('versusRoomPath', () => {
+  it('builds hub and encoded room routes', () => {
+    expect(versusRoomPath()).toBe('/versus')
+    expect(versusRoomPath('room/with spaces')).toBe('/versus/room%2Fwith%20spaces')
   })
 })
