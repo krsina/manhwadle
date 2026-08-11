@@ -6,66 +6,22 @@ import {
   useState,
 } from 'react'
 import { Link } from 'react-router-dom'
-import { MediaImage } from '../components/MediaImage'
+import { CatalogTileBody } from '../components/CatalogTileBody'
 import type { Manhwa } from '../lib/anilist-types'
+import { matchesCatalogQuery, sortCatalogByRank } from '../lib/catalogBrowse'
 import { loadClientCatalog } from '../lib/clientCatalog'
 import { displayTitle } from '../lib/daily'
-import {
-  looseSearchKey,
-  normalizeSearchKey,
-  scoreSearchKey,
-  searchTokens,
-} from '../lib/nameMatch'
 import {
   filterPoolByTaste,
   READER_TASTE_OPTIONS,
   type ReaderTaste,
 } from '../lib/readerTaste'
 import { HOME_PATH } from '../lib/routes'
-import { MANHWA_SEARCH_SUBSTRING_MIN_LENGTH } from '../lib/search'
 
 const PAGE_SIZE = 24
 
 interface DatabasePageProps {
   taste: ReaderTaste | null
-}
-
-function allNames(manhwa: Manhwa): string[] {
-  return [
-    manhwa.title.english,
-    manhwa.title.romaji,
-    manhwa.title.native,
-    ...manhwa.synonyms,
-  ].filter((n): n is string => Boolean(n && n.trim()))
-}
-
-function matchesQuery(manhwa: Manhwa, query: string): boolean {
-  const q = normalizeSearchKey(query)
-  const qLoose = looseSearchKey(query)
-  const qTokens = searchTokens(query)
-  if (!q && qTokens.length === 0) return true
-  const allowSubstring = q.length >= MANHWA_SEARCH_SUBSTRING_MIN_LENGTH
-  return allNames(manhwa).some(
-    (name) =>
-      scoreSearchKey(name, q, {
-        allowSubstring,
-        looseQueryKey: qLoose || undefined,
-        queryTokens: qTokens,
-      }) < Infinity,
-  )
-}
-
-function popularityRank(manhwa: Manhwa): number {
-  return manhwa.rank && manhwa.rank > 0 ? manhwa.rank : Number.MAX_SAFE_INTEGER
-}
-
-function sortByRank(pool: Manhwa[]): Manhwa[] {
-  return [...pool].sort((a, b) => {
-    const rankA = popularityRank(a)
-    const rankB = popularityRank(b)
-    if (rankA !== rankB) return rankA - rankB
-    return displayTitle(a).localeCompare(displayTitle(b))
-  })
 }
 
 /** Browse the client manhwa catalog by popularity rank and reading preference. */
@@ -107,9 +63,9 @@ export function DatabasePage({ taste }: DatabasePageProps) {
     if (!catalog) return []
     const tasted = filterPoolByTaste(catalog, lane)
     const matched = deferredQuery.trim()
-      ? tasted.filter((manhwa) => matchesQuery(manhwa, deferredQuery))
+      ? tasted.filter((manhwa) => matchesCatalogQuery(manhwa, deferredQuery))
       : tasted
-    return sortByRank(matched)
+    return sortCatalogByRank(matched)
   }, [catalog, deferredQuery, lane])
 
   const visible = ranked.slice(0, visibleCount)
@@ -203,35 +159,7 @@ export function DatabasePage({ taste }: DatabasePageProps) {
         <ul className="database-grid">
           {visible.map((manhwa) => {
             const title = displayTitle(manhwa)
-            const rank = manhwa.rank && manhwa.rank > 0 ? manhwa.rank : null
-            const year = manhwa.startDate?.year
-            const meta = [manhwa.publisher || null, year ? String(year) : null].filter(Boolean)
-            const body = (
-              <>
-                <div className="database-tile-cover-wrap">
-                  <MediaImage
-                    className="database-cover"
-                    src={manhwa.coverImage ?? undefined}
-                    alt=""
-                    fallbackLabel="No cover"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
-                <div className="database-tile-copy">
-                  <span
-                    className="database-rank"
-                    aria-label={rank ? `Rank ${rank}` : 'Unranked'}
-                  >
-                    {rank ? `Rank ${rank}` : 'Unranked'}
-                  </span>
-                  <span className="database-title">{title}</span>
-                  {meta.length > 0 && (
-                    <span className="database-meta">{meta.join(' · ')}</span>
-                  )}
-                </div>
-              </>
-            )
+            const body = <CatalogTileBody manhwa={manhwa} />
             return (
               <li key={manhwa.id} className="database-tile">
                 {manhwa.siteUrl ? (

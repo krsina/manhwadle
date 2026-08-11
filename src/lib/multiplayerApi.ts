@@ -87,7 +87,7 @@ export function multiplayerErrorMessage(error: string): string {
     collaborative_pool_required: 'This room is not using collaborative lists.',
     list_not_found: 'That private list is unavailable.',
     list_contribution_required: 'Contribute one of your saved lists before readying up.',
-    list_contributors_missing: 'Every active player must contribute a saved list.',
+    list_contributors_missing: 'At least one player has to share a saved list.',
     collaborative_schedule_unavailable:
       'These overlapping lists cannot make a complete no-repeat match. Add more varied titles.',
     create_quota_exceeded: 'You have reached the emergency daily room limit. Try again tomorrow.',
@@ -248,6 +248,7 @@ function parsePoolSummary(raw: unknown): MultiplayerPoolSummary {
     return {
       contributorCount: 0,
       requiredContributorCount: 0,
+      activeMemberCount: 0,
       perModeEligibleCounts: {},
       combinedEligibleCount: 0,
     }
@@ -255,6 +256,7 @@ function parsePoolSummary(raw: unknown): MultiplayerPoolSummary {
   return {
     contributorCount: nonNegInt(raw.contributor_count),
     requiredContributorCount: nonNegInt(raw.required_contributor_count),
+    activeMemberCount: nonNegInt(raw.active_member_count),
     perModeEligibleCounts: parseEligibleCounts(raw.per_mode_eligible_counts),
     combinedEligibleCount: nonNegInt(raw.combined_eligible_count),
   }

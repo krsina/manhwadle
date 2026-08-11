@@ -21,6 +21,9 @@ const collaborativePoolsMigration = readSql(
 const schedulerMigration = readSql(
   'supabase/migrations/20260811160352_enable_multiplayer_cron.sql',
 )
+const singleContributorMigration = readSql(
+  'supabase/migrations/20260811185816_collaborative_pool_single_contributor.sql',
+)
 
 describe('group multiplayer backend migration contracts', () => {
   it('keeps every multiplayer table private and restores no versus objects', () => {
@@ -446,6 +449,27 @@ describe('collaborative Versus pools migration contracts', () => {
     )
     expect(collaborativePoolsMigration).toContain(
       "'list_contribution_required'",
+    )
+  })
+
+  it('starts collaborative matches on a single shared list', () => {
+    expect(singleContributorMigration).toContain(
+      "'required_contributor_count', 1",
+    )
+    expect(singleContributorMigration).toContain(
+      "'active_member_count', (",
+    )
+    expect(singleContributorMigration).toMatch(
+      /pool_source = 'collaborative_lists' and not exists \([\s\S]*?multiplayer_list_contributions contribution[\s\S]*?member\.is_active[\s\S]*?'list_contributors_missing'/,
+    )
+    expect(singleContributorMigration).not.toContain(
+      "'list_contribution_required'",
+    )
+    expect(singleContributorMigration).toMatch(
+      /function public\.multiplayer_set_ready[\s\S]*?multiplayer_set_ready_impl/,
+    )
+    expect(singleContributorMigration).toContain(
+      'grant execute on function public.multiplayer_set_ready(uuid, boolean, text)\n  to authenticated, service_role',
     )
   })
 

@@ -113,8 +113,9 @@ function stateFixture() {
       },
     ],
     pool_summary: {
-      contributor_count: 2,
-      required_contributor_count: 2,
+      contributor_count: 1,
+      required_contributor_count: 1,
+      active_member_count: 2,
       per_mode_eligible_counts: { summary: 6, cover: 6 },
       combined_eligible_count: 8,
     },
@@ -195,7 +196,12 @@ describe('multiplayer API contract', () => {
       eligibleCounts: { summary: 4, cover: 3 },
     })
     expect(parsed?.listContributions[1]?.sourceListId).toBeNull()
-    expect(parsed?.poolSummary.combinedEligibleCount).toBe(8)
+    expect(parsed?.poolSummary).toMatchObject({
+      contributorCount: 1,
+      requiredContributorCount: 1,
+      activeMemberCount: 2,
+      combinedEligibleCount: 8,
+    })
 
     const completed = stateFixture()
     completed.rounds[0].status = 'completed'

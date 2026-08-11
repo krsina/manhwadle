@@ -9,7 +9,7 @@ export const MULTIPLAYER_POOL_META: Record<
   both: { title: 'Both', detail: 'Random titles from the combined lane.' },
   collaborative_lists: {
     title: 'Collaborative lists',
-    detail: 'Every player privately contributes one saved list.',
+    detail: 'Play from saved lists. One shared list is enough.',
   },
 }
 
