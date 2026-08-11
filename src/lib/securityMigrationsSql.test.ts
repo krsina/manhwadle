@@ -17,10 +17,19 @@ const playMigration = readSql(
 )
 
 const guestAnswerMigration = readSql(
-  'supabase/migrations/20260729180146_guest_play_state_answer_id.sql',
+  'supabase/migrations/20260729180338_guest_play_state_answer_id.sql',
 )
 const ownerAnalyticsMigration = readSql(
   'supabase/migrations/20260809114805_owner_analytics.sql',
+)
+const newsKindsMigration = readSql(
+  'supabase/migrations/20260811050059_news_item_kinds.sql',
+)
+const newsCommentsMigration = readSql(
+  'supabase/migrations/20260811112251_news_comments_moderation.sql',
+)
+const newsCommentAbuseMigration = readSql(
+  'supabase/migrations/20260811143833_harden_news_comment_abuse.sql',
 )
 
 describe('private ledger hardening migration contracts', () => {
@@ -76,6 +85,123 @@ describe('owner analytics migration contracts', () => {
     expect(ownerAnalyticsMigration).not.toContain('guest_hash')
     expect(ownerAnalyticsMigration).not.toContain('ip_address')
     expect(ownerAnalyticsMigration).not.toContain('user_agent')
+  })
+})
+
+describe('news item kinds migration contracts', () => {
+  it('supports release updates and announcements with conditional versions', () => {
+    expect(newsKindsMigration).toContain("check (kind in ('update', 'announcement'))")
+    expect(newsKindsMigration).toContain(
+      "check (kind <> 'update' or not published or version is not null)",
+    )
+    expect(newsKindsMigration).toContain("'kind', p_row.kind")
+    expect(newsKindsMigration).toContain(
+      "if v_published and v_kind = 'update' and v_version is null then",
+    )
+  })
+
+  it('keeps news authoring service-role only', () => {
+    expect(newsKindsMigration).toContain(
+      'security definer\nset search_path to',
+    )
+    expect(newsKindsMigration).toContain(
+      ') from public, anon, authenticated;\ngrant execute on function public.moderation_upsert_site_update',
+    )
+    expect(newsKindsMigration).toContain(') to service_role;')
+  })
+})
+
+describe('news comments migration contracts', () => {
+  it('keeps the comment table RPC-only and allows public reads only through a function', () => {
+    expect(newsCommentsMigration).toContain(
+      'alter table public.site_update_comments enable row level security',
+    )
+    expect(newsCommentsMigration).toContain(
+      'revoke all on table public.site_update_comments from public, anon, authenticated',
+    )
+    expect(newsCommentsMigration).toContain(
+      'grant execute on function public.get_site_update_comments(text, integer, integer)\n  to anon, authenticated, service_role',
+    )
+    expect(newsCommentsMigration).toContain(
+      'grant execute on function public.post_site_update_comment(text, text)\n  to authenticated, service_role',
+    )
+  })
+
+  it('derives authors from auth, rate limits posting, and hides private ids publicly', () => {
+    expect(newsCommentsMigration).toContain('v_uid uuid := auth.uid()')
+    expect(newsCommentsMigration).toContain(
+      "consume_rpc_rate_limit(v_uid, 'post_site_update_comment', 5, 60)",
+    )
+    expect(newsCommentsMigration).toContain(
+      "'author_id', case when p_include_private then p_row.author_id else null end",
+    )
+    expect(newsCommentsMigration).toContain('app_private.can_appear_publicly(v_uid)')
+    expect(newsCommentsMigration).toContain(
+      "'stage_id', coalesce(uap.equipped_stage_id, 'stage_blossom_courtyard')",
+    )
+  })
+
+  it('audits soft removal and protects comment bans with staff target rules', () => {
+    expect(newsCommentsMigration).toContain('app_private.assert_moderation_actor')
+    expect(newsCommentsMigration).toContain('app_private.assert_can_target')
+    expect(newsCommentsMigration).toContain("'remove_news_comment'")
+    expect(newsCommentsMigration).toContain("'issue_comment_ban'")
+    expect(newsCommentsMigration).toContain("kind = 'comment_ban'")
+    expect(newsCommentsMigration).toContain("v_actor_role <> 'owner'")
+  })
+})
+
+describe('news comment abuse hardening migration contracts', () => {
+  it('keeps filter configuration and aggregate telemetry private', () => {
+    expect(newsCommentAbuseMigration).toContain(
+      'alter table app_private.comment_filter_rules enable row level security',
+    )
+    expect(newsCommentAbuseMigration).toContain(
+      'revoke all on table app_private.comment_filter_aggregates from public, anon, authenticated',
+    )
+    expect(newsCommentAbuseMigration).not.toContain('rejected_body')
+  })
+
+  it('enforces burst, hourly, and daily limits before classification', () => {
+    const burst = newsCommentAbuseMigration.indexOf(
+      "consume_rpc_rate_limit(v_uid, 'post_site_update_comment', 5, 60)",
+    )
+    const hourly = newsCommentAbuseMigration.indexOf(
+      "consume_rpc_rate_limit(v_uid, 'post_site_update_comment_hour', 10, 3600)",
+    )
+    const daily = newsCommentAbuseMigration.indexOf(
+      "consume_rpc_rate_limit(v_uid, 'post_site_update_comment_day', 20, 86400)",
+    )
+    const classify = newsCommentAbuseMigration.indexOf(
+      'app_private.classify_comment_body(v_body)',
+    )
+    expect(burst).toBeGreaterThan(-1)
+    expect(hourly).toBeGreaterThan(burst)
+    expect(daily).toBeGreaterThan(hourly)
+    expect(classify).toBeGreaterThan(daily)
+  })
+
+  it('serializes duplicate checks and never publishes pending comments', () => {
+    expect(newsCommentAbuseMigration).toContain('pg_advisory_xact_lock')
+    expect(newsCommentAbuseMigration).toContain("'recent_duplicate'")
+    expect(newsCommentAbuseMigration).toContain("where status = 'pending'")
+    expect(newsCommentAbuseMigration).toContain("'outcome', 'pending'")
+    expect(newsCommentsMigration).toContain("c.status = 'visible'")
+  })
+
+  it('makes quarantine review staff-only and audits decisions', () => {
+    expect(newsCommentAbuseMigration).toContain(
+      "v_status not in ('visible', 'pending', 'removed')",
+    )
+    expect(newsCommentAbuseMigration).toContain("'pending_total'")
+    expect(newsCommentAbuseMigration).toContain("'approve_quarantined_news_comment'")
+    expect(newsCommentAbuseMigration).toContain("'remove_quarantined_news_comment'")
+    expect(newsCommentAbuseMigration).toContain(
+      'grant execute on function public.moderation_list_site_update_comments',
+    )
+    expect(newsCommentAbuseMigration).not.toContain(
+      'to authenticated;\ngrant execute on function public.moderation_list_site_update_comments',
+    )
   })
 })
 

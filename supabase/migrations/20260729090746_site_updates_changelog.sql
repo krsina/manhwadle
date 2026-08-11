@@ -139,10 +139,6 @@ revoke all on function app_private.site_update_to_json(public.site_updates)
 grant execute on function app_private.site_update_to_json(public.site_updates)
   to postgres, service_role;
 
--- ---------------------------------------------------------------------------
--- Public read RPCs
--- ---------------------------------------------------------------------------
-
 create or replace function public.get_public_site_updates(
   p_limit integer default 50,
   p_offset integer default 0
@@ -211,10 +207,6 @@ begin
   );
 end;
 $$;
-
--- ---------------------------------------------------------------------------
--- Owner moderation RPCs
--- ---------------------------------------------------------------------------
 
 create or replace function public.moderation_list_site_updates(p_actor_id uuid)
 returns jsonb
@@ -336,7 +328,6 @@ begin
       raise exception 'body_too_long' using errcode = '22023';
     end if;
 
-    -- Slug is immutable once the entry has ever been published.
     if v_row.published or v_row.published_at is not null then
       v_slug := v_row.slug;
     elsif p_slug is not null and length(trim(p_slug)) > 0 then

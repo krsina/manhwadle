@@ -1,6 +1,10 @@
 import { useId, useState, type FormEvent } from 'react'
 import { moderationUpsertSiteUpdate } from '../lib/moderationApi'
-import { parseSiteUpdate, type SiteUpdate } from '../lib/siteUpdatesApi'
+import {
+  parseSiteUpdate,
+  type SiteUpdate,
+  type SiteUpdateKind,
+} from '../lib/siteUpdatesApi'
 
 interface UpdateOwnerEditorProps {
   update: SiteUpdate
@@ -8,12 +12,13 @@ interface UpdateOwnerEditorProps {
   onSaved: (update: SiteUpdate) => void
 }
 
-/** Inline owner editor for a public Updates entry. */
+/** Inline owner editor for a public News item. */
 export function UpdateOwnerEditor({ update, onCancel, onSaved }: UpdateOwnerEditorProps) {
   const formId = useId()
   const [title, setTitle] = useState(update.title)
   const [body, setBody] = useState(update.body)
   const [version, setVersion] = useState(update.version ?? '')
+  const [kind, setKind] = useState<SiteUpdateKind>(update.kind)
   const [published, setPublished] = useState(update.published)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -27,6 +32,7 @@ export function UpdateOwnerEditor({ update, onCancel, onSaved }: UpdateOwnerEdit
       title,
       body,
       version: version.trim() || null,
+      kind,
       published,
     })
     setBusy(false)
@@ -45,8 +51,21 @@ export function UpdateOwnerEditor({ update, onCancel, onSaved }: UpdateOwnerEdit
 
   return (
     <form className="update-owner-editor" onSubmit={(e) => void handleSubmit(e)}>
+      <label className="auth-field-label" htmlFor={`${formId}-kind`}>
+        Type
+      </label>
+      <select
+        id={`${formId}-kind`}
+        className="auth-modal-input"
+        value={kind}
+        onChange={(e) => setKind(e.target.value as SiteUpdateKind)}
+        disabled={busy}
+      >
+        <option value="update">Release update</option>
+        <option value="announcement">Announcement</option>
+      </select>
       <label className="auth-field-label" htmlFor={`${formId}-version`}>
-        Version
+        Version {kind === 'announcement' ? '(optional)' : ''}
       </label>
       <input
         id={`${formId}-version`}
@@ -56,7 +75,7 @@ export function UpdateOwnerEditor({ update, onCancel, onSaved }: UpdateOwnerEdit
         placeholder="0.2.0"
         pattern="^[0-9]+\.[0-9]+\.[0-9]+$"
         title="Use MAJOR.MINOR.PATCH"
-        required={published}
+        required={published && kind === 'update'}
         disabled={busy}
       />
       <label className="auth-field-label" htmlFor={`${formId}-title`}>

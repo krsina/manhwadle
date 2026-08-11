@@ -10,6 +10,9 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('link', { name: /Play Character/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Play Cover/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Play Heardle/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Milestones' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'News' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'All news' })).toHaveAttribute('href', '/news')
     await expect(page.getByRole('navigation', { name: /Site/i })).toBeVisible()
     await expect(
       page.getByRole('navigation', { name: /Site/i }).getByRole('link', { name: 'Privacy' }),
@@ -20,6 +23,35 @@ test.describe('critical paths', () => {
     await expect(
       page.getByRole('navigation', { name: /Site/i }).getByRole('link', { name: 'Manhwa Database' }),
     ).toBeVisible()
+  })
+
+  test('homepage splits milestones and news responsively', async ({ page }) => {
+    await page.goto('/')
+    const milestones = page.locator('.home-achievements')
+    const news = page.locator('.home-news')
+    const desktopMilestones = await milestones.boundingBox()
+    const desktopNews = await news.boundingBox()
+    expect(desktopMilestones).toBeTruthy()
+    expect(desktopNews).toBeTruthy()
+    expect(desktopNews!.x).toBeGreaterThan(desktopMilestones!.x + desktopMilestones!.width - 2)
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    const mobileMilestones = await milestones.boundingBox()
+    const mobileNews = await news.boundingBox()
+    expect(mobileMilestones).toBeTruthy()
+    expect(mobileNews).toBeTruthy()
+    expect(mobileNews!.y).toBeGreaterThan(mobileMilestones!.y)
+  })
+
+  test('news is canonical and legacy update routes redirect', async ({ page }) => {
+    await page.goto('/news')
+    await expect(page.getByRole('heading', { name: 'News' })).toBeVisible()
+
+    await page.goto('/updates')
+    await expect(page).toHaveURL(/\/news$/)
+
+    await page.goto('/updates/legacy-release')
+    await expect(page).toHaveURL(/\/news\/legacy-release$/)
   })
 
   test('play route shows taste gate on first visit', async ({ page }) => {
@@ -174,6 +206,10 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()
 
     await page.goto('/staff/analytics')
+    await expect(page).toHaveURL('/')
+    await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()
+
+    await page.goto('/staff/comments')
     await expect(page).toHaveURL('/')
     await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()
   })

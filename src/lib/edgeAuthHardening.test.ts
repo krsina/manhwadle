@@ -61,4 +61,19 @@ describe('edge auth hardening contracts', () => {
     expect(deploymentDoc).toContain('select-daily-puzzles')
     expect(deploymentDoc).toContain('verify_jwt')
   })
+
+  it('forwards owner-authored news kinds through moderation', () => {
+    expect(moderationFn).toContain('case "upsert_site_update"')
+    expect(moderationFn).toContain('p_actor_id: actorId')
+    expect(moderationFn).toContain('p_kind: asString(body.kind)')
+  })
+
+  it('derives staff comment moderation actors from the verified JWT', () => {
+    expect(moderationFn).toContain('case "list_site_update_comments"')
+    expect(moderationFn).toContain('case "set_site_update_comment_status"')
+    expect(moderationFn).toContain('case "issue_comment_ban"')
+    expect(moderationFn).toContain('case "revoke_comment_ban"')
+    expect(moderationFn).toContain('p_actor_id: actorId')
+    expect(moderationFn).not.toContain('p_actor_id: body')
+  })
 })

@@ -1,8 +1,10 @@
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../components/AuthProvider'
 import { ModerationDashboard } from '../components/ModerationDashboard'
+import { ModerationCommentsPanel } from '../components/ModerationCommentsPanel'
 import {
   STAFF_ANALYTICS_PATH,
+  STAFF_COMMENTS_PATH,
   STAFF_MODERATION_PATH,
   STAFF_PATH,
 } from '../lib/routes'
@@ -36,6 +38,9 @@ export function StaffDashboardPage() {
         <NavLink to={STAFF_MODERATION_PATH} className="btn btn-ghost">
           Moderation
         </NavLink>
+        <NavLink to={STAFF_COMMENTS_PATH} className="btn btn-ghost">
+          Comments
+        </NavLink>
       </nav>
       <Outlet />
     </main>
@@ -44,4 +49,8 @@ export function StaffDashboardPage() {
 
 export function StaffModerationPage() {
   return <ModerationDashboard inline />
+}
+
+export function StaffCommentsPage() {
+  return <ModerationCommentsPanel />
 }

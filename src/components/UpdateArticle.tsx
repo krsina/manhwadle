@@ -2,16 +2,13 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from './AuthProvider'
 import { UpdateOwnerEditor } from './UpdateOwnerEditor'
-import {
-  canUseModerationUi,
-} from '../lib/moderationApi'
 import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
 import {
   formatUpdateDate,
   splitUpdateBody,
   type SiteUpdate,
 } from '../lib/siteUpdatesApi'
-import { UPDATES_PATH, updatesPath } from '../lib/routes'
+import { NEWS_PATH, newsPath } from '../lib/routes'
 
 export function UpdateBody({ body }: { body: string }) {
   const blocks = splitUpdateBody(body)
@@ -36,7 +33,7 @@ export function UpdateArticle({
   const { account } = useAuth()
   const { showUserModeToggle, userMode } = useOwnerDevAccess()
   const canEdit =
-    canUseModerationUi(account?.staffRole) && !(showUserModeToggle && userMode)
+    account?.staffRole === 'owner' && !(showUserModeToggle && userMode)
   const [editing, setEditing] = useState(false)
   const dateLabel = formatUpdateDate(update.publishedAt ?? update.createdAt)
 
@@ -61,7 +58,7 @@ export function UpdateArticle({
         <div className="update-entry-heading">
           <h2 className="update-entry-title">
             {linkTitle ? (
-              <Link to={updatesPath(update.slug)}>{update.title}</Link>
+              <Link to={newsPath(update.slug)}>{update.title}</Link>
             ) : (
               update.title
             )}
@@ -78,8 +75,11 @@ export function UpdateArticle({
         </div>
         {(update.version || dateLabel) && (
           <p className="update-entry-meta">
+            <span className="update-entry-kind">
+              {update.kind === 'announcement' ? 'Announcement' : 'Release update'}
+            </span>
             {update.version && <span className="update-entry-version">v{update.version}</span>}
-            {update.version && dateLabel ? (
+            {(update.version || update.kind) && dateLabel ? (
               <span className="update-entry-meta-sep" aria-hidden="true">
                 ·
               </span>
@@ -103,7 +103,7 @@ export function UpdateArticle({
 export function UpdatesEmptyState() {
   return (
     <p className="updates-empty">
-      No published updates yet. Check back after the next site change.
+      No published news yet. Check back soon.
     </p>
   )
 }
@@ -111,7 +111,7 @@ export function UpdatesEmptyState() {
 export function UpdatesBackLink() {
   return (
     <p className="updates-back">
-      <Link to={UPDATES_PATH}>← All updates</Link>
+      <Link to={NEWS_PATH}>← All news</Link>
     </p>
   )
 }

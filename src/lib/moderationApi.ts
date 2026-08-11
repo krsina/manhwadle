@@ -1,4 +1,13 @@
 import { supabase } from './supabase'
+import { normalizeEquippedStageId } from './avatarStages'
+import type { SiteUpdateKind } from './siteUpdatesApi'
+import {
+  issueDevCommentBan,
+  isNewsDevFakeActive,
+  listDevModerationNewsComments,
+  revokeDevCommentBan,
+  setDevNewsCommentStatus,
+} from './newsDevFake'
 
 export type StaffRole = 'owner' | 'moderator'
 
@@ -24,6 +33,10 @@ export type ModerationAction =
   | 'list_site_updates'
   | 'upsert_site_update'
   | 'delete_site_update'
+  | 'list_site_update_comments'
+  | 'set_site_update_comment_status'
+  | 'issue_comment_ban'
+  | 'revoke_comment_ban'
 
 export interface UserLookupResult {
   ok: boolean
@@ -36,6 +49,65 @@ export interface UserLookupResult {
   leaderboard_excluded?: boolean
   force_username_change?: boolean
   error?: string
+}
+
+export interface ModerationNewsComment {
+  id: string
+  authorId: string
+  username: string
+  avatarId: string
+  /** Equipped stage backdrop, rendered behind the avatar. */
+  stageId: string
+  body: string
+  status: 'visible' | 'pending' | 'removed'
+  createdAt: string
+  updatedAt: string
+  removedAt: string | null
+  removalReason: string | null
+  removedByAuthor: boolean
+  filterCategory: string | null
+  filterRule: string | null
+  postId: string
+  postTitle: string
+  postSlug: string
+}
+
+export function parseModerationNewsComment(raw: unknown): ModerationNewsComment | null {
+  if (!raw || typeof raw !== 'object') return null
+  const row = raw as Record<string, unknown>
+  if (
+    typeof row.id !== 'string' ||
+    typeof row.author_id !== 'string' ||
+    typeof row.username !== 'string' ||
+    typeof row.body !== 'string' ||
+    (row.status !== 'visible' && row.status !== 'pending' && row.status !== 'removed') ||
+    typeof row.created_at !== 'string' ||
+    typeof row.updated_at !== 'string' ||
+    typeof row.post_id !== 'string' ||
+    typeof row.post_title !== 'string' ||
+    typeof row.post_slug !== 'string'
+  ) {
+    return null
+  }
+  return {
+    id: row.id,
+    authorId: row.author_id,
+    username: row.username,
+    avatarId: typeof row.avatar_id === 'string' ? row.avatar_id : 'avatar_default_female',
+    stageId: normalizeEquippedStageId(row.stage_id),
+    body: row.body,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    removedAt: typeof row.removed_at === 'string' ? row.removed_at : null,
+    removalReason: typeof row.removal_reason === 'string' ? row.removal_reason : null,
+    removedByAuthor: row.removed_by_author === true,
+    filterCategory: typeof row.filter_category === 'string' ? row.filter_category : null,
+    filterRule: typeof row.filter_rule === 'string' ? row.filter_rule : null,
+    postId: row.post_id,
+    postTitle: row.post_title,
+    postSlug: row.post_slug,
+  }
 }
 
 export const TEMP_DURATION_OPTIONS = [
@@ -369,7 +441,7 @@ export async function moderationSetAccountFlags(input: {
   })
 }
 
-/** Owner-only public changelog (/updates). */
+/** Owner-only public News publishing. */
 export async function moderationListSiteUpdates() {
   return invokeModeration('list_site_updates')
 }
@@ -381,6 +453,7 @@ export async function moderationUpsertSiteUpdate(input: {
   slug?: string | null
   published?: boolean
   version?: string | null
+  kind?: SiteUpdateKind
 }) {
   return invokeModeration('upsert_site_update', {
     id: input.id ?? null,
@@ -389,9 +462,102 @@ export async function moderationUpsertSiteUpdate(input: {
     slug: input.slug ?? null,
     published: typeof input.published === 'boolean' ? input.published : null,
     version: input.version ?? null,
+    kind: input.kind ?? null,
   })
 }
 
 export async function moderationDeleteSiteUpdate(id: string) {
   return invokeModeration('delete_site_update', { id })
+}
+
+export async function moderationListNewsComments(input: {
+  status?: 'visible' | 'pending' | 'removed'
+  limit?: number
+  offset?: number
+  postSlug?: string
+} = {}): Promise<
+  | { ok: true; comments: ModerationNewsComment[]; total: number; pendingTotal: number }
+  | { ok: false; error: string }
+> {
+  if (isNewsDevFakeActive()) {
+    const result = listDevModerationNewsComments(input)
+    return {
+      ok: true,
+      comments: result.comments,
+      total: result.total,
+      pendingTotal: result.pendingTotal,
+    }
+  }
+  const result = await invokeModeration('list_site_update_comments', {
+    status: input.status ?? null,
+    limit: input.limit ?? 50,
+    offset: input.offset ?? 0,
+    post_slug: input.postSlug ?? null,
+  })
+  if (!result.ok) return result
+  const outer = result.data as { result?: unknown }
+  if (!outer.result || typeof outer.result !== 'object') {
+    return { ok: false, error: 'Unexpected comments response' }
+  }
+  const payload = outer.result as {
+    ok?: boolean
+    comments?: unknown
+    total?: unknown
+    pending_total?: unknown
+  }
+  if (payload.ok !== true || !Array.isArray(payload.comments)) {
+    return { ok: false, error: 'Unexpected comments response' }
+  }
+  return {
+    ok: true,
+    comments: payload.comments
+      .map(parseModerationNewsComment)
+      .filter((row): row is ModerationNewsComment => row !== null),
+    total: typeof payload.total === 'number' ? payload.total : 0,
+    pendingTotal: typeof payload.pending_total === 'number' ? payload.pending_total : 0,
+  }
+}
+
+export async function moderationSetNewsCommentStatus(input: {
+  commentId: string
+  status: 'visible' | 'removed'
+  reason: string
+}) {
+  if (isNewsDevFakeActive()) {
+    return setDevNewsCommentStatus(input)
+  }
+  return invokeModeration('set_site_update_comment_status', {
+    comment_id: input.commentId,
+    status: input.status,
+    reason: input.reason,
+  })
+}
+
+export async function moderationIssueCommentBan(input: {
+  targetUserId: string
+  reason: string
+  endsAt?: string
+  permanent?: boolean
+}) {
+  if (isNewsDevFakeActive()) {
+    if (input.reason.trim().length < 3) return { ok: false as const, error: 'reason required' }
+    return issueDevCommentBan(input.targetUserId)
+  }
+  return invokeModeration('issue_comment_ban', {
+    target_user_id: input.targetUserId,
+    reason: input.reason,
+    ends_at: input.endsAt ?? null,
+    permanent: input.permanent === true,
+  })
+}
+
+export async function moderationRevokeCommentBan(targetUserId: string, reason: string) {
+  if (isNewsDevFakeActive()) {
+    if (reason.trim().length < 3) return { ok: false as const, error: 'reason required' }
+    return revokeDevCommentBan(targetUserId)
+  }
+  return invokeModeration('revoke_comment_ban', {
+    target_user_id: targetUserId,
+    reason,
+  })
 }

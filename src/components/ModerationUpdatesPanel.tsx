@@ -4,11 +4,12 @@ import {
   moderationListSiteUpdates,
   moderationUpsertSiteUpdate,
 } from '../lib/moderationApi'
-import { updatesPath } from '../lib/routes'
+import { newsPath } from '../lib/routes'
 import {
   formatUpdateDate,
   parseSiteUpdate,
   type SiteUpdate,
+  type SiteUpdateKind,
 } from '../lib/siteUpdatesApi'
 
 interface ModerationUpdatesPanelProps {
@@ -18,7 +19,7 @@ interface ModerationUpdatesPanelProps {
   setNotice: (notice: string | null) => void
 }
 
-/** Owner-only changelog authoring for /updates. */
+/** Owner-only publishing for /news. */
 export function ModerationUpdatesPanel({
   busy,
   setBusy,
@@ -31,6 +32,7 @@ export function ModerationUpdatesPanel({
   const [body, setBody] = useState('')
   const [slug, setSlug] = useState('')
   const [version, setVersion] = useState('')
+  const [kind, setKind] = useState<SiteUpdateKind>('update')
   const [published, setPublished] = useState(true)
 
   async function reload() {
@@ -63,6 +65,7 @@ export function ModerationUpdatesPanel({
     setBody('')
     setSlug('')
     setVersion('')
+    setKind('update')
     setPublished(true)
   }
 
@@ -72,6 +75,7 @@ export function ModerationUpdatesPanel({
     setBody(update.body)
     setSlug(update.slug)
     setVersion(update.version ?? '')
+    setKind(update.kind)
     setPublished(update.published)
     setNotice(null)
     setError(null)
@@ -88,6 +92,7 @@ export function ModerationUpdatesPanel({
       body,
       slug: slug.trim() || null,
       version: version.trim() || null,
+      kind,
       published,
     })
     setBusy(false)
@@ -95,13 +100,13 @@ export function ModerationUpdatesPanel({
       setError(result.error)
       return
     }
-    setNotice(editingId ? 'Update saved.' : 'Update created.')
+    setNotice(editingId ? 'News item saved.' : 'News item created.')
     resetForm()
     await reload()
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm('Delete this update permanently?')) return
+    if (!window.confirm('Delete this news item permanently?')) return
     setBusy(true)
     setError(null)
     setNotice(null)
@@ -111,7 +116,7 @@ export function ModerationUpdatesPanel({
       setError(result.error)
       return
     }
-    setNotice('Update deleted.')
+    setNotice('News item deleted.')
     if (editingId === id) resetForm()
     await reload()
   }
@@ -125,6 +130,7 @@ export function ModerationUpdatesPanel({
       title: update.title,
       body: update.body,
       version: update.version,
+      kind: update.kind,
       published: !update.published,
     })
     setBusy(false)
@@ -132,7 +138,7 @@ export function ModerationUpdatesPanel({
       setError(result.error)
       return
     }
-    setNotice(update.published ? 'Update unpublished.' : 'Update published.')
+    setNotice(update.published ? 'News item unpublished.' : 'News item published.')
     await reload()
   }
 
@@ -143,17 +149,30 @@ export function ModerationUpdatesPanel({
   return (
     <div className="moderation-panel moderation-updates-panel">
       <p className="auth-modal-intro">
-        Publish changelog entries for the public Updates page. Plain text; blank lines
-        become paragraphs. Include a semver version for published posts. Slugs auto-generate
-        from the title and freeze after first publish.
+        Publish release updates and announcements to the public News page. Plain text;
+        blank lines become paragraphs. Release updates need a semver version when published.
+        Slugs auto-generate from the title and freeze after first publish.
       </p>
 
       <form className="moderation-update-form" onSubmit={(e) => void handleSubmit(e)}>
         <h3 className="moderation-subtitle">
-          {editingId ? 'Edit update' : 'New update'}
+          {editingId ? 'Edit news item' : 'New news item'}
         </h3>
+        <label className="auth-field-label" htmlFor="mod-update-kind">
+          Type
+        </label>
+        <select
+          id="mod-update-kind"
+          className="auth-modal-input"
+          value={kind}
+          onChange={(e) => setKind(e.target.value as SiteUpdateKind)}
+          disabled={busy}
+        >
+          <option value="update">Release update</option>
+          <option value="announcement">Announcement</option>
+        </select>
         <label className="auth-field-label" htmlFor="mod-update-version">
-          Version
+          Version {kind === 'announcement' ? '(optional)' : ''}
         </label>
         <input
           id="mod-update-version"
@@ -163,7 +182,7 @@ export function ModerationUpdatesPanel({
           placeholder="0.2.0"
           pattern="^[0-9]+\.[0-9]+\.[0-9]+$"
           title="Use MAJOR.MINOR.PATCH"
-          required={published}
+          required={published && kind === 'update'}
           disabled={busy}
         />
         <label className="auth-field-label" htmlFor="mod-update-title">
@@ -210,11 +229,11 @@ export function ModerationUpdatesPanel({
             disabled={busy}
             onChange={(e) => setPublished(e.target.checked)}
           />
-          Published (visible on /updates)
+          Published (visible on /news)
         </label>
         <div className="moderation-actions">
           <button type="submit" className="btn btn-primary" disabled={busy}>
-            {editingId ? 'Save changes' : 'Create update'}
+            {editingId ? 'Save changes' : 'Create news item'}
           </button>
           {editingId && (
             <button
@@ -229,22 +248,24 @@ export function ModerationUpdatesPanel({
         </div>
       </form>
 
-      <h3 className="moderation-subtitle">All updates</h3>
+      <h3 className="moderation-subtitle">All news</h3>
       {updates.length === 0 ? (
-        <p className="moderation-queue-meta">No updates yet.</p>
+        <p className="moderation-queue-meta">No news yet.</p>
       ) : (
         <ul className="moderation-queue">
           {updates.map((update) => (
             <li key={update.id}>
               <strong>{update.title}</strong>
               <span className="moderation-queue-meta">
+                {update.kind === 'announcement' ? 'Announcement' : 'Release update'}
+                {' · '}
                 {update.version ? `v${update.version} · ` : ''}
                 {update.published ? 'Published' : 'Draft'}
                 {update.publishedAt
                   ? ` · ${formatUpdateDate(update.publishedAt)}`
                   : ''}
                 {' · '}
-                /updates/{update.slug}
+                /news/{update.slug}
               </span>
               <div className="moderation-actions">
                 <button
@@ -266,7 +287,7 @@ export function ModerationUpdatesPanel({
                 {update.published && (
                   <a
                     className="btn btn-ghost"
-                    href={updatesPath(update.slug)}
+                    href={newsPath(update.slug)}
                     target="_blank"
                     rel="noreferrer"
                   >

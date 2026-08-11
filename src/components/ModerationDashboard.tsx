@@ -102,7 +102,7 @@ export function ModerationDashboard({
     setTab('search')
   }, [open])
 
-  if (!open || !allowed) return null
+  if ((!open && !inline) || !allowed) return null
 
   async function runAction(fn: () => Promise<{ ok: boolean; error?: string }>) {
     setBusy(true)
@@ -238,7 +238,7 @@ export function ModerationDashboard({
               ...(isOwner
                 ? [
                     { id: 'status' as const, label: 'Status' },
-                    { id: 'updates' as const, label: 'Updates' },
+                    { id: 'updates' as const, label: 'News' },
                   ]
                 : []),
             ]

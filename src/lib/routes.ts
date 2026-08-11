@@ -14,12 +14,20 @@ export const ATTRIBUTION_PATH = '/attribution'
 export const MODERATION_POLICY_PATH = '/moderation'
 export const ABOUT_PATH = '/about'
 export const HOW_IT_WORKS_PATH = '/how-it-works'
+export const NEWS_PATH = '/news'
+/** Legacy path retained for compatibility redirects. */
 export const UPDATES_PATH = '/updates'
 export const DATABASE_PATH = '/database'
 export const STAFF_PATH = '/staff'
 export const STAFF_ANALYTICS_PATH = '/staff/analytics'
 export const STAFF_MODERATION_PATH = '/staff/moderation'
+export const STAFF_COMMENTS_PATH = '/staff/comments'
 export const PLAY_PATH_PREFIX = '/play'
+
+export function newsPath(slug?: string | null): string {
+  if (!slug) return NEWS_PATH
+  return `${NEWS_PATH}/${encodeURIComponent(slug)}`
+}
 
 export function updatesPath(slug?: string | null): string {
   if (!slug) return UPDATES_PATH

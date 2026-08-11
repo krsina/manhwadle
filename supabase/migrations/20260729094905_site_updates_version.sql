@@ -1,5 +1,3 @@
--- Add product version to site_updates changelog entries.
-
 alter table public.site_updates
   add column if not exists version text;
 
@@ -92,37 +90,17 @@ begin
     end if;
 
     insert into public.site_updates (
-      slug,
-      title,
-      body,
-      version,
-      published,
-      published_at,
-      created_by,
-      updated_by
+      slug, title, body, version, published, published_at, created_by, updated_by
     ) values (
-      v_slug,
-      v_title,
-      v_body,
-      v_version,
-      v_published,
+      v_slug, v_title, v_body, v_version, v_published,
       case when v_published then timezone('utc', now()) else null end,
-      p_actor_id,
-      p_actor_id
+      p_actor_id, p_actor_id
     )
     returning * into v_row;
 
     perform app_private.audit_moderation(
-      p_actor_id,
-      p_actor_id,
-      'create_site_update',
-      'created site update',
-      jsonb_build_object(
-        'id', v_row.id,
-        'slug', v_row.slug,
-        'version', v_row.version,
-        'published', v_row.published
-      )
+      p_actor_id, p_actor_id, 'create_site_update', 'created site update',
+      jsonb_build_object('id', v_row.id, 'slug', v_row.slug, 'version', v_row.version, 'published', v_row.published)
     );
   else
     select * into v_row from public.site_updates where id = p_id;
@@ -180,16 +158,8 @@ begin
     returning * into v_row;
 
     perform app_private.audit_moderation(
-      p_actor_id,
-      p_actor_id,
-      'update_site_update',
-      'updated site update',
-      jsonb_build_object(
-        'id', v_row.id,
-        'slug', v_row.slug,
-        'version', v_row.version,
-        'published', v_row.published
-      )
+      p_actor_id, p_actor_id, 'update_site_update', 'updated site update',
+      jsonb_build_object('id', v_row.id, 'slug', v_row.slug, 'version', v_row.version, 'published', v_row.published)
     );
   end if;
 
@@ -200,7 +170,6 @@ begin
 end;
 $$;
 
--- Recreate grants for the new upsert signature.
 revoke all on function public.moderation_upsert_site_update(uuid, uuid, text, text, text, boolean)
   from public, anon, authenticated, service_role;
 revoke all on function public.moderation_upsert_site_update(uuid, uuid, text, text, text, boolean, text)

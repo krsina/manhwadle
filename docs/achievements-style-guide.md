@@ -230,4 +230,4 @@ When adding a category: extend CSS tint tokens, `achievementCategoryLabel`, and 
 | Unlock / detail UI | `src/components/AchievementUnlockModal.tsx` |
 | Icons | `src/components/AchievementIcon.tsx` |
 | Catalog UI | `src/components/AchievementBadges.tsx`, `src/pages/MilestonesPage.tsx` |
-| Rebalance migration | `supabase/migrations/20260720232417_achievement_rebalance_early_bird_cascade.sql` |
+| Rebalance migration | `supabase/migrations/20260720232931_achievement_rebalance_early_bird_cascade.sql` |

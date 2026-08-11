@@ -4,7 +4,8 @@ import {
   UpdateArticle,
   UpdatesBackLink,
 } from '../components/UpdateArticle'
-import { UPDATES_PATH } from '../lib/routes'
+import { NewsCommentsSection } from '../components/NewsCommentsSection'
+import { NEWS_PATH, newsPath } from '../lib/routes'
 import {
   fetchPublicSiteUpdate,
   type SiteUpdate,
@@ -49,14 +50,14 @@ export function UpdateDetailPage() {
       <UpdatesBackLink />
       {loading && (
         <p className="updates-status" role="status">
-          Loading update…
+          Loading news…
         </p>
       )}
       {!loading && error && (
         <>
-          <h1 className="legal-title">Update not found</h1>
+          <h1 className="legal-title">News item not found</h1>
           <p className="legal-updated">
-            This update may be unpublished or the link is out of date.
+            This item may be unpublished or the link is out of date.
           </p>
         </>
       )}
@@ -67,15 +68,16 @@ export function UpdateDetailPage() {
             update={update}
             onUpdated={(next) => {
               if (!next.published) {
-                void navigate(UPDATES_PATH)
+                void navigate(NEWS_PATH)
                 return
               }
               setUpdate(next)
               if (next.slug !== slug) {
-                void navigate(`/updates/${encodeURIComponent(next.slug)}`, { replace: true })
+                void navigate(newsPath(next.slug), { replace: true })
               }
             }}
           />
+          <NewsCommentsSection slug={update.slug} />
         </>
       )}
     </div>

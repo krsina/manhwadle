@@ -21,14 +21,15 @@ const OAUTH_PROVIDERS: {
   { id: 'discord', label: 'Continue with Discord', icon: 'discord' },
 ]
 
-/** Compact optional sign-in. Hidden when Supabase env is missing. */
+/** Compact optional sign-in. Hidden when Supabase env is missing (unless local owner preview). */
 export function AuthButton() {
-  const { user, account, configured, loading, signInWithMagicLink, signInWithOAuth, signOut } =
+  const { user, account, session, configured, loading, signInWithMagicLink, signInWithOAuth, signOut } =
     useAuth()
   const navigate = useNavigate()
   const { showUserModeToggle, userMode, setUserMode } = useOwnerDevAccess()
   const [open, setOpen] = useState(false)
   const hideOwnerPrivileges = showUserModeToggle && userMode
+  const localOwnerOnly = Boolean(import.meta.env.DEV && user && !session)
 
   if (!configured) return null
 
@@ -38,6 +39,19 @@ export function AuthButton() {
         <span className="auth-avatar" aria-hidden="true" />
         <span className="auth-chip-label">…</span>
       </div>
+    )
+  }
+
+  if (import.meta.env.DEV && userMode && !session) {
+    return (
+      <button
+        type="button"
+        className="auth-chip-btn"
+        onClick={() => setUserMode(false)}
+      >
+        <AccountIcon />
+        Resume local owner
+      </button>
     )
   }
 
@@ -66,6 +80,7 @@ export function AuthButton() {
           showUserModeToggle={showUserModeToggle}
           userMode={userMode}
           onToggleUserMode={() => setUserMode(!userMode)}
+          signOutLabel={localOwnerOnly ? 'View as guest' : 'Sign out'}
           onSignOut={() => signOut()}
         />
     )
@@ -127,7 +142,7 @@ function ChevronIcon() {
   )
 }
 
-function SignInModal({
+export function SignInModal({
   onClose,
   onSignIn,
   onOAuth,
@@ -303,6 +318,7 @@ function AccountMenu({
   showUserModeToggle,
   userMode,
   onToggleUserMode,
+  signOutLabel = 'Sign out',
   onSignOut,
 }: {
   label: string
@@ -317,6 +333,7 @@ function AccountMenu({
   showUserModeToggle?: boolean
   userMode?: boolean
   onToggleUserMode?: () => void
+  signOutLabel?: string
   onSignOut: () => Promise<void>
 }) {
   const menuId = useId()
@@ -454,7 +471,7 @@ function AccountMenu({
                 })
               }}
             >
-              {busy ? 'Signing out…' : 'Sign out'}
+              {busy ? 'Signing out…' : signOutLabel}
             </button>
           </div>
         </div>

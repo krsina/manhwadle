@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { LegalDoc } from './LegalDoc'
-import { HOW_IT_WORKS_PATH, PLAY_PATH_PREFIX, UPDATES_PATH } from '../lib/routes'
+import { HOW_IT_WORKS_PATH, NEWS_PATH, PLAY_PATH_PREFIX } from '../lib/routes'
 import { APP_NAME } from '../brand'
 
 export function AboutPage() {
@@ -43,7 +43,7 @@ export function AboutPage() {
         <h2>Learn more</h2>
         <p>
           Read <Link to={HOW_IT_WORKS_PATH}>How it works</Link>, browse{' '}
-          <Link to={UPDATES_PATH}>Updates</Link>, then jump into{' '}
+          <Link to={NEWS_PATH}>News</Link>, then jump into{' '}
           <Link to={`${PLAY_PATH_PREFIX}/summary`}>today&apos;s Summary mode</Link>.
         </p>
       </section>

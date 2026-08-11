@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useState } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider } from './components/AuthProvider'
 import { AppLayout } from './components/AppLayout'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -10,6 +10,7 @@ import {
   saveReaderTaste,
   type ReaderTaste,
 } from './lib/readerTaste'
+import { NEWS_PATH, newsPath } from './lib/routes'
 import './styles.css'
 
 const HomePage = lazy(() =>
@@ -71,6 +72,9 @@ const StaffDashboardPage = lazy(() =>
 const StaffModerationPage = lazy(() =>
   import('./pages/StaffDashboardPage').then((m) => ({ default: m.StaffModerationPage })),
 )
+const StaffCommentsPage = lazy(() =>
+  import('./pages/StaffDashboardPage').then((m) => ({ default: m.StaffCommentsPage })),
+)
 const AnalyticsDashboardPage = lazy(() =>
   import('./pages/AnalyticsDashboardPage').then((m) => ({
     default: m.AnalyticsDashboardPage,
@@ -83,6 +87,11 @@ function RouteFallback() {
       Loading…
     </div>
   )
+}
+
+function LegacyUpdateRedirect() {
+  const { slug } = useParams<{ slug: string }>()
+  return <Navigate to={newsPath(slug)} replace />
 }
 
 /**
@@ -195,7 +204,7 @@ function App() {
                 }
               />
               <Route
-                path="updates"
+                path="news"
                 element={
                   <Suspense fallback={<RouteFallback />}>
                     <UpdatesPage />
@@ -203,13 +212,15 @@ function App() {
                 }
               />
               <Route
-                path="updates/:slug"
+                path="news/:slug"
                 element={
                   <Suspense fallback={<RouteFallback />}>
                     <UpdateDetailPage />
                   </Suspense>
                 }
               />
+              <Route path="updates" element={<Navigate to={NEWS_PATH} replace />} />
+              <Route path="updates/:slug" element={<LegacyUpdateRedirect />} />
               <Route
                 path="database"
                 element={
@@ -275,6 +286,14 @@ function App() {
                   element={
                     <Suspense fallback={<RouteFallback />}>
                       <StaffModerationPage />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="comments"
+                  element={
+                    <Suspense fallback={<RouteFallback />}>
+                      <StaffCommentsPage />
                     </Suspense>
                   }
                 />

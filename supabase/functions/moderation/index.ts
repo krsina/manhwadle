@@ -30,6 +30,10 @@ type Action =
   | "list_site_updates"
   | "upsert_site_update"
   | "delete_site_update"
+  | "list_site_update_comments"
+  | "set_site_update_comment_status"
+  | "issue_comment_ban"
+  | "revoke_comment_ban"
   | "get_analytics";
 
 function corsFor(req: Request): Record<string, string> {
@@ -441,6 +445,7 @@ Deno.serve(async (req: Request) => {
           p_published:
             typeof body.published === "boolean" ? body.published : null,
           p_version: asString(body.version),
+          p_kind: asString(body.kind),
         });
         if (error) return jsonResponse(req, { error: error.message }, 400);
         return jsonResponse(req, { ok: true, result: data });
@@ -452,6 +457,83 @@ Deno.serve(async (req: Request) => {
         const { data, error } = await rpc("moderation_delete_site_update", {
           p_actor_id: actorId,
           p_id: id,
+        });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
+      }
+
+      case "list_site_update_comments": {
+        const { data, error } = await rpc("moderation_list_site_update_comments", {
+          p_actor_id: actorId,
+          p_status: asString(body.status),
+          p_limit: typeof body.limit === "number" ? body.limit : 50,
+          p_offset: typeof body.offset === "number" ? body.offset : 0,
+          p_post_slug: asString(body.post_slug),
+        });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
+      }
+
+      case "set_site_update_comment_status": {
+        const commentId = asString(body.comment_id);
+        const status = asString(body.status);
+        if (!commentId || !status) {
+          return jsonResponse(req, { error: "comment_id and status required" }, 400);
+        }
+        if (reason.trim().length < 3) {
+          return jsonResponse(req, { error: "reason required" }, 400);
+        }
+        const { data, error } = await rpc(
+          "moderation_set_site_update_comment_status",
+          {
+            p_actor_id: actorId,
+            p_comment_id: commentId,
+            p_status: status,
+            p_reason: reason,
+          },
+        );
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
+      }
+
+      case "issue_comment_ban": {
+        if (!targetUserId) {
+          return jsonResponse(req, { error: "target_user_id required" }, 400);
+        }
+        if (reason.trim().length < 3) {
+          return jsonResponse(req, { error: "reason required" }, 400);
+        }
+        const permanent = asBool(body.permanent);
+        const endsAt = asString(body.ends_at);
+        if (!permanent && !endsAt) {
+          return jsonResponse(
+            req,
+            { error: "ends_at required for temporary actions" },
+            400,
+          );
+        }
+        const { data, error } = await rpc("moderation_issue_comment_ban", {
+          p_actor_id: actorId,
+          p_target_user_id: targetUserId,
+          p_reason: reason,
+          p_ends_at: permanent ? null : endsAt,
+          p_permanent: permanent,
+        });
+        if (error) return jsonResponse(req, { error: error.message }, 400);
+        return jsonResponse(req, { ok: true, result: data });
+      }
+
+      case "revoke_comment_ban": {
+        if (!targetUserId) {
+          return jsonResponse(req, { error: "target_user_id required" }, 400);
+        }
+        if (reason.trim().length < 3) {
+          return jsonResponse(req, { error: "reason required" }, 400);
+        }
+        const { data, error } = await rpc("moderation_revoke_comment_ban", {
+          p_actor_id: actorId,
+          p_target_user_id: targetUserId,
+          p_reason: reason,
         });
         if (error) return jsonResponse(req, { error: error.message }, 400);
         return jsonResponse(req, { ok: true, result: data });
