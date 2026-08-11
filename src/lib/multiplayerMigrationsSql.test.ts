@@ -24,6 +24,9 @@ const schedulerMigration = readSql(
 const singleContributorMigration = readSql(
   'supabase/migrations/20260811185816_collaborative_pool_single_contributor.sql',
 )
+const fullCatalogCapMigration = readSql(
+  'supabase/migrations/20260811194713_saved_lists_full_catalog_cap.sql',
+)
 
 describe('group multiplayer backend migration contracts', () => {
   it('keeps every multiplayer table private and restores no versus objects', () => {
@@ -470,6 +473,26 @@ describe('collaborative Versus pools migration contracts', () => {
     )
     expect(singleContributorMigration).toContain(
       'grant execute on function public.multiplayer_set_ready(uuid, boolean, text)\n  to authenticated, service_role',
+    )
+  })
+
+  it('lets a saved list grow to the whole catalog', () => {
+    expect(fullCatalogCapMigration).toContain(
+      'cardinality(p_manhwa_ids) < 3',
+    )
+    expect(fullCatalogCapMigration).not.toContain('between 3 and 100')
+    expect(fullCatalogCapMigration).toContain(
+      'add constraint user_saved_list_entries_position_check check ("position" >= 0)',
+    )
+    expect(fullCatalogCapMigration).toContain(
+      'check (entry_count >= 3)',
+    )
+    expect(fullCatalogCapMigration).toContain('v_entry_count < 3')
+    expect(fullCatalogCapMigration).toContain(
+      "'list_title_not_in_catalog'",
+    )
+    expect(fullCatalogCapMigration).toContain(
+      'grant execute on function public.multiplayer_set_list_contribution(uuid, uuid, text)\n  to authenticated, service_role',
     )
   })
 

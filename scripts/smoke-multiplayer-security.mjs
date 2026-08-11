@@ -113,10 +113,10 @@ async function main() {
       .from('puzzle_pool_entries')
       .select('manhwa_id')
       .eq('mode', 'summary')
-      .limit(30)
+      .limit(600)
     if (poolError) throw new Error(`Pool lookup: ${poolError.message}`)
     const candidateIds = [...new Set((poolRows ?? []).map((row) => row.manhwa_id))]
-    assert(candidateIds.length >= 8, 'Need summary catalog titles for list abuse smoke')
+    assert(candidateIds.length >= 120, 'Need summary catalog titles for list abuse smoke')
 
     const hostList = await rpcOk(host.client, 'saved_list_create', {
       p_name: 'Host private picks',
@@ -156,14 +156,33 @@ async function main() {
         `failed list request ${attempt + 1} did not consume rate budget: ${JSON.stringify(invalid)}`,
       )
     }
-    const oversized = await rpcResult(guest.client, 'saved_list_set_entries', {
+    // Catalog membership is the only ceiling now, so a 120-title list is legal.
+    const large = await rpcResult(guest.client, 'saved_list_set_entries', {
       p_list_id: guestList.list.id,
-      p_manhwa_ids: Array.from({ length: 101 }, (_, index) => index + 1),
-      p_idempotency_key: `abuse-oversized-list-${suffix}`,
+      p_manhwa_ids: candidateIds.slice(0, 120),
+      p_idempotency_key: `abuse-large-list-${suffix}`,
     })
     assert(
-      oversized.ok === false && oversized.error === 'invalid_list_entries',
-      `oversized list accepted: ${JSON.stringify(oversized)}`,
+      large.ok === true && large.list?.manhwa_ids?.length === 120,
+      `list beyond the retired 100 cap was rejected: ${JSON.stringify(large)}`,
+    )
+    const duplicated = await rpcResult(guest.client, 'saved_list_set_entries', {
+      p_list_id: guestList.list.id,
+      p_manhwa_ids: [candidateIds[0], candidateIds[1], candidateIds[0]],
+      p_idempotency_key: `abuse-duplicate-list-${suffix}`,
+    })
+    assert(
+      duplicated.ok === false && duplicated.error === 'duplicate_list_title',
+      `duplicate titles accepted: ${JSON.stringify(duplicated)}`,
+    )
+    const tooSmall = await rpcResult(guest.client, 'saved_list_set_entries', {
+      p_list_id: guestList.list.id,
+      p_manhwa_ids: candidateIds.slice(0, 2),
+      p_idempotency_key: `abuse-small-list-${suffix}`,
+    })
+    assert(
+      tooSmall.ok === false && tooSmall.error === 'invalid_list_entries',
+      `list below the three-title minimum accepted: ${JSON.stringify(tooSmall)}`,
     )
     const invalidCatalog = await rpcResult(guest.client, 'saved_list_set_entries', {
       p_list_id: guestList.list.id,
