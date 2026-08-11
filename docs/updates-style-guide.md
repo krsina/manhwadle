@@ -1,28 +1,38 @@
-# Updates style guide
+# News style guide
 
-Public changelog for `/updates`. Write for players, not for the git log.
+Public posts for `/news` (legacy `/updates` redirects here). Write for players, not for the git log.
+
+The page shows two **kinds** of posts:
+
+| Kind | Badge on the page | Version | Use for |
+| --- | --- | --- | --- |
+| **`update`** | Release update | Required (`MAJOR.MINOR.PATCH`) | Patch notes and feature ships |
+| **`announcement`** | Announcement | Optional | Schedule notes, policy, maintenance, one-off notices |
+
+Release updates still use the **Brief** body shape below. Announcements may drop the bullet list when a short lead is enough, but keep the same plain-text rules.
 
 ## Latest published version
 
-**`1.0.2`** (Clearer Archive, Character, and Updates)
+**`1.1.0`** (Multiplayer mode and News comments)
 
-Keep this line in sync with the newest **published** row in `site_updates`. Whenever a new version ships (via `/write-site-update`, Moderation, or a manual edit), update:
+Keep this line in sync with the newest **published `update`** row in `site_updates` that carries a version. Whenever a new release update ships (via `/write-site-update`, Moderation → News, or a manual edit), update:
 
 1. This **Latest published version** line
-2. The **Example (preferred)** version / title / body below so they match that post
+2. The **Example (preferred)** version / title / body / kind below so they match that post
 3. The **Good example** in `.cursor/skills/write-site-update/SKILL.md`
 
-Do not leave the guide or skill pointing at an older version after a publish.
+Do not leave the guide or skill pointing at an older version after a publish. Announcements do not move this stamp unless they also ship a versioned release update.
 
-## Canonical format: Brief
+## Canonical format: Brief (release updates)
 
-Every update uses this shape:
+Every **release update** uses this shape:
 
-1. **Version** - product version for this ship (see Versioning)
-2. **Title** - names the theme (≤ ~60 characters)
-3. **Lead** - one short sentence on the point of the ship
-4. **Blank line**
-5. **Bullets** - 2–5 player-facing changes
+1. **Kind** - `update`
+2. **Version** - product version for this ship (see Versioning)
+3. **Title** - names the theme (≤ ~60 characters)
+4. **Lead** - one short sentence on the point of the ship
+5. **Blank line**
+6. **Bullets** - 2–5 player-facing changes
 
 Plain text only. No markdown headings, bold, or links.
 
@@ -30,41 +40,58 @@ Do not use em dashes (`—`). Prefer commas, periods, colons, or parentheses.
 
 ### Example (preferred)
 
-**Version:** `1.0.2`
+**Kind:** `update`
 
-**Title:** Clearer Archive, Character, and Updates
+**Version:** `1.1.0`
+
+**Title:** Multiplayer mode and News comments
 
 **Body:**
 ```
-Small polish across home, Character, and Updates so past puzzles, bonus names, tags, and post times are easier to follow.
+Friends can duel in Versus, and News is the home for release notes with signed-in comments.
 
-• Archive label and calendar on home highlight together on hover
-• Character results put the cast name under the series title after you guess it
-• Bonus name suggestions scroll cleanly on phones without clipping celebrations
-• Desktop guess rows stay even while tags scroll inside the cell
-• Updates timestamps show the UTC time, not just the date
+• Versus: create or join a room, pick modes and seats, then ready up for timed rounds
+• Collaborative rooms only need one shared saved list, built from the manhwa catalog
+• News hosts release updates and announcements, and signed-in readers can leave comments
+• Homepage podium avatars, milestones, and the archive control sit cleaner on phones and desktop
+```
+
+### Announcement shape
+
+Announcements use the same title and plain-text rules. Version is optional. Prefer a lead plus at most a few bullets; a single paragraph is fine when there is nothing to list.
+
+**Kind:** `announcement`
+
+**Title:** Weekend maintenance window
+
+**Body:**
+```
+A short maintenance window is planned this weekend.
+
+Daily puzzles will still appear; cloud sync may briefly pause.
 ```
 
 ## Versioning
 
-Each published post carries a **version** string shown next to the date.
+Each published **release update** carries a **version** string shown next to the date as `vX.Y.Z`.
 
 Manhwadle is a **public `1.x` product**. Use **semver-style** `MAJOR.MINOR.PATCH`:
 
 | Bump | When |
 | --- | --- |
 | **MAJOR** | Rare. Breaking change to how daily play works, or a big product reset players must notice. |
-| **MINOR** | New player-facing feature, mode change, shop roster, or themed UX ship. Typical Updates post. |
+| **MINOR** | New player-facing feature, mode change, shop roster, or themed UX ship. Typical News release update. |
 | **PATCH** | Small fixes, copy tweaks, art polish, or follow-ups that do not change the main loop. |
 
 Rules:
 
-- Version is required for published posts.
+- Version is required for published posts with kind `update`.
+- Announcements may omit version; if you set one, it still must be unique and forward-moving.
 - One version per post. Do not reuse a version on a later post.
 - Versions must move forward (`1.0.0` → `1.0.1` or `1.1.0`, never backwards).
-- Put the version in the **version field**, not in the title. Titles stay thematic; the page shows version + date.
+- Put the version in the **version field**, not in the title. Titles stay thematic; the page shows kind + version + date.
 - Before choosing a number, read **Latest published version** above and/or query live `site_updates` versions.
-- After publishing, update **Latest published version** and both examples (this guide + the skill) in the same change.
+- After publishing a versioned release update, update **Latest published version** and both examples (this guide + the skill) in the same change.
 
 ## Voice
 
@@ -79,6 +106,7 @@ Rules:
 - Good: `Guest dailies stay on target`
 - Avoid: `Various bug fixes and improvements`
 - Do not put the version or date in the title (both are shown automatically).
+- Do not put “Announcement” or “Release update” in the title; the kind badge covers that.
 
 ## Body rules
 
@@ -86,7 +114,7 @@ Rules:
 - Bullets: each line starts with `• ` (bullet character + space).
 - Group related items in one bullet when useful (“Avatar shop: …”).
 - Aim for a phone-screen skim: roughly 40–90 words.
-- If you need more than five bullets, split into two updates or cut the least player-visible items.
+- If you need more than five bullets, split into two posts or cut the least player-visible items.
 
 ## What to include
 
@@ -94,28 +122,32 @@ Rules:
 | --- | --- |
 | New modes, shop items, UI players will notice | SQL, RLS, edge functions, CI |
 | Bug fixes players hit | Renames of internal IDs |
-| Art refreshes that change how avatars look | WIP / unreleased experiments |
+| Art refreshes that change how avatars look | WIP / unreleased experiments, owner-only / local-dev tools |
 | Policy or schedule changes that affect play | “Refactored X for maintainability” |
+| News comments or moderation players will feel | Staff-only dashboards |
 
 ## Do / don’t
 
+- Do pick the right **kind** (`update` vs `announcement`) before drafting.
 - Do write the lead so someone could skim title + lead and still get the idea.
 - Do keep bullets concrete and scannable.
-- Do set a version that matches how big the ship feels (MINOR vs PATCH).
+- Do set a version that matches how big the ship feels (MINOR vs PATCH) for release updates.
 - Do keep this guide and the write-site-update skill examples on the latest published version.
 - Don’t list every file or avatar slug unless the name is shop-facing.
-- Don’t announce the Updates page every time. Only on first launch or major changes to it.
-- Don’t promise upcoming work in the same post as shipped changes (use a separate post if needed).
-- Don’t drop the lead to go “bullets only”. Brief is the house style.
+- Don’t announce the News page every time. Only on first launch or major changes to it.
+- Don’t promise upcoming work in the same post as shipped changes (use a separate announcement if needed).
+- Don’t drop the lead to go “bullets only” on release updates. Brief is the house style.
 - Don’t use em dashes.
+- Don’t publish owner-only or local-dev tooling as if players can open it.
 
 ## Checklist before publish
 
-- [ ] Version set and not reused (newer than **Latest published version**)?
+- [ ] Kind set (`update` or `announcement`)?
+- [ ] If `update`: version set and not reused (newer than **Latest published version**)?
 - [ ] Title + lead make sense without reading the bullets?
 - [ ] Would a casual player understand every bullet?
 - [ ] Is anything in here only useful to you as the developer?
-- [ ] Slug looks shareable (`easier-play-on-phones`, not `update-7-29`)?
+- [ ] Slug looks shareable (`versus-lobbies-and-news-comments`, not `update-8-11`)?
 - [ ] No em dashes in title or body?
 - [ ] Published only when the matching code is actually live for players?
-- [ ] After publish: guide + skill examples updated to the new version?
+- [ ] After publish of a versioned release update: guide + skill examples updated to the new version?
