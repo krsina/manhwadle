@@ -266,7 +266,17 @@ export function parseAvatarShopSnapshot(raw: unknown): AvatarShopSnapshot | null
     }
   }
 
-  const mergedItems = mergeCatalog(items, AVATAR_CATALOG_FALLBACK, equippedAvatarId).map((item) => ({
+  const authenticated = row.authenticated === true
+  // Signed-in responses must not inject client-only catalog rows — those cannot be
+  // claimed/purchased until the matching shop_items migration is live.
+  const catalogItems = authenticated
+    ? items.slice().sort(compareShopItemsByPrice)
+    : mergeCatalog(items, AVATAR_CATALOG_FALLBACK, equippedAvatarId)
+  const catalogStages = authenticated
+    ? stages.slice().sort(compareShopItemsByPrice)
+    : mergeCatalog(stages, STAGE_CATALOG_FALLBACK, equippedStageId)
+
+  const mergedItems = catalogItems.map((item) => ({
     ...item,
     awakeningLevel: AVATAR_AWAKENINGS_ENABLED ? (item.awakeningLevel ?? 0) : 0,
   }))
@@ -277,14 +287,18 @@ export function parseAvatarShopSnapshot(raw: unknown): AvatarShopSnapshot | null
     : 0
 
   return {
-    authenticated: row.authenticated === true,
+    authenticated,
     balance: asNonNegativeInteger(row.balance),
     equippedAvatarId,
     equippedStageId,
     equippedAwakeningLevel,
     items: mergedItems,
-    stages: mergeCatalog(stages, STAGE_CATALOG_FALLBACK, equippedStageId),
-    awakenings: AVATAR_AWAKENINGS_ENABLED ? mergeAwakeningCatalog(awakenings) : [],
+    stages: catalogStages,
+    awakenings: AVATAR_AWAKENINGS_ENABLED
+      ? authenticated
+        ? awakenings
+        : mergeAwakeningCatalog(awakenings)
+      : [],
   }
 }
 

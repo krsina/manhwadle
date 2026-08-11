@@ -84,12 +84,15 @@ describe('parseAvatarShopSnapshot', () => {
       awakeningLevel: 0,
     })
     expect(shop?.stages.find((item) => item.id === 'stage_sky_meadow')?.equipped).toBe(true)
-    expect(shop?.stages.some((item) => item.id === DEFAULT_STAGE_ID)).toBe(true)
+    // Signed-in snapshots stay server-authoritative — no client catalog merge.
+    expect(shop?.items).toHaveLength(1)
+    expect(shop?.stages).toHaveLength(1)
+    expect(shop?.stages.some((item) => item.id === DEFAULT_STAGE_ID)).toBe(false)
     // Awakenings stripped from shop snapshot while production flag is off.
     expect(shop?.awakenings).toEqual([])
   })
 
-  it('filters malformed items and falls back safely', () => {
+  it('merges the offline catalog for guest snapshots only', () => {
     const shop = parseAvatarShopSnapshot({
       ok: true,
       authenticated: false,
@@ -111,8 +114,45 @@ describe('parseAvatarShopSnapshot', () => {
     expect(shop?.equippedAvatarId).toBe(DEFAULT_AVATAR_ID)
     expect(shop?.equippedStageId).toBe(DEFAULT_STAGE_ID)
     expect(shop?.items.some((item) => item.id === 'avatar_default_female')).toBe(true)
+    expect(shop?.items.some((item) => item.id === 'avatar_explorer_a')).toBe(true)
     expect(shop?.items.some((item) => item.id === 'bad')).toBe(false)
     expect(shop?.stages).toHaveLength(3)
+  })
+
+  it('does not inject client-only explorers into signed-in snapshots', () => {
+    const shop = parseAvatarShopSnapshot({
+      ok: true,
+      authenticated: true,
+      balance: 10,
+      equipped_avatar_id: DEFAULT_AVATAR_ID,
+      equipped_stage_id: DEFAULT_STAGE_ID,
+      items: [
+        {
+          id: DEFAULT_AVATAR_ID,
+          name: 'Default (Female)',
+          asset_key: DEFAULT_AVATAR_ID,
+          rarity: 'starter',
+          price: 0,
+          owned: true,
+          equipped: true,
+        },
+      ],
+      stages: [
+        {
+          id: DEFAULT_STAGE_ID,
+          name: 'Blossom Courtyard',
+          asset_key: DEFAULT_STAGE_ID,
+          rarity: 'common',
+          price: 0,
+          owned: true,
+          equipped: true,
+        },
+      ],
+    })
+
+    expect(shop?.items.map((item) => item.id)).toEqual([DEFAULT_AVATAR_ID])
+    expect(shop?.stages.map((item) => item.id)).toEqual([DEFAULT_STAGE_ID])
+    expect(shop?.items.some((item) => item.id === 'avatar_explorer_a')).toBe(false)
   })
 
   it('rejects failed and malformed responses', () => {
