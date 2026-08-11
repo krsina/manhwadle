@@ -1,7 +1,6 @@
 import { isSupabaseConfigured, supabase } from './supabase'
 
 export const SAVED_LIST_MIN_ENTRIES = 3
-export const SAVED_LIST_MAX_ENTRIES = 100
 export const SAVED_LIST_MAX_COUNT = 10
 export const SAVED_LIST_MAX_NAME_LENGTH = 40
 
@@ -70,7 +69,7 @@ export function savedListErrorMessage(error: string): string {
     invalid_list_name: 'Use a name between 1 and 40 characters.',
     list_name_taken: 'You already have a list with that name.',
     list_limit_reached: 'You can save up to 10 lists.',
-    invalid_list_entries: 'Choose between 3 and 100 catalog titles.',
+    invalid_list_entries: 'Choose at least 3 catalog titles.',
     duplicate_list_title: 'Each title can appear only once.',
     list_title_not_in_catalog: 'One or more titles are not available for Versus.',
     rate_limited: 'Too many list changes. Wait a moment and try again.',

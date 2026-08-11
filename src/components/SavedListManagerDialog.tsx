@@ -3,6 +3,7 @@ import {
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import type { Manhwa } from '../lib/anilist-types'
@@ -13,6 +14,7 @@ import {
   READER_TASTE_OPTIONS,
   type ReaderTaste,
 } from '../lib/readerTaste'
+import { savedListDraftIssue, savedListProgress } from '../lib/savedListDraft'
 import {
   createSavedList,
   deleteSavedList,
@@ -21,7 +23,6 @@ import {
   renameSavedList,
   replaceSavedListEntries,
   SAVED_LIST_MAX_COUNT,
-  SAVED_LIST_MAX_ENTRIES,
   SAVED_LIST_MAX_NAME_LENGTH,
   SAVED_LIST_MIN_ENTRIES,
   savedListErrorMessage,
@@ -71,6 +72,8 @@ export function SavedListManagerDialog({
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const headRef = useRef<HTMLDivElement>(null)
+  const nameRef = useRef<HTMLInputElement>(null)
 
   const catalogById = useMemo(
     () => new Map(catalog.map((manhwa) => [manhwa.id, manhwa])),
@@ -92,7 +95,11 @@ export function SavedListManagerDialog({
     return sortCatalogByRank(matched)
   }, [catalog, deferredQuery, lane])
   const visible = ranked.slice(0, visibleCount)
-  const atCapacity = selectedIds.length >= SAVED_LIST_MAX_ENTRIES
+
+  const scrollToTop = useCallback(() => {
+    const panel = headRef.current?.closest('.modal')
+    if (panel && typeof panel.scrollTo === 'function') panel.scrollTo({ top: 0 })
+  }, [])
 
   const refreshLists = useCallback(async () => {
     const result = await listSavedLists()
@@ -116,6 +123,12 @@ export function SavedListManagerDialog({
     setVisibleCount(PAGE_SIZE)
   }, [deferredQuery, lane, editingId])
 
+  function leaveEditor() {
+    setEditingId(undefined)
+    setError(null)
+    scrollToTop()
+  }
+
   function beginCreate() {
     setEditingId(null)
     setName('')
@@ -123,6 +136,7 @@ export function SavedListManagerDialog({
     setQuery('')
     setLane('both')
     setError(null)
+    scrollToTop()
   }
 
   async function beginEdit(list: SavedListSummary) {
@@ -139,24 +153,25 @@ export function SavedListManagerDialog({
     setSelectedIds(result.value.manhwaIds)
     setQuery('')
     setLane('both')
+    scrollToTop()
   }
 
   function toggleTitle(manhwaId: number) {
-    setSelectedIds((ids) => {
-      if (ids.includes(manhwaId)) return ids.filter((id) => id !== manhwaId)
-      if (ids.length >= SAVED_LIST_MAX_ENTRIES) return ids
-      return [...ids, manhwaId]
-    })
+    setSelectedIds((ids) =>
+      ids.includes(manhwaId)
+        ? ids.filter((id) => id !== manhwaId)
+        : [...ids, manhwaId],
+    )
   }
 
   async function save() {
-    if (
-      pending ||
-      name.trim().length < 1 ||
-      name.trim().length > SAVED_LIST_MAX_NAME_LENGTH ||
-      selectedIds.length < SAVED_LIST_MIN_ENTRIES ||
-      selectedIds.length > SAVED_LIST_MAX_ENTRIES
-    ) return
+    if (pending) return
+    const issue = savedListDraftIssue({ name, entryCount: selectedIds.length })
+    if (issue) {
+      setError(issue.message)
+      if (issue.field === 'name') nameRef.current?.focus()
+      return
+    }
     setPending(true)
     setError(null)
     if (editingId === null) {
@@ -192,6 +207,7 @@ export function SavedListManagerDialog({
     await refreshLists()
     setEditingId(undefined)
     setPending(false)
+    scrollToTop()
   }
 
   async function remove(list: SavedListSummary) {
@@ -206,7 +222,6 @@ export function SavedListManagerDialog({
   }
 
   const editing = editingId !== undefined
-  const nameTooLong = name.trim().length > SAVED_LIST_MAX_NAME_LENGTH
 
   return (
     <Dialog
@@ -216,8 +231,17 @@ export function SavedListManagerDialog({
       descriptionId="saved-list-manager-description"
       panelClassName="saved-list-dialog"
     >
-      <div className="saved-list-head">
-        <div>
+      <div className="saved-list-bar is-top" ref={headRef}>
+        {editing && (
+          <button
+            className="btn btn-ghost saved-list-back"
+            type="button"
+            onClick={leaveEditor}
+          >
+            <span aria-hidden="true">←</span> Back
+          </button>
+        )}
+        <div className="saved-list-bar-copy">
           <p className="versus-kicker">Private to your account</p>
           <h2 id="saved-list-manager-title">
             {editing
@@ -226,21 +250,22 @@ export function SavedListManagerDialog({
           </h2>
           <p id="saved-list-manager-description" className="versus-muted">
             {editing
-              ? `Pick ${SAVED_LIST_MIN_ENTRIES}–${SAVED_LIST_MAX_ENTRIES} catalog titles. Only your lobby sees the pool, never the list.`
+              ? `Pick at least ${SAVED_LIST_MIN_ENTRIES} catalog titles. Only your lobby sees the pool, never the list.`
               : 'Curate catalog titles, then share a list with a Versus lobby.'}
           </p>
         </div>
         <button
-          className="btn btn-ghost"
+          className="saved-list-x"
           type="button"
-          onClick={editing ? () => setEditingId(undefined) : onClose}
+          aria-label="Close saved lists"
+          onClick={onClose}
         >
-          {editing ? 'Back' : 'Close'}
+          <span aria-hidden="true">×</span>
         </button>
       </div>
-      {error && <p className="versus-error" role="alert">{error}</p>}
       {!editing ? (
         <>
+          {error && <p className="versus-error" role="alert">{error}</p>}
           <div className="saved-list-toolbar">
             <span className="versus-chip">
               {lists.length}/{SAVED_LIST_MAX_COUNT} lists
@@ -328,27 +353,24 @@ export function SavedListManagerDialog({
           <label className="versus-field">
             <span className="versus-label">List name</span>
             <input
+              ref={nameRef}
               value={name}
               maxLength={SAVED_LIST_MAX_NAME_LENGTH}
               onChange={(event) => setName(event.target.value)}
               placeholder="Favorites"
             />
           </label>
-          {nameTooLong && (
-            <p className="versus-hint">
-              Names are limited to {SAVED_LIST_MAX_NAME_LENGTH} characters.
-            </p>
-          )}
           <div className="saved-list-selection">
             <div className="saved-list-toolbar">
               <strong>Selected titles</strong>
               <span className="versus-chip">
-                {selectedIds.length}/{SAVED_LIST_MAX_ENTRIES}
+                {selectedIds.length} picked
               </span>
             </div>
             {selected.length === 0 ? (
               <p className="versus-muted">
-                Pick covers below to build the list. {SAVED_LIST_MIN_ENTRIES} minimum.
+                Pick covers below to build the list. {SAVED_LIST_MIN_ENTRIES} minimum,
+                up to the whole catalog.
               </p>
             ) : (
               <div className="saved-list-chips">
@@ -419,7 +441,6 @@ export function SavedListManagerDialog({
                       type="button"
                       className={`database-tile-link saved-list-pick${picked ? ' is-picked' : ''}`}
                       aria-pressed={picked}
-                      disabled={!picked && atCapacity}
                       onClick={() => toggleTitle(manhwa.id)}
                     >
                       <CatalogTileBody manhwa={manhwa} />
@@ -443,26 +464,21 @@ export function SavedListManagerDialog({
               Show more titles
             </button>
           )}
-          <div className="versus-panel-foot">
+          <div className="saved-list-bar is-bottom">
+            {error ? (
+              <p className="versus-error" role="alert">{error}</p>
+            ) : (
+              <p className="versus-muted saved-list-progress">
+                {savedListProgress(selectedIds.length)}
+              </p>
+            )}
             <button
               className="btn btn-primary"
               type="button"
-              disabled={
-                pending ||
-                name.trim().length < 1 ||
-                nameTooLong ||
-                selectedIds.length < SAVED_LIST_MIN_ENTRIES
-              }
+              disabled={pending}
               onClick={() => void save()}
             >
               {pending ? 'Saving…' : 'Save list'}
-            </button>
-            <button
-              className="btn btn-ghost"
-              type="button"
-              onClick={() => setEditingId(undefined)}
-            >
-              Cancel
             </button>
           </div>
         </div>

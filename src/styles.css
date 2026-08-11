@@ -10093,7 +10093,6 @@ a.database-tile-link:hover .database-title {
   overflow: auto;
 }
 
-.saved-list-head,
 .saved-list-toolbar,
 .saved-list-card,
 .contribution-row {
@@ -10103,14 +10102,90 @@ a.database-tile-link:hover .database-title {
   gap: 0.75rem;
 }
 
-.saved-list-head > div:first-child {
-  display: grid;
-  gap: 0.2rem;
+/* Sticky rails keep the title, Back and Save reachable while the grid scrolls. */
+.saved-list-bar {
+  position: sticky;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-inline: -1.4rem;
+  padding: 0.7rem 1.4rem;
+  background: var(--panel);
 }
 
-.saved-list-head h2,
+/* Sticky offsets sit inside the panel padding, so cancel it to reach the edge. */
+.saved-list-bar.is-top {
+  top: -1.45rem;
+  align-items: flex-start;
+  margin-top: -1.45rem;
+  padding-top: 1.45rem;
+  border-bottom: 1px solid var(--line);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.saved-list-bar.is-bottom {
+  bottom: -1.3rem;
+  justify-content: space-between;
+  margin-bottom: -1.3rem;
+  padding-bottom: 1.3rem;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.saved-list-bar-copy {
+  display: grid;
+  gap: 0.2rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.saved-list-bar-copy h2,
 .saved-list-toolbar h3 {
   margin: 0;
+}
+
+.saved-list-back {
+  flex: 0 0 auto;
+  margin-top: 0.9rem;
+}
+
+.saved-list-progress {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.saved-list-bar .versus-error {
+  margin: 0;
+  flex: 1 1 12rem;
+}
+
+.saved-list-x {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-top: 0.75rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.saved-list-x:hover {
+  color: var(--ink);
+  background: var(--chip);
+}
+
+.saved-list-x:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .saved-list-index {
@@ -10308,13 +10383,20 @@ a.database-tile-link:hover .database-title {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .saved-list-head,
   .saved-list-card,
   .contribution-row,
   .versus-contributions-head,
   .versus-contribution-picker {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .saved-list-bar.is-bottom {
+    flex-wrap: wrap;
+  }
+
+  .saved-list-bar.is-bottom .btn {
+    flex: 1 1 100%;
   }
 }
 
