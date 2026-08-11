@@ -1,6 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import type { Manhwa } from '../lib/anilist-types'
+import { matchesCatalogQuery, sortCatalogByRank } from '../lib/catalogBrowse'
 import { displayTitle } from '../lib/daily'
+import {
+  filterPoolByTaste,
+  READER_TASTE_OPTIONS,
+  type ReaderTaste,
+} from '../lib/readerTaste'
 import {
   createSavedList,
   deleteSavedList,
@@ -15,14 +27,31 @@ import {
   savedListErrorMessage,
   type SavedListSummary,
 } from '../lib/savedListsApi'
-import { MANHWA_SEARCH_LIMIT, searchManhwa } from '../lib/search'
+import { CatalogTileBody } from './CatalogTileBody'
 import { Dialog } from './Dialog'
+
+const PAGE_SIZE = 24
 
 interface SavedListManagerDialogProps {
   open: boolean
   onClose: () => void
   catalog: Manhwa[]
   onListsChange?: (lists: SavedListSummary[]) => void
+}
+
+function tasteLabel(taste: ReaderTaste): string {
+  if (taste === 'action') return 'Action'
+  return taste === 'romance' ? 'Romance' : 'Both'
+}
+
+function updatedLabel(updatedAt: string | null): string | null {
+  if (!updatedAt) return null
+  const parsed = new Date(updatedAt)
+  if (Number.isNaN(parsed.getTime())) return null
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+  }).format(parsed)
 }
 
 export function SavedListManagerDialog({
@@ -33,9 +62,13 @@ export function SavedListManagerDialog({
 }: SavedListManagerDialogProps) {
   const [lists, setLists] = useState<SavedListSummary[]>([])
   const [editingId, setEditingId] = useState<string | null | undefined>(undefined)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [query, setQuery] = useState('')
+  const deferredQuery = useDeferredValue(query)
+  const [lane, setLane] = useState<ReaderTaste>('both')
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,6 +76,7 @@ export function SavedListManagerDialog({
     () => new Map(catalog.map((manhwa) => [manhwa.id, manhwa])),
     [catalog],
   )
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds])
   const selected = useMemo(
     () => selectedIds.flatMap((id) => {
       const manhwa = catalogById.get(id)
@@ -50,13 +84,15 @@ export function SavedListManagerDialog({
     }),
     [catalogById, selectedIds],
   )
-  const hits = useMemo(() => {
-    if (!query.trim()) return []
-    const selectedSet = new Set(selectedIds)
-    return searchManhwa(catalog, query, MANHWA_SEARCH_LIMIT).filter(
-      (hit) => !selectedSet.has(hit.manhwa.id),
-    )
-  }, [catalog, query, selectedIds])
+  const ranked = useMemo(() => {
+    const tasted = filterPoolByTaste(catalog, lane)
+    const matched = deferredQuery.trim()
+      ? tasted.filter((manhwa) => matchesCatalogQuery(manhwa, deferredQuery))
+      : tasted
+    return sortCatalogByRank(matched)
+  }, [catalog, deferredQuery, lane])
+  const visible = ranked.slice(0, visibleCount)
+  const atCapacity = selectedIds.length >= SAVED_LIST_MAX_ENTRIES
 
   const refreshLists = useCallback(async () => {
     const result = await listSavedLists()
@@ -72,14 +108,20 @@ export function SavedListManagerDialog({
     if (!open) return
     setError(null)
     setEditingId(undefined)
+    setConfirmDeleteId(null)
     void refreshLists()
   }, [open, refreshLists])
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE)
+  }, [deferredQuery, lane, editingId])
 
   function beginCreate() {
     setEditingId(null)
     setName('')
     setSelectedIds([])
     setQuery('')
+    setLane('both')
     setError(null)
   }
 
@@ -96,6 +138,15 @@ export function SavedListManagerDialog({
     setName(result.value.name)
     setSelectedIds(result.value.manhwaIds)
     setQuery('')
+    setLane('both')
+  }
+
+  function toggleTitle(manhwaId: number) {
+    setSelectedIds((ids) => {
+      if (ids.includes(manhwaId)) return ids.filter((id) => id !== manhwaId)
+      if (ids.length >= SAVED_LIST_MAX_ENTRIES) return ids
+      return [...ids, manhwaId]
+    })
   }
 
   async function save() {
@@ -144,14 +195,18 @@ export function SavedListManagerDialog({
   }
 
   async function remove(list: SavedListSummary) {
-    if (pending || !window.confirm(`Delete "${list.name}"?`)) return
+    if (pending) return
     setPending(true)
     setError(null)
     const result = await deleteSavedList({ listId: list.id })
     if (!result.ok) setError(savedListErrorMessage(result.error))
     else await refreshLists()
+    setConfirmDeleteId(null)
     setPending(false)
   }
+
+  const editing = editingId !== undefined
+  const nameTooLong = name.trim().length > SAVED_LIST_MAX_NAME_LENGTH
 
   return (
     <Dialog
@@ -164,20 +219,32 @@ export function SavedListManagerDialog({
       <div className="saved-list-head">
         <div>
           <p className="versus-kicker">Private to your account</p>
-          <h2 id="saved-list-manager-title">Saved Versus lists</h2>
+          <h2 id="saved-list-manager-title">
+            {editing
+              ? editingId === null ? 'New list' : 'Edit list'
+              : 'Saved Versus lists'}
+          </h2>
           <p id="saved-list-manager-description" className="versus-muted">
-            Curate catalog titles, then contribute a private snapshot to a lobby.
+            {editing
+              ? `Pick ${SAVED_LIST_MIN_ENTRIES}–${SAVED_LIST_MAX_ENTRIES} catalog titles. Only your lobby sees the pool, never the list.`
+              : 'Curate catalog titles, then share a list with a Versus lobby.'}
           </p>
         </div>
-        <button className="btn btn-ghost" type="button" onClick={onClose}>
-          Close
+        <button
+          className="btn btn-ghost"
+          type="button"
+          onClick={editing ? () => setEditingId(undefined) : onClose}
+        >
+          {editing ? 'Back' : 'Close'}
         </button>
       </div>
       {error && <p className="versus-error" role="alert">{error}</p>}
-      {editingId === undefined ? (
+      {!editing ? (
         <>
           <div className="saved-list-toolbar">
-            <span className="versus-chip">{lists.length}/{SAVED_LIST_MAX_COUNT} lists</span>
+            <span className="versus-chip">
+              {lists.length}/{SAVED_LIST_MAX_COUNT} lists
+            </span>
             <button
               className="btn btn-primary"
               type="button"
@@ -187,26 +254,74 @@ export function SavedListManagerDialog({
               New list
             </button>
           </div>
-          <div className="saved-list-index">
-            {lists.length === 0 ? (
-              <p className="versus-muted">No lists yet. Create one with at least three titles.</p>
-            ) : lists.map((list) => (
-              <article className="saved-list-row" key={list.id}>
-                <div>
-                  <strong>{list.name}</strong>
-                  <small>{list.entryCount} titles</small>
-                </div>
-                <div className="versus-actions">
-                  <button className="btn" type="button" onClick={() => void beginEdit(list)}>
-                    Edit
-                  </button>
-                  <button className="btn btn-ghost" type="button" onClick={() => void remove(list)}>
-                    Delete
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
+          {lists.length === 0 ? (
+            <div className="saved-list-empty">
+              <strong>No saved lists yet</strong>
+              <p className="versus-muted">
+                Build a list of at least {SAVED_LIST_MIN_ENTRIES} titles, then share
+                it with a collaborative lobby.
+              </p>
+              <button className="btn btn-primary" type="button" onClick={beginCreate}>
+                Create your first list
+              </button>
+            </div>
+          ) : (
+            <ul className="saved-list-index">
+              {lists.map((list) => {
+                const updated = updatedLabel(list.updatedAt)
+                return (
+                  <li className="saved-list-card" key={list.id}>
+                    <div className="saved-list-card-copy">
+                      <strong>{list.name}</strong>
+                      <small>
+                        {list.entryCount} title{list.entryCount === 1 ? '' : 's'}
+                        {updated ? ` · updated ${updated}` : ''}
+                      </small>
+                    </div>
+                    {confirmDeleteId === list.id ? (
+                      <div className="versus-actions">
+                        <span className="saved-list-confirm">Delete this list?</span>
+                        <button
+                          className="btn saved-list-danger"
+                          type="button"
+                          disabled={pending}
+                          onClick={() => void remove(list)}
+                        >
+                          Delete
+                        </button>
+                        <button
+                          className="btn btn-ghost"
+                          type="button"
+                          onClick={() => setConfirmDeleteId(null)}
+                        >
+                          Keep
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="versus-actions">
+                        <button
+                          className="btn"
+                          type="button"
+                          disabled={pending}
+                          onClick={() => void beginEdit(list)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-ghost"
+                          type="button"
+                          disabled={pending}
+                          onClick={() => setConfirmDeleteId(list.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </>
       ) : (
         <div className="saved-list-editor">
@@ -219,37 +334,12 @@ export function SavedListManagerDialog({
               placeholder="Favorites"
             />
           </label>
-          <label className="versus-field">
-            <span className="versus-label">Add catalog titles</span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search manhwa…"
-              autoComplete="off"
-            />
-          </label>
-          {query.trim() && (
-            <div className="saved-list-results" role="listbox">
-              {hits.length === 0 ? (
-                <p className="versus-muted">No matching available titles.</p>
-              ) : hits.map((hit) => (
-                <button
-                  key={hit.manhwa.id}
-                  className="saved-list-result"
-                  type="button"
-                  disabled={selectedIds.length >= SAVED_LIST_MAX_ENTRIES}
-                  onClick={() => {
-                    setSelectedIds((ids) => [...ids, hit.manhwa.id])
-                    setQuery('')
-                  }}
-                >
-                  <span>{hit.label}</span>
-                  <small>Add</small>
-                </button>
-              ))}
-            </div>
+          {nameTooLong && (
+            <p className="versus-hint">
+              Names are limited to {SAVED_LIST_MAX_NAME_LENGTH} characters.
+            </p>
           )}
-          <div className="saved-list-selected">
+          <div className="saved-list-selection">
             <div className="saved-list-toolbar">
               <strong>Selected titles</strong>
               <span className="versus-chip">
@@ -257,7 +347,9 @@ export function SavedListManagerDialog({
               </span>
             </div>
             {selected.length === 0 ? (
-              <p className="versus-muted">Search above to add titles.</p>
+              <p className="versus-muted">
+                Pick covers below to build the list. {SAVED_LIST_MIN_ENTRIES} minimum.
+              </p>
             ) : (
               <div className="saved-list-chips">
                 {selected.map((manhwa) => (
@@ -265,10 +357,8 @@ export function SavedListManagerDialog({
                     className="saved-list-title-chip"
                     type="button"
                     key={manhwa.id}
-                    onClick={() => setSelectedIds((ids) =>
-                      ids.filter((id) => id !== manhwa.id)
-                    )}
-                    title="Remove title"
+                    onClick={() => toggleTitle(manhwa.id)}
+                    aria-label={`Remove ${displayTitle(manhwa)}`}
                   >
                     {displayTitle(manhwa)} <span aria-hidden="true">×</span>
                   </button>
@@ -276,9 +366,83 @@ export function SavedListManagerDialog({
               </div>
             )}
           </div>
-          <p className="versus-hint">
-            Lists require {SAVED_LIST_MIN_ENTRIES}–{SAVED_LIST_MAX_ENTRIES} unique catalog titles.
+          <div className="database-controls saved-list-browser">
+            <label className="database-search-label" htmlFor="saved-list-search">
+              Search titles
+            </label>
+            <input
+              id="saved-list-search"
+              className="database-search-input"
+              type="search"
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="Title or alias"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <div
+              className="database-taste-tabs"
+              role="tablist"
+              aria-label="Reading preference filter"
+            >
+              {READER_TASTE_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={option.id === lane}
+                  className={`database-taste-tab${option.id === lane ? ' is-active' : ''}`}
+                  onClick={() => setLane(option.id)}
+                >
+                  {tasteLabel(option.id)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="database-page-count" aria-live="polite">
+            {catalog.length === 0
+              ? 'Loading catalog…'
+              : `${ranked.length.toLocaleString()} title${ranked.length === 1 ? '' : 's'}`}
           </p>
+          {catalog.length > 0 && ranked.length === 0 && (
+            <p className="versus-muted" role="status">
+              No titles match that search in this preference.
+            </p>
+          )}
+          {visible.length > 0 && (
+            <ul className="database-grid saved-list-grid">
+              {visible.map((manhwa) => {
+                const picked = selectedSet.has(manhwa.id)
+                return (
+                  <li className="database-tile" key={manhwa.id}>
+                    <button
+                      type="button"
+                      className={`database-tile-link saved-list-pick${picked ? ' is-picked' : ''}`}
+                      aria-pressed={picked}
+                      disabled={!picked && atCapacity}
+                      onClick={() => toggleTitle(manhwa.id)}
+                    >
+                      <CatalogTileBody manhwa={manhwa} />
+                      <span className="saved-list-pick-flag" aria-hidden="true">
+                        {picked ? 'Added' : 'Add'}
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          {visibleCount < ranked.length && (
+            <button
+              className="btn saved-list-more"
+              type="button"
+              onClick={() =>
+                setVisibleCount((count) => Math.min(count + PAGE_SIZE, ranked.length))
+              }
+            >
+              Show more titles
+            </button>
+          )}
           <div className="versus-panel-foot">
             <button
               className="btn btn-primary"
@@ -286,13 +450,18 @@ export function SavedListManagerDialog({
               disabled={
                 pending ||
                 name.trim().length < 1 ||
+                nameTooLong ||
                 selectedIds.length < SAVED_LIST_MIN_ENTRIES
               }
               onClick={() => void save()}
             >
               {pending ? 'Saving…' : 'Save list'}
             </button>
-            <button className="btn btn-ghost" type="button" onClick={() => setEditingId(undefined)}>
+            <button
+              className="btn btn-ghost"
+              type="button"
+              onClick={() => setEditingId(undefined)}
+            >
               Cancel
             </button>
           </div>

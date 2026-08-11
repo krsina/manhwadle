@@ -131,7 +131,7 @@ async function main() {
         p_idempotency_key: `smoke-join-${suffix}-${index}`,
       })
     }
-    for (let index = 0; index < clients.length; index += 1) {
+    const contribute = async (index) => {
       const contributed = await rpc(
         clients[index],
         'multiplayer_set_list_contribution',
@@ -154,6 +154,32 @@ async function main() {
           .every((item) => item.source_list_id == null),
         'Foreign contribution leaked a reusable list ID',
       )
+      return contributed
+    }
+
+    const hostShare = await contribute(0)
+    assert(
+      hostShare.state.pool_summary.required_contributor_count === 1,
+      'Collaborative rooms should require only one shared list',
+    )
+    assert(
+      hostShare.state.pool_summary.contributor_count === 1,
+      'Host contribution was not counted',
+    )
+    for (let index = 1; index < clients.length; index += 1) {
+      const ready = await rpc(clients[index], 'multiplayer_set_ready', {
+        p_room_id: room.id,
+        p_ready: true,
+        p_idempotency_key: `smoke-ready-optional-${suffix}-${index}`,
+      })
+      assert(
+        ready.state.members.find((member) => member.user_id === users[index])
+          ?.is_ready === true,
+        'Player without a shared list could not ready up',
+      )
+    }
+    for (let index = 1; index < clients.length; index += 1) {
+      await contribute(index)
     }
     for (let index = 0; index < clients.length; index += 1) {
       await rpc(clients[index], 'multiplayer_set_ready', {
