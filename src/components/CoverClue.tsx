@@ -46,7 +46,7 @@ export function CoverClue({
     : Math.min(failedGuesses + 1, maxGuesses)
 
   return (
-    <section className="crop-clue" aria-label="Today's cover clue">
+    <section className="crop-clue" aria-label="Cover clue">
       <div className="crop-clue-column">
         <div className="crop-clue-header">
           <p className="clue-label">
@@ -75,7 +75,7 @@ export function CoverClue({
             <MediaImage
               className={`crop-image${grayscale ? ' is-grayscale' : ''}`}
               src={imageUrl}
-              alt="Today’s cover clue. Wrong guesses zoom out the crop."
+              alt="Cover clue. Wrong guesses zoom out the crop."
               fallbackLabel="Cover unavailable"
               draggable={false}
             />

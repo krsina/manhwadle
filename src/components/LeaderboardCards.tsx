@@ -7,6 +7,11 @@ export function entryKey(entry: LeaderboardEntry): string {
   return `${entry.publicId}-${entry.rank}-${entry.value}`
 }
 
+/** Streak length label: "Day" / "Days". */
+export function leaderboardDayUnit(value: number): string {
+  return value === 1 ? 'Day' : 'Days'
+}
+
 export function RankBadge({ rank }: { rank: number }) {
   const n = Number.isFinite(rank) && rank >= 1 ? Math.floor(rank) : 0
   if (n === 1 || n === 2 || n === 3) {
@@ -46,7 +51,7 @@ export function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
       <span className="leaderboard-value">
         <span className="leaderboard-value-num">{entry.value}</span>
         <span className="leaderboard-value-unit" aria-hidden="true">
-          {entry.value === 1 ? 'day' : 'days'}
+          {leaderboardDayUnit(entry.value)}
         </span>
       </span>
     </li>
@@ -119,7 +124,7 @@ export function LeaderboardShowcaseCard({
         >
           <span className="leaderboard-value-num">{entry.value}</span>
           <span className="leaderboard-value-unit" aria-hidden="true">
-            d
+            {leaderboardDayUnit(entry.value)}
           </span>
         </span>
       </div>

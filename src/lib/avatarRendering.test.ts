@@ -10,8 +10,9 @@ describe('Style A avatar rendering styles', () => {
     expect(styles).toContain('.pixel-avatar.is-bust')
     expect(styles).toContain('.pixel-avatar-img')
     expect(styles).toContain('.pixel-avatar img')
-    expect(styles).toContain('object-position: center 22%')
-    expect(styles).toContain('transform: scale(3.15)')
+    expect(styles).toContain('var(--avatar-bust-x')
+    expect(styles).toContain('var(--avatar-bust-y')
+    expect(styles).toContain('var(--avatar-bust-scale')
   })
   it('does not assume a stacked-layer or SVG avatar compositor', () => {
     const styles = fs.readFileSync(path.resolve('src/styles.css'), 'utf8')

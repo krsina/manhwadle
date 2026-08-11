@@ -47,7 +47,7 @@ export function CharacterClue({
   const shownName = finished ? revealName?.trim() || null : null
 
   return (
-    <section className="crop-clue" aria-label="Today's character clue">
+    <section className="crop-clue" aria-label="Character clue">
       <div className="crop-clue-column">
         <div className="crop-clue-header">
           <p className="clue-label">
@@ -85,8 +85,8 @@ export function CharacterClue({
                   shownName
                     ? `Portrait of ${shownName}`
                     : progressiveZoom
-                      ? 'Today’s character clue. Wrong guesses zoom out the crop.'
-                      : 'Today’s character clue.'
+                      ? 'Character clue. Wrong guesses zoom out the crop.'
+                      : 'Character clue.'
                 }
                 fallbackLabel="Character image unavailable"
                 draggable={false}

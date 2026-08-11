@@ -28,7 +28,7 @@ export function SummaryClue({
       : `Summary clue ${unlocked}/${totalBlurbs}`
 
   return (
-    <section className="clue" aria-label="Today's summary clue">
+    <section className="clue" aria-label="Summary clue">
       <div className="clue-header">
         <p className="clue-label">{label}</p>
         {hardMode ? (
