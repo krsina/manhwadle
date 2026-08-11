@@ -6,7 +6,7 @@ import {
 } from '../components/ArchiveCalendarModal'
 import { ReaderTastePrompt } from '../components/ReaderTastePrompt'
 import { listModes, resolveActiveMode } from '../modes'
-import { ModeRow } from '../components/ModeRow'
+import { ModeRow, VersusModeRow } from '../components/ModeRow'
 import { LeaderboardPanel } from '../components/LeaderboardPanel'
 import { CharacterPanel } from '../components/CharacterPanel'
 import { HomeNewsPanel } from '../components/HomeNewsPanel'
@@ -181,7 +181,7 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
             </h1>
             <div className="home-section-blurb-row">
               <p className="home-section-blurb">
-                Four daily puzzles, give it your best shot!
+                Four daily puzzles plus live Versus.
               </p>
               <ArchiveButton onClick={requestArchive} label="Archive" />
             </div>
@@ -201,6 +201,9 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
                 </div>
               )
             })}
+            <div role="listitem">
+              <VersusModeRow />
+            </div>
           </div>
         </section>
 

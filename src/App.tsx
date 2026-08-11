@@ -22,6 +22,9 @@ const MilestonesPage = lazy(() =>
 const PlayPage = lazy(() =>
   import('./pages/PlayPage').then((m) => ({ default: m.PlayPage })),
 )
+const VersusPage = lazy(() =>
+  import('./pages/VersusPage').then((m) => ({ default: m.VersusPage })),
+)
 const SettingsPage = lazy(() =>
   import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 )
@@ -140,6 +143,22 @@ function App() {
                 element={
                   <Suspense fallback={<RouteFallback />}>
                     <PlayPage taste={taste} setTaste={handleTasteChange} />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="versus"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <VersusPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="versus/:roomId"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <VersusPage />
                   </Suspense>
                 }
               />

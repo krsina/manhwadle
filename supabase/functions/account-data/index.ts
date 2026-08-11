@@ -85,6 +85,7 @@ Deno.serve(async (req: Request) => {
         dayProgress,
         dailyCompletions,
         shop,
+        savedLists,
       ] = await Promise.all([
         admin
           .from("public_profiles")
@@ -100,12 +101,20 @@ Deno.serve(async (req: Request) => {
         admin.from("day_progress").select("*").eq("user_id", userId),
         admin.from("daily_completions").select("*").eq("user_id", userId),
         admin.rpc("export_shop_account", { p_user_id: userId }),
+        admin.rpc("export_saved_lists_account", { p_user_id: userId }),
       ]);
 
       if (shop.error) {
         return jsonResponse(
           req,
           { error: `Shop data export failed: ${shop.error.message}` },
+          500,
+        );
+      }
+      if (savedLists.error) {
+        return jsonResponse(
+          req,
+          { error: `Saved-list export failed: ${savedLists.error.message}` },
           500,
         );
       }
@@ -125,6 +134,7 @@ Deno.serve(async (req: Request) => {
           avatar_loadout: null,
           point_transactions: [],
         },
+        savedLists: savedLists.data ?? [],
       });
     }
 

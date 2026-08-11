@@ -23,6 +23,7 @@ export const STAFF_ANALYTICS_PATH = '/staff/analytics'
 export const STAFF_MODERATION_PATH = '/staff/moderation'
 export const STAFF_COMMENTS_PATH = '/staff/comments'
 export const PLAY_PATH_PREFIX = '/play'
+export const VERSUS_PATH = '/versus'
 
 export function newsPath(slug?: string | null): string {
   if (!slug) return NEWS_PATH
@@ -32,6 +33,11 @@ export function newsPath(slug?: string | null): string {
 export function updatesPath(slug?: string | null): string {
   if (!slug) return UPDATES_PATH
   return `${UPDATES_PATH}/${encodeURIComponent(slug)}`
+}
+
+export function versusRoomPath(roomId?: string | null): string {
+  if (!roomId) return VERSUS_PATH
+  return `${VERSUS_PATH}/${encodeURIComponent(roomId)}`
 }
 
 const MODE_IDS = new Set(['summary', 'character', 'cover', 'heardle'])

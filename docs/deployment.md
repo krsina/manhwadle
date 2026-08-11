@@ -198,6 +198,25 @@ These controls are **not fully expressible in git** for hosted projects. Apply o
 | Auth rate limits | Authentication → Rate Limits | Tighten email OTP / signup / recovery for production |
 | Before User Created hook | Authentication → Hooks | Point at `public.hook_before_user_created` after roles/moderation migrations — see [moderation.md](./moderation.md) |
 
+For production, CAPTCHA and tightened signup/OTP limits are required parts of
+Versus abuse protection, not optional polish. Database controls bound work per
+account, while Auth attack protection raises the cost of creating many accounts
+to evade those limits. Verify both settings in staging before enabling them in
+production, and keep the local security-smoke admin flow available for tests.
+
+Versus also enforces server-side safeguards:
+
+- one active room per account;
+- at most 6 room creations per 10 minutes and 100 per 24 hours;
+- progressive 15-minute / 1-hour cooldowns after repeated first-round abandonment;
+- 8-character invite codes (legacy 6-character codes remain valid briefly);
+- 15-minute completed-match delivery and 5-minute cancelled/expired retention;
+- one-hour, 128-row idempotency storage per account.
+
+Run `npm run test:live:multiplayer:security` only with the guarded local/staging
+credentials documented for security negatives. The command rejects the known
+production project.
+
 ### Edge Function env (hosted secrets — no values in repo)
 
 | Secret / env | Used by | Notes |

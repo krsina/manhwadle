@@ -71,6 +71,17 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('link', { name: /Manhwadle/i }).first()).toBeVisible()
   })
 
+  test('Versus route is gated to configured signed-in accounts', async ({ page }) => {
+    await page.goto('/versus')
+    await expect(page.getByRole('link', { name: /Manhwadle/i }).first()).toBeVisible()
+    await expect(
+      page
+        .getByRole('heading', { name: 'Versus unavailable' })
+        .or(page.getByRole('heading', { name: 'Sign in to play Versus' }))
+        .or(page.getByRole('heading', { name: /Today'?s modes/i })),
+    ).toBeVisible()
+  })
+
   test('avatar shop exposes the guest catalog and preview flow', async ({ page }) => {
     await page.goto('/shop')
     await expect(page.getByRole('heading', { name: 'Avatar Shop' })).toBeVisible()
