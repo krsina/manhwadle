@@ -22,6 +22,9 @@ const skyMeadowLimitedTimeMigrationPath = path.resolve(
 const explorerReplaceMigrationPath = path.resolve(
   'supabase/migrations/20260722120000_avatar_explorer_ab_replace_newbies.sql',
 )
+const freeClaimExplorersMigrationPath = path.resolve(
+  'supabase/migrations/20260811041103_fix_free_claim_explorers.sql',
+)
 const stageMigrationPath = path.resolve('supabase/migrations/20260719110000_avatar_stage_shop.sql')
 const hasWholeCharacterMigration = fs.existsSync(wholeCharacterMigrationPath)
 const wholeCharacterMigration = hasWholeCharacterMigration
@@ -39,10 +42,13 @@ const skyMeadowLimitedTimeMigration = fs.existsSync(skyMeadowLimitedTimeMigratio
 const explorerReplaceMigration = fs.existsSync(explorerReplaceMigrationPath)
   ? fs.readFileSync(explorerReplaceMigrationPath, 'utf8')
   : ''
+const freeClaimExplorersMigration = fs.existsSync(freeClaimExplorersMigrationPath)
+  ? fs.readFileSync(freeClaimExplorersMigrationPath, 'utf8')
+  : ''
 const stageMigration = fs.existsSync(stageMigrationPath)
   ? fs.readFileSync(stageMigrationPath, 'utf8')
   : ''
-const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}\n${limitedTimeMigration}\n${skyMeadowLimitedTimeMigration}\n${explorerReplaceMigration}`
+const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}\n${limitedTimeMigration}\n${skyMeadowLimitedTimeMigration}\n${explorerReplaceMigration}\n${freeClaimExplorersMigration}`
 
 describe('avatar shop migration contracts', () => {
   it('makes point sources idempotent and balances non-negative', () => {
@@ -161,6 +167,24 @@ describe.runIf(Boolean(explorerReplaceMigration))('explorer A/B replace limited-
     )
     expect(explorerReplaceMigration).toContain(
       'First steps on the journey. Limited-time free claim.',
+    )
+  })
+})
+
+describe.runIf(Boolean(freeClaimExplorersMigration))('fix free-claim explorers migration', () => {
+  it('seeds Explorer A/B and repairs purchase_shop_item free claims', () => {
+    expect(freeClaimExplorersMigration).toContain('avatar_explorer_a')
+    expect(freeClaimExplorersMigration).toContain('avatar_explorer_b')
+    expect(freeClaimExplorersMigration).toContain(
+      "si.id in ('avatar_explorer_a', 'avatar_explorer_b')",
+    )
+    expect(freeClaimExplorersMigration).toContain('function public.purchase_shop_item(text)')
+    expect(freeClaimExplorersMigration).toContain('elsif v_item.price = 0 then')
+    expect(freeClaimExplorersMigration).toContain(
+      "'Purchase or free-claim a shop item. Price 0 grants entitlement and returns ok.'",
+    )
+    expect(freeClaimExplorersMigration).not.toContain(
+      'elsif v_item.price = 0 or exists (',
     )
   })
 })
