@@ -28,7 +28,7 @@ describe('multiplayerRemainingMs', () => {
     const clientNow = Date.parse('2026-08-11T02:00:00.000-07:00')
     const naiveServerNow = '2026-08-11T09:00:00.000'
     const endsAt = '2026-08-11T09:03:00.000Z'
-    const brokenOffset = Date.parse(naiveServerNow) - clientNow
+    const brokenOffset = Date.parse(`${naiveServerNow}-07:00`) - clientNow
     const fixedOffset = multiplayerClockOffsetMs(naiveServerNow, clientNow)
     expect(multiplayerRemainingMs(endsAt, brokenOffset, clientNow)).toBe(0)
     expect(multiplayerRemainingMs(endsAt, fixedOffset, clientNow)).toBe(180_000)
