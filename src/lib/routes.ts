@@ -16,6 +16,9 @@ export const ABOUT_PATH = '/about'
 export const HOW_IT_WORKS_PATH = '/how-it-works'
 export const UPDATES_PATH = '/updates'
 export const DATABASE_PATH = '/database'
+export const STAFF_PATH = '/staff'
+export const STAFF_ANALYTICS_PATH = '/staff/analytics'
+export const STAFF_MODERATION_PATH = '/staff/moderation'
 export const PLAY_PATH_PREFIX = '/play'
 
 export function updatesPath(slug?: string | null): string {

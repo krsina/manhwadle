@@ -27,6 +27,15 @@ describe('edge auth hardening contracts', () => {
     expect(configToml).toMatch(
       /\[functions\.select-daily-puzzles\]\s*\nverify_jwt = false/,
     )
+    expect(configToml).not.toContain('[functions.guest-analytics]')
+  })
+
+  it('does not ship guest analytics edge function', () => {
+    expect(fs.existsSync(path.resolve('supabase/functions/guest-analytics/index.ts'))).toBe(
+      false,
+    )
+    expect(deploymentDoc).not.toContain('GUEST_ANALYTICS_HASH_SECRET')
+    expect(deploymentDoc).toContain('Anonymous guest play is intentionally not collected')
   })
 
   it('derives caller identity from getUser(jwt) and rejects spoofed ids', () => {

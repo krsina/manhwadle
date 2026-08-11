@@ -216,6 +216,13 @@ These controls are **not fully expressible in git** for hosted projects. Apply o
 
 After changing function config or code: deploy functions to staging first (`supabase functions deploy …`), then production.
 
+### Owner analytics
+
+The private `/staff` dashboard reads signed-in aggregate metrics through the JWT-verified
+`moderation` function. The database rechecks the live Owner role, caps requests to 90 UTC days,
+rate-limits and audits queries, and returns no user IDs, emails, guesses, or answer IDs.
+Anonymous guest play is intentionally not collected.
+
 ## Related runbooks
 
 - [Uptime & incidents](./runbooks/uptime-and-incidents.md)

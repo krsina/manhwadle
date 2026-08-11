@@ -182,8 +182,9 @@ export function AccountSettingsPanel() {
           Privacy
         </h2>
         <p className="settings-muted">
-          Manhwadle does not run product-analytics trackers. Game progress for signed-in
-          accounts is stored in Supabase so levels, streaks, and the shop work.{' '}
+          Manhwadle does not track anonymous guest play or run third-party product-analytics
+          trackers. Game progress for signed-in accounts is stored in Supabase so levels,
+          streaks, and the shop work.{' '}
           <Link to={PRIVACY_PATH}>Privacy</Link>
           {' · '}
           <Link to={TERMS_PATH}>Terms</Link>

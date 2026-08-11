@@ -4,6 +4,7 @@ import { AuthProvider } from './components/AuthProvider'
 import { AppLayout } from './components/AppLayout'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { OwnerDevRoute } from './components/OwnerDevRoute'
+import { StaffRoute } from './components/StaffRoute'
 import {
   loadReaderTaste,
   saveReaderTaste,
@@ -63,6 +64,17 @@ const UpdatesPage = lazy(() =>
 )
 const UpdateDetailPage = lazy(() =>
   import('./pages/UpdateDetailPage').then((m) => ({ default: m.UpdateDetailPage })),
+)
+const StaffDashboardPage = lazy(() =>
+  import('./pages/StaffDashboardPage').then((m) => ({ default: m.StaffDashboardPage })),
+)
+const StaffModerationPage = lazy(() =>
+  import('./pages/StaffDashboardPage').then((m) => ({ default: m.StaffModerationPage })),
+)
+const AnalyticsDashboardPage = lazy(() =>
+  import('./pages/AnalyticsDashboardPage').then((m) => ({
+    default: m.AnalyticsDashboardPage,
+  })),
 )
 
 function RouteFallback() {
@@ -238,6 +250,35 @@ function App() {
                   </Suspense>
                 }
               />
+              <Route
+                path="staff"
+                element={
+                  <StaffRoute>
+                    <Suspense fallback={<RouteFallback />}>
+                      <StaffDashboardPage />
+                    </Suspense>
+                  </StaffRoute>
+                }
+              >
+                <Route
+                  path="analytics"
+                  element={
+                    <StaffRoute ownerOnly>
+                      <Suspense fallback={<RouteFallback />}>
+                        <AnalyticsDashboardPage />
+                      </Suspense>
+                    </StaffRoute>
+                  }
+                />
+                <Route
+                  path="moderation"
+                  element={
+                    <Suspense fallback={<RouteFallback />}>
+                      <StaffModerationPage />
+                    </Suspense>
+                  }
+                />
+              </Route>
               <Route path="play" element={<Navigate to="/play/summary" replace />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

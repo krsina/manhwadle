@@ -49,9 +49,9 @@ export function endsAtFromHours(hours: number): string {
   return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
 }
 
-/** Account menu / dashboard — owner only. Moderators remain server-capable if granted. */
+/** Account menu / staff area. Server authorization remains authoritative. */
 export function canUseModerationUi(role: string | null | undefined): boolean {
-  return role === 'owner'
+  return role === 'owner' || role === 'moderator'
 }
 
 export function parseUserLookup(raw: unknown): UserLookupResult | null {
@@ -149,6 +149,44 @@ export async function moderationListAudit(targetUserId?: string) {
     'list_audit',
     targetUserId ? { target_user_id: targetUserId } : {},
   )
+}
+
+export async function moderationSetReportStatus(
+  reportId: number | string,
+  status: 'reviewing' | 'resolved' | 'dismissed',
+  reason: string,
+) {
+  return invokeModeration('set_report_status', {
+    report_id: reportId,
+    status,
+    reason,
+  })
+}
+
+export async function moderationSetAppealStatus(
+  appealId: number | string,
+  status: 'reviewing' | 'accepted' | 'denied',
+  reason: string,
+) {
+  return invokeModeration('set_appeal_status', {
+    appeal_id: appealId,
+    status,
+    reason,
+  })
+}
+
+export async function moderationBlockIdentity(input: {
+  kind: 'email' | 'provider_subject'
+  value: string
+  provider?: string
+  reason: string
+}) {
+  return invokeModeration('block_identity', {
+    kind: input.kind,
+    value: input.value,
+    provider: input.provider,
+    reason: input.reason,
+  })
 }
 
 export async function moderationForceRename(targetUserId: string, reason: string) {
