@@ -61,7 +61,7 @@ test.describe('critical paths', () => {
     await page.goto('/play/summary')
     await expect(page.getByRole('heading', { name: /What do you usually read/i })).toBeVisible()
     await page.getByRole('radio', { name: /Action/i }).click()
-    await page.getByRole('button', { name: /Continue/i }).click()
+    await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('heading', { name: /Summary/i })).toBeVisible()
   })
 
@@ -247,7 +247,7 @@ test.describe('critical paths', () => {
     await page.getByRole('button', { name: 'Open puzzle archive' }).click()
     await expect(page.getByRole('heading', { name: /What do you usually read/i })).toBeVisible()
     await page.getByRole('radio', { name: /Action/i }).click()
-    await page.getByRole('button', { name: /Continue/i }).click()
+    await page.getByRole('button', { name: 'Continue', exact: true }).click()
     await expect(page.getByRole('heading', { name: /Pick a past day/i })).toBeVisible()
     await expect(page.getByText(/does not count toward/i)).toBeVisible()
     await page.getByRole('button', { name: 'Close' }).click()
