@@ -839,6 +839,37 @@ export function getAchievementDefinition(id: string): AchievementDefinition | un
   return ACHIEVEMENT_DEFINITIONS.find((a) => a.id === id)
 }
 
+/**
+ * Early non-secret ladder milestones for the homepage teaser when the viewer
+ * has no unlocks yet (guest or fresh account). Hush-Hush stays hidden.
+ */
+export const HOME_TEASER_ACHIEVEMENT_IDS = [
+  'first_completion',
+  'completions_5',
+  'any_streak_2',
+  'all_mode_day',
+  'completions_10',
+  'any_streak_3',
+  'all_mode_streak_1',
+  'completions_25',
+  'any_streak_7',
+  'all_mode_days_5',
+  'completions_50',
+  'any_streak_14',
+] as const
+
+export function homeTeaserDefinitions(limit: number): AchievementDefinition[] {
+  const capped = Math.max(0, Math.floor(limit))
+  const defs: AchievementDefinition[] = []
+  for (const id of HOME_TEASER_ACHIEVEMENT_IDS) {
+    if (defs.length >= capped) break
+    const def = getAchievementDefinition(id)
+    if (!def || def.category === 'secret' || def.category === 'visit') continue
+    defs.push(def)
+  }
+  return defs
+}
+
 export function definitionToAward(
   def: AchievementDefinition,
   awardedAt: string | null = null,

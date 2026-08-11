@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import {
+  deleteDevMyNewsComment,
+  editDevMyNewsComment,
   getDevSiteUpdate,
   listDevModerationNewsComments,
   listDevNewsComments,
@@ -46,6 +48,40 @@ describe('newsDevFake', () => {
     expect(removed).toEqual({ ok: true })
     const queue = listDevModerationNewsComments({ status: 'removed' })
     expect(queue.comments.some((row) => row.id === posted.comment.id)).toBe(true)
+  })
+
+  it('allows blank staff removal reasons and author self-delete', () => {
+    const posted = postDevNewsComment('comments-launch', 'Blank reason remove test')
+    expect(posted.ok).toBe(true)
+    if (!posted.ok || posted.outcome !== 'visible') return
+
+    expect(
+      setDevNewsCommentStatus({
+        commentId: posted.comment.id,
+        status: 'removed',
+        reason: '',
+      }),
+    ).toEqual({ ok: true })
+
+    const restored = setDevNewsCommentStatus({
+      commentId: posted.comment.id,
+      status: 'visible',
+      reason: '',
+    })
+    expect(restored).toEqual({ ok: true })
+
+    expect(deleteDevMyNewsComment(posted.comment.id)).toEqual({ ok: true })
+  })
+
+  it('lets authors edit their own comments', () => {
+    const posted = postDevNewsComment('comments-launch', 'Editable comment body')
+    expect(posted.ok).toBe(true)
+    if (!posted.ok || posted.outcome !== 'visible') return
+
+    const edited = editDevMyNewsComment(posted.comment.id, 'Edited comment body')
+    expect(edited.ok).toBe(true)
+    if (!edited.ok || edited.outcome !== 'visible') return
+    expect(edited.comment.body).toBe('Edited comment body')
   })
 
   it('keeps filtered comments in the staff-only pending queue', () => {
