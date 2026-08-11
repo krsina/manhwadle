@@ -515,17 +515,10 @@ export function VersusPage() {
     selectedModes.join(',') !== room.selectedModes.join(',') ||
     maxPlayers !== room.maxPlayers ||
     poolSource !== room.poolSource
-  const ownContribution = state.listContributions.find(
-    (contribution) => contribution.userId === user.id,
-  )
-  const missingContributors =
-    room.poolSource === 'collaborative_lists'
-      ? Math.max(
-          0,
-          state.poolSummary.requiredContributorCount -
-            state.poolSummary.contributorCount,
-        )
-      : 0
+  const needsSharedList =
+    room.poolSource === 'collaborative_lists' &&
+    state.poolSummary.contributorCount <
+      Math.max(1, state.poolSummary.requiredContributorCount)
   const insufficientMode = room.poolSource === 'collaborative_lists'
     ? room.selectedModes.find(
         (mode) => (state.poolSummary.perModeEligibleCounts[mode] ?? 0) < 3,
@@ -537,8 +530,8 @@ export function VersusPage() {
       room.selectedModes.length * MULTIPLAYER_ROUNDS_PER_MODE
   const startBlocked = missingPlayers > 0
     ? `Needs ${missingPlayers} more player${missingPlayers === 1 ? '' : 's'}.`
-    : missingContributors > 0
-      ? `Waiting for ${missingContributors} list contributor${missingContributors === 1 ? '' : 's'}.`
+    : needsSharedList
+      ? 'At least one player has to share a saved list.'
       : insufficientMode
         ? `${multiplayerModeLabel(insufficientMode)} needs at least 3 eligible unique titles.`
         : tooFewCombined
@@ -714,13 +707,7 @@ export function VersusPage() {
               <button
                 className={`btn btn-cta${self?.isReady ? ' btn-ghost' : ' btn-primary'}`}
                 type="button"
-                disabled={
-                  pending ||
-                  readyDebounced ||
-                  (!self?.isReady &&
-                    room.poolSource === 'collaborative_lists' &&
-                    !ownContribution)
-                }
+                disabled={pending || readyDebounced}
                 onClick={() => void toggleReady(room.id, !self?.isReady)}
               >
                 {self?.isReady ? 'Cancel ready' : "I'm ready"}

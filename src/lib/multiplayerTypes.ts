@@ -79,7 +79,9 @@ export interface MultiplayerListContributionSnapshot {
 
 export interface MultiplayerPoolSummary {
   contributorCount: number
+  /** Minimum shared lists a collaborative room needs before it can start. */
   requiredContributorCount: number
+  activeMemberCount: number
   perModeEligibleCounts: Partial<Record<MultiplayerMode, number>>
   combinedEligibleCount: number
 }
