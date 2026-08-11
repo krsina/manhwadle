@@ -6448,20 +6448,27 @@ button.mode-row-versus:focus-visible {
   display: grid;
   place-items: center;
   width: 100%;
+  /* Landscape stage. The blocks below soak up the leftover column height so the
+     frame keeps its crop instead of stretching into a tall box. */
+  aspect-ratio: 3 / 2;
+  flex: 0 0 auto;
   padding: 0.7rem;
   border: 1px solid var(--line);
   border-radius: 12px;
   overflow: hidden;
+  container-type: size;
 }
 
 .character-panel-avatar .pixel-avatar-lg {
-  width: 7rem;
-  height: 7rem;
+  width: min(11rem, 100cqw, 100cqh);
+  height: min(11rem, 100cqw, 100cqh);
 }
 
 .character-panel-level {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
+  justify-content: center;
   gap: 0.45rem;
   width: 100%;
   padding: 0.55rem 0.6rem 0.65rem;
@@ -6518,6 +6525,7 @@ button.mode-row-versus:focus-visible {
 
 .character-panel-stats {
   display: grid;
+  flex: 2 1 auto;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.4rem;
   width: 100%;
@@ -6529,6 +6537,7 @@ button.mode-row-versus:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 0.12rem;
   min-width: 0;
   padding: 0.45rem 0.35rem 0.5rem;
@@ -6880,7 +6889,27 @@ button.mode-row-versus:focus-visible {
 }
 
 .leaderboard-showcase-card.is-podium-1 .leaderboard-showcase-stage {
-  padding: 0.45rem 0.55rem 0.25rem;
+  place-items: center;
+  padding: 0.2rem 0.35rem 0.15rem;
+}
+
+/*
+ * Hero #1: full-body hero, centered in the tall podium stage.
+ */
+.leaderboard-showcase-card.is-podium-1 .leaderboard-showcase-avatar.pixel-avatar-md {
+  align-self: center;
+  justify-self: center;
+  width: min(12rem, 94cqh) !important;
+  height: min(12rem, 94cqh) !important;
+  /* Plate art sits a touch low; lift so the body centers in the stage. */
+  transform: scale(1.18) translateY(-2%);
+  transform-origin: center center;
+}
+
+.leaderboard-showcase-card.is-podium-1 .leaderboard-showcase-avatar.pixel-avatar-md img,
+.leaderboard-showcase-card.is-podium-1 .leaderboard-showcase-avatar.pixel-avatar-md .pixel-avatar-img {
+  object-fit: contain;
+  object-position: center center;
 }
 
 .leaderboard-showcase-rank {
@@ -6920,13 +6949,6 @@ button.mode-row-versus:focus-visible {
   min-height: 0;
   overflow: hidden;
   flex-shrink: 1;
-}
-
-.leaderboard-showcase-card.is-podium-1 .leaderboard-showcase-avatar.pixel-avatar-md {
-  width: min(8rem, 100cqw, 100cqh) !important;
-  height: min(8rem, 100cqw, 100cqh) !important;
-  transform: scale(1.35) translateY(10%);
-  transform-origin: center bottom;
 }
 
 /*
