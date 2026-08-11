@@ -8,6 +8,7 @@ import {
   canUseModerationUi,
   endsAtFromHours,
   moderationForceRename,
+  moderationBlockIdentity,
   moderationGetSiteStatus,
   moderationGrantRole,
   moderationIssueCloudBan,
@@ -18,8 +19,10 @@ import {
   moderationLookupUsername,
   moderationRevokeRestriction,
   moderationRevokeRole,
+  moderationSetAppealStatus,
   moderationSetModeStatus,
   moderationSetOutageExemption,
+  moderationSetReportStatus,
   moderationSetSiteStatus,
   type UserLookupResult,
 } from '../lib/moderationApi'
@@ -28,12 +31,17 @@ import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
 type Tab = 'search' | 'reports' | 'appeals' | 'audit' | 'status' | 'updates'
 
 interface ModerationDashboardProps {
-  open: boolean
-  onClose: () => void
+  open?: boolean
+  onClose?: () => void
+  inline?: boolean
 }
 
 /** Staff console. Visibility is gated by server-reported role; actions recheck DB. */
-export function ModerationDashboard({ open, onClose }: ModerationDashboardProps) {
+export function ModerationDashboard({
+  open = false,
+  onClose = () => undefined,
+  inline = false,
+}: ModerationDashboardProps) {
   const { account } = useAuth()
   const { showUserModeToggle, userMode } = useOwnerDevAccess()
   const titleId = useId()
@@ -48,6 +56,8 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
   const [reason, setReason] = useState('')
   const [durationHours, setDurationHours] = useState<number>(24 * 7)
   const [permanent, setPermanent] = useState(false)
+  const [identityKind, setIdentityKind] = useState<'email' | 'provider_subject'>('email')
+  const [identityValue, setIdentityValue] = useState('')
 
   const [reports, setReports] = useState<unknown[]>([])
   const [appeals, setAppeals] = useState<unknown[]>([])
@@ -67,7 +77,7 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
     canUseModerationUi(account?.staffRole) && !(showUserModeToggle && userMode)
 
   useEffect(() => {
-    if (!open) return
+    if (!open || inline) return
     const prev = document.activeElement as HTMLElement | null
     const frame = window.requestAnimationFrame(() => closeRef.current?.focus())
     function onKey(event: KeyboardEvent) {
@@ -79,7 +89,7 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
       window.removeEventListener('keydown', onKey)
       prev?.focus?.()
     }
-  }, [open, onClose])
+  }, [open, onClose, inline])
 
   useEffect(() => {
     if (!open) return
@@ -191,16 +201,9 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
 
   const targetId = lookup?.ok ? lookup.user_id : null
 
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      titleId={titleId}
-      descriptionId="moderation-desc"
-      backdropClassName="auth-backdrop"
-      panelClassName="settings-modal moderation-modal"
-      initialFocusRef={closeRef}
-    >
+  const content = (
+    <>
+      {!inline && (
         <button
           ref={closeRef}
           type="button"
@@ -210,6 +213,7 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
         >
           <span aria-hidden="true">×</span>
         </button>
+      )}
         <p className="modal-kicker">Staff</p>
         <h2 id={titleId} className="modal-title">
           Moderation
@@ -445,6 +449,49 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
                     >
                       Revoke moderator
                     </button>
+                    <select
+                      className="auth-modal-input"
+                      value={identityKind}
+                      disabled={busy}
+                      aria-label="Identity kind"
+                      onChange={(event) =>
+                        setIdentityKind(event.target.value as 'email' | 'provider_subject')
+                      }
+                    >
+                      <option value="email">Email identity</option>
+                      <option value="provider_subject">Provider subject</option>
+                    </select>
+                    <input
+                      className="auth-modal-input"
+                      value={identityValue}
+                      disabled={busy}
+                      aria-label="Identity value to block"
+                      placeholder="Identity value"
+                      onChange={(event) => setIdentityValue(event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      disabled={
+                        busy ||
+                        reason.trim().length < 3 ||
+                        identityValue.trim().length < 3
+                      }
+                      onClick={() =>
+                        void runAction(async () => {
+                          const result = await moderationBlockIdentity({
+                            kind: identityKind,
+                            value: identityValue.trim(),
+                            reason,
+                          })
+                          return result.ok
+                            ? { ok: true }
+                            : { ok: false, error: result.error }
+                        })
+                      }
+                    >
+                      Block identity
+                    </button>
                   </div>
                 )}
               </div>
@@ -464,6 +511,29 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
                     {String(item.target_username_normalized ?? '—')} ·{' '}
                     {String(item.status ?? '')}
                   </span>
+                  <div className="moderation-actions">
+                    {(['reviewing', 'resolved', 'dismissed'] as const).map((status) => (
+                      <button
+                        key={status}
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={busy}
+                        onClick={() =>
+                          void runAction(async () => {
+                            const result = await moderationSetReportStatus(
+                              String(item.id),
+                              status,
+                              `Marked ${status} in staff console`,
+                            )
+                            if (result.ok) void loadQueue('reports')
+                            return result
+                          })
+                        }
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
                 </li>
               )
             })}
@@ -479,6 +549,29 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
                 <li key={String(item.id ?? index)}>
                   <span>{String(item.kind ?? '')}</span>
                   <span className="moderation-queue-meta">{String(item.status ?? '')}</span>
+                  <div className="moderation-actions">
+                    {(['reviewing', 'accepted', 'denied'] as const).map((status) => (
+                      <button
+                        key={status}
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={busy}
+                        onClick={() =>
+                          void runAction(async () => {
+                            const result = await moderationSetAppealStatus(
+                              String(item.id),
+                              status,
+                              `Marked ${status} in staff console`,
+                            )
+                            if (result.ok) void loadQueue('appeals')
+                            return result
+                          })
+                        }
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
                 </li>
               )
             })}
@@ -706,6 +799,24 @@ export function ModerationDashboard({ open, onClose }: ModerationDashboardProps)
             setNotice={setNotice}
           />
         )}
+    </>
+  )
+
+  if (inline) {
+    return <section className="staff-console-panel moderation-page-panel">{content}</section>
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      titleId={titleId}
+      descriptionId="moderation-desc"
+      backdropClassName="auth-backdrop"
+      panelClassName="settings-modal moderation-modal"
+      initialFocusRef={closeRef}
+    >
+      {content}
     </Dialog>
   )
 }

@@ -19,6 +19,9 @@ const playMigration = readSql(
 const guestAnswerMigration = readSql(
   'supabase/migrations/20260729180146_guest_play_state_answer_id.sql',
 )
+const ownerAnalyticsMigration = readSql(
+  'supabase/migrations/20260809114805_owner_analytics.sql',
+)
 
 describe('private ledger hardening migration contracts', () => {
   it('enables RLS on point_transactions and keeps client DML revoked', () => {
@@ -40,6 +43,39 @@ describe('private ledger hardening migration contracts', () => {
     expect(ledgerMigration).toContain(
       'grant execute on function app_private.after_username_change_award_secret()\n  to postgres, service_role',
     )
+  })
+})
+
+describe('owner analytics migration contracts', () => {
+  it('exposes owner analytics only through service-role wrappers', () => {
+    expect(ownerAnalyticsMigration).toContain(
+      'grant execute on function public.moderation_get_owner_analytics',
+    )
+    expect(ownerAnalyticsMigration).toContain('to service_role')
+    expect(ownerAnalyticsMigration).toContain(
+      'revoke all on function public.moderation_get_owner_analytics',
+    )
+    expect(ownerAnalyticsMigration).not.toContain('guest_daily_plays')
+    expect(ownerAnalyticsMigration).not.toContain('record_guest_play_analytics')
+  })
+
+  it('requires owner role, bounds queries, and excludes flagged accounts', () => {
+    expect(ownerAnalyticsMigration).toContain(
+      'app_private.assert_moderation_actor(p_actor_id, true)',
+    )
+    expect(ownerAnalyticsMigration).toContain('v_end - v_start > 89')
+    expect(ownerAnalyticsMigration).toContain('not coalesce(af.is_test, false)')
+    expect(ownerAnalyticsMigration).toContain('not coalesce(af.is_suspicious, false)')
+    expect(ownerAnalyticsMigration).toContain("'analytics_query'")
+  })
+
+  it('aggregates signed-in play only', () => {
+    expect(ownerAnalyticsMigration).toContain("jsonb_build_object('segment', 'signed')")
+    expect(ownerAnalyticsMigration).toContain('app_private.daily_attempts')
+    expect(ownerAnalyticsMigration).toContain('public.daily_completions')
+    expect(ownerAnalyticsMigration).not.toContain('guest_hash')
+    expect(ownerAnalyticsMigration).not.toContain('ip_address')
+    expect(ownerAnalyticsMigration).not.toContain('user_agent')
   })
 })
 

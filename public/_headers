@@ -27,6 +27,10 @@
   Cache-Control: public, max-age=0, must-revalidate
   X-Robots-Tag: index, follow
 
+/staff/*
+  Cache-Control: private, no-store
+  X-Robots-Tag: noindex, nofollow
+
 /robots.txt
   Cache-Control: public, max-age=86400
 

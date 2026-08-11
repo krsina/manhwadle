@@ -29,7 +29,8 @@ type Action =
   | "set_account_flags"
   | "list_site_updates"
   | "upsert_site_update"
-  | "delete_site_update";
+  | "delete_site_update"
+  | "get_analytics";
 
 function corsFor(req: Request): Record<string, string> {
   return buildCorsHeaders({
@@ -322,6 +323,23 @@ Deno.serve(async (req: Request) => {
         });
         if (error) return jsonResponse(req, { error: error.message }, 400);
         return jsonResponse(req, { ok: true, result: data });
+      }
+
+      case "get_analytics": {
+        const startDate = asString(body.start_date);
+        const endDate = asString(body.end_date);
+        if (!startDate || !endDate) {
+          return jsonResponse(req, { error: "start_date and end_date required" }, 400);
+        }
+        const { data, error } = await rpc("moderation_get_owner_analytics", {
+          p_actor_id: actorId,
+          p_start_date: startDate,
+          p_end_date: endDate,
+          p_mode: asString(body.mode),
+          p_taste: asString(body.taste),
+        });
+        if (error) return jsonResponse(req, { error: error.message }, 403);
+        return jsonResponse(req, { ok: true, analytics: data });
       }
 
       case "get_site_status": {

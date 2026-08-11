@@ -172,6 +172,10 @@ test.describe('critical paths', () => {
     await page.goto('/dev/action-strip-preview')
     await expect(page).toHaveURL('/')
     await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()
+
+    await page.goto('/staff/analytics')
+    await expect(page).toHaveURL('/')
+    await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()
   })
 
   test('how-to dialog opens from the help button and is keyboard dismissible', async ({

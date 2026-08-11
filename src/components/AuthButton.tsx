@@ -2,10 +2,13 @@ import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth, type AuthOAuthProvider } from './AuthProvider'
 import { Dialog } from './Dialog'
-import { ModerationDashboard } from './ModerationDashboard'
 import { canUseModerationUi } from '../lib/moderationApi'
 import { useOwnerDevAccess } from '../lib/useOwnerDevAccess'
-import { SETTINGS_PATH } from '../lib/routes'
+import {
+  SETTINGS_PATH,
+  STAFF_ANALYTICS_PATH,
+  STAFF_MODERATION_PATH,
+} from '../lib/routes'
 import { PixelAvatar } from './PixelAvatar'
 import { DIALOG_ESCAPE_EVENT, reportAccountMenuPress } from '../lib/secretEvents'
 
@@ -25,12 +28,7 @@ export function AuthButton() {
   const navigate = useNavigate()
   const { showUserModeToggle, userMode, setUserMode } = useOwnerDevAccess()
   const [open, setOpen] = useState(false)
-  const [moderationOpen, setModerationOpen] = useState(false)
   const hideOwnerPrivileges = showUserModeToggle && userMode
-
-  useEffect(() => {
-    if (hideOwnerPrivileges && moderationOpen) setModerationOpen(false)
-  }, [hideOwnerPrivileges, moderationOpen])
 
   if (!configured) return null
 
@@ -46,7 +44,6 @@ export function AuthButton() {
   if (user) {
     const label = account?.username || 'Account'
     return (
-      <>
         <AccountMenu
           label={label}
           email={user.email ?? null}
@@ -58,7 +55,12 @@ export function AuthButton() {
           onOpenSettings={() => navigate(SETTINGS_PATH)}
           onOpenModeration={
             canUseModerationUi(account?.staffRole) && !hideOwnerPrivileges
-              ? () => setModerationOpen(true)
+              ? () =>
+                  navigate(
+                    account?.staffRole === 'owner'
+                      ? STAFF_ANALYTICS_PATH
+                      : STAFF_MODERATION_PATH,
+                  )
               : undefined
           }
           showUserModeToggle={showUserModeToggle}
@@ -66,11 +68,6 @@ export function AuthButton() {
           onToggleUserMode={() => setUserMode(!userMode)}
           onSignOut={() => signOut()}
         />
-        <ModerationDashboard
-          open={moderationOpen}
-          onClose={() => setModerationOpen(false)}
-        />
-      </>
     )
   }
 
@@ -427,7 +424,7 @@ function AccountMenu({
                 }}
                 disabled={busy}
               >
-                Moderation{staffRole ? ` (${staffRole})` : ''}
+                Staff dashboard{staffRole ? ` (${staffRole})` : ''}
               </button>
             )}
             {showUserModeToggle && onToggleUserMode && (

@@ -2,7 +2,7 @@ import { LegalDoc } from './LegalDoc'
 
 export function PrivacyPage() {
   return (
-    <LegalDoc title="Privacy" updated="July 21, 2026">
+    <LegalDoc title="Privacy" updated="August 9, 2026">
       <section>
         <h2>Overview</h2>
         <p>
@@ -29,9 +29,11 @@ export function PrivacyPage() {
       <section>
         <h2>Analytics</h2>
         <p>
-          Manhwadle does not use product-analytics trackers. We do not collect
-          optional play-behavior events for marketing or product analytics. Operational game data
-          for signed-in accounts (described above) is stored only to run the product.
+          Manhwadle does not track anonymous guest play. We do not use third-party
+          product-analytics trackers, advertising profiles, session replay, or device
+          fingerprinting for gameplay analytics. Signed-in aggregate metrics (for example mode
+          completions) are derived only from the operational account data described above and are
+          available to site owners for product operations.
         </p>
       </section>
       <section>
