@@ -1,5 +1,6 @@
 import {
   deleteDevMyNewsComment,
+  editDevMyNewsComment,
   isNewsDevFakeActive,
   listDevNewsComments,
   postDevNewsComment,
@@ -105,6 +106,34 @@ export async function postNewsComment(
   if (!supabase) return { ok: false, error: 'Supabase is not configured' }
   const { data, error } = await supabase.rpc('post_site_update_comment', {
     p_slug: slug,
+    p_body: body.trim(),
+  })
+  if (error) return { ok: false, error: error.message }
+  if (!data || typeof data !== 'object' || (data as { ok?: boolean }).ok !== true) {
+    return { ok: false, error: responseError(data, 'unexpected_response') }
+  }
+  const payload = data as { outcome?: unknown; comment?: unknown }
+  if (payload.outcome === 'pending') return { ok: true, outcome: 'pending' }
+  const comment = parseNewsComment(payload.comment)
+  return payload.outcome === 'visible' && comment
+    ? { ok: true, outcome: 'visible', comment }
+    : { ok: false, error: 'unexpected_response' }
+}
+
+export async function editMyNewsComment(
+  commentId: string,
+  body: string,
+): Promise<
+  | { ok: true; outcome: 'visible'; comment: NewsComment }
+  | { ok: true; outcome: 'pending' }
+  | { ok: false; error: string }
+> {
+  if (isNewsDevFakeActive()) {
+    return editDevMyNewsComment(commentId, body)
+  }
+  if (!supabase) return { ok: false, error: 'Supabase is not configured' }
+  const { data, error } = await supabase.rpc('edit_my_site_update_comment', {
+    p_comment_id: commentId,
     p_body: body.trim(),
   })
   if (error) return { ok: false, error: error.message }

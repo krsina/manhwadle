@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   ACHIEVEMENT_DEFINITIONS,
+  HOME_TEASER_ACHIEVEMENT_IDS,
+  homeTeaserDefinitions,
   parseAchievementAwards,
   shouldAwardAchievement,
 } from './achievements'
@@ -142,5 +144,19 @@ describe('parseAchievementAwards', () => {
           !definition.title.includes('—') && !definition.description.includes('—'),
       ),
     ).toBe(true)
+  })
+})
+
+describe('homeTeaserDefinitions', () => {
+  it('returns early non-secret milestones capped by limit', () => {
+    const six = homeTeaserDefinitions(6)
+    expect(six).toHaveLength(6)
+    expect(six.map((d) => d.id)).toEqual(HOME_TEASER_ACHIEVEMENT_IDS.slice(0, 6))
+    expect(six.every((d) => d.category !== 'secret' && d.category !== 'visit')).toBe(true)
+
+    expect(homeTeaserDefinitions(0)).toEqual([])
+    expect(homeTeaserDefinitions(HOME_TEASER_ACHIEVEMENT_IDS.length + 5)).toHaveLength(
+      HOME_TEASER_ACHIEVEMENT_IDS.length,
+    )
   })
 })

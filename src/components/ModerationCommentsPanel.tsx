@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from './AuthProvider'
 import { PixelAvatar } from './PixelAvatar'
+import { deleteMyNewsComment } from '../lib/newsCommentsApi'
 import {
   TEMP_DURATION_OPTIONS,
   endsAtFromHours,
@@ -30,7 +31,7 @@ function holdCategoryLabel(category: string | null): string {
 }
 
 export function ModerationCommentsPanel() {
-  const { account } = useAuth()
+  const { account, user } = useAuth()
   const [comments, setComments] = useState<ModerationNewsComment[]>([])
   const [status, setStatus] = useState<'all' | 'visible' | 'pending' | 'removed'>('all')
   const [offset, setOffset] = useState(0)
@@ -63,25 +64,43 @@ export function ModerationCommentsPanel() {
     void load()
   }, [load])
 
-  async function setCommentStatus(comment: ModerationNewsComment) {
-    const next = comment.status === 'visible' ? 'removed' : 'visible'
+  async function removeOwn(comment: ModerationNewsComment) {
+    if (!window.confirm('Remove your comment?')) return
+    setBusyId(comment.id)
+    setError(null)
+    setNotice(null)
+    const result = await deleteMyNewsComment(comment.id)
+    setBusyId(null)
+    if (!result.ok) {
+      setError(result.error)
+      return
+    }
+    setNotice('Comment removed.')
+    await load()
+  }
+
+  async function setCommentStatus(
+    comment: ModerationNewsComment,
+    next: 'visible' | 'removed',
+  ) {
     const action =
-      comment.status === 'pending'
+      comment.status === 'pending' && next === 'visible'
         ? 'Approve'
         : next === 'removed'
           ? 'Remove'
           : 'Restore'
-    const reason = window.prompt(
-      `${action} this comment — reason:`,
-    )?.trim()
-    if (!reason) return
+    const reasonRaw = window.prompt(
+      `${action} this comment — optional reason (leave blank to skip):`,
+      '',
+    )
+    if (reasonRaw === null) return
     setBusyId(comment.id)
     setError(null)
     setNotice(null)
     const result = await moderationSetNewsCommentStatus({
       commentId: comment.id,
       status: next,
-      reason,
+      reason: reasonRaw.trim(),
     })
     setBusyId(null)
     if (!result.ok) {
@@ -222,34 +241,80 @@ export function ModerationCommentsPanel() {
                   </p>
                 )}
                 <div className="news-comment-actions">
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    disabled={busyId === comment.id}
-                    onClick={() => void setCommentStatus(comment)}
-                  >
-                    {comment.status === 'visible'
-                      ? 'Remove'
-                      : comment.status === 'pending'
-                        ? 'Approve'
-                        : 'Restore'}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    disabled={busyId === comment.id}
-                    onClick={() => void ban(comment)}
-                  >
-                    Ban author
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    disabled={busyId === comment.id}
-                    onClick={() => void revokeBan(comment)}
-                  >
-                    Revoke comment ban
-                  </button>
+                  {user?.id != null &&
+                    comment.authorId === user.id &&
+                    (comment.status === 'visible' || comment.status === 'pending') && (
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={busyId === comment.id}
+                        onClick={() => void removeOwn(comment)}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  {comment.status === 'pending' && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      disabled={busyId === comment.id}
+                      onClick={() => void setCommentStatus(comment, 'visible')}
+                    >
+                      Approve
+                    </button>
+                  )}
+                  {comment.status === 'pending' &&
+                    !(user?.id != null && comment.authorId === user.id) && (
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={busyId === comment.id}
+                        onClick={() => void setCommentStatus(comment, 'removed')}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  {comment.status === 'visible' &&
+                    !(user?.id != null && comment.authorId === user.id) && (
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={busyId === comment.id}
+                        onClick={() => void setCommentStatus(comment, 'removed')}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  {comment.status === 'removed' && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      disabled={busyId === comment.id}
+                      onClick={() => void setCommentStatus(comment, 'visible')}
+                    >
+                      Restore
+                    </button>
+                  )}
+                  {!(user?.id != null && comment.authorId === user.id) && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={busyId === comment.id}
+                        onClick={() => void ban(comment)}
+                      >
+                        Ban author
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={busyId === comment.id}
+                        onClick={() => void revokeBan(comment)}
+                      >
+                        Revoke comment ban
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </li>

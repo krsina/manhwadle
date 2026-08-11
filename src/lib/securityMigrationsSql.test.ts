@@ -31,6 +31,12 @@ const newsCommentsMigration = readSql(
 const newsCommentAbuseMigration = readSql(
   'supabase/migrations/20260811143833_harden_news_comment_abuse.sql',
 )
+const newsCommentSelfDeleteMigration = readSql(
+  'supabase/migrations/20260811232455_news_comment_self_delete_optional_reason.sql',
+)
+const newsCommentEditMigration = readSql(
+  'supabase/migrations/20260811232720_news_comment_edit_own.sql',
+)
 
 describe('private ledger hardening migration contracts', () => {
   it('enables RLS on point_transactions and keeps client DML revoked', () => {
@@ -201,6 +207,41 @@ describe('news comment abuse hardening migration contracts', () => {
     )
     expect(newsCommentAbuseMigration).not.toContain(
       'to authenticated;\ngrant execute on function public.moderation_list_site_update_comments',
+    )
+  })
+})
+
+describe('news comment self-delete optional reason migration contracts', () => {
+  it('lets authors delete own comments and keeps staff reasons optional', () => {
+    expect(newsCommentSelfDeleteMigration).toContain(
+      "and c.status in ('visible', 'pending')",
+    )
+    expect(newsCommentSelfDeleteMigration).toContain('v_is_self := v_row.author_id = p_actor_id')
+    expect(newsCommentSelfDeleteMigration).toContain('if not v_is_self then')
+    expect(newsCommentSelfDeleteMigration).toContain(
+      'perform app_private.assert_can_target(p_actor_id, v_actor_role, v_row.author_id)',
+    )
+    expect(newsCommentSelfDeleteMigration).toContain(
+      "v_reason text := nullif(trim(coalesce(p_reason, '')), '')",
+    )
+    expect(newsCommentSelfDeleteMigration).not.toContain("error', 'reason_required'")
+    expect(newsCommentSelfDeleteMigration).toContain(
+      'or char_length(trim(removal_reason)) <= 500',
+    )
+  })
+})
+
+describe('news comment edit own migration contracts', () => {
+  it('exposes authenticated edit RPC with classifier and rate limits', () => {
+    expect(newsCommentEditMigration).toContain(
+      'create or replace function public.edit_my_site_update_comment',
+    )
+    expect(newsCommentEditMigration).toContain(
+      "consume_rpc_rate_limit(v_uid, 'edit_site_update_comment', 8, 60)",
+    )
+    expect(newsCommentEditMigration).toContain('app_private.classify_comment_body(v_body)')
+    expect(newsCommentEditMigration).toContain(
+      'grant execute on function public.edit_my_site_update_comment(uuid, text)\n  to authenticated, service_role',
     )
   })
 })

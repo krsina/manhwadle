@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import {
   ACHIEVEMENT_DEFINITIONS,
   definitionToAward,
+  homeTeaserDefinitions,
   type AchievementAward,
   type AchievementCategory,
   type AchievementDefinition,
@@ -14,8 +15,13 @@ interface AchievementBadgesProps {
   loading?: boolean
   error?: string | null
   emptyLabel?: string
-  /** Cap how many earned tiles render (homepage preview). Ignored for catalog. */
+  /** Cap how many tiles render (homepage preview). Ignored for catalog. */
   limit?: number
+  /**
+   * When the viewer has no unlocks yet, show early non-secret milestones as
+   * locked teasers instead of an empty state.
+   */
+  lockedTeaser?: boolean
   /** Show the full catalog with locked tiles for unearned milestones. */
   catalog?: boolean
   /** Group catalog tiles by category with section headings. */
@@ -61,6 +67,7 @@ export function AchievementBadges({
   error = null,
   emptyLabel = 'Finish daily modes to earn milestones. Progress is verified on the server.',
   limit,
+  lockedTeaser = false,
   catalog = false,
   groupByCategory = false,
 }: AchievementBadgesProps) {
@@ -74,6 +81,14 @@ export function AchievementBadges({
 
   const tiles = useMemo(() => {
     if (!catalog) {
+      if (awards.length === 0 && lockedTeaser) {
+        const teaserLimit =
+          typeof limit === 'number' && limit >= 0 ? limit : homeTeaserDefinitions(12).length
+        return homeTeaserDefinitions(teaserLimit).map((def) => ({
+          award: definitionToAward(def),
+          earned: false,
+        }))
+      }
       const preview =
         typeof limit === 'number' && limit >= 0 && awards.length > limit
           ? awards.slice(-limit)
@@ -87,7 +102,7 @@ export function AchievementBadges({
         earned: Boolean(earned),
       }
     })
-  }, [awards, catalog, earnedById, limit])
+  }, [awards, catalog, earnedById, limit, lockedTeaser])
 
   if (loading) {
     return (
@@ -105,7 +120,7 @@ export function AchievementBadges({
     )
   }
 
-  if (!catalog && awards.length === 0) {
+  if (!catalog && awards.length === 0 && !lockedTeaser) {
     return (
       <div className="achievement-badges is-empty">
         <p className="panel-muted">{emptyLabel}</p>

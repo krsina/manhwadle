@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from './AuthProvider'
 import { NewsCommentComposer } from './NewsCommentComposer'
+import { NewsCommentMenu, type NewsCommentMenuItem } from './NewsCommentMenu'
 import { StagedAvatar } from './StagedAvatar'
 import {
   deleteMyNewsComment,
+  editMyNewsComment,
   fetchNewsComments,
+  NEWS_COMMENT_MAX_LENGTH,
   newsCommentErrorMessage,
   postNewsComment,
   type NewsComment,
@@ -37,6 +40,8 @@ export function NewsCommentsSection({ slug }: { slug: string }) {
   const [total, setTotal] = useState(0)
   const [offset, setOffset] = useState(0)
   const [body, setBody] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editBody, setEditBody] = useState('')
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -91,6 +96,40 @@ export function NewsCommentsSection({ slug }: { slug: string }) {
     }
   }
 
+  function startEdit(comment: NewsComment | ModerationNewsComment) {
+    setEditingId(comment.id)
+    setEditBody(comment.body)
+    setError(null)
+    setNotice(null)
+  }
+
+  async function saveEdit(commentId: string) {
+    const nextBody = editBody.trim()
+    const preflight = preflightNewsComment(nextBody)
+    if (!preflight.ok) {
+      setError(newsCommentErrorMessage(preflight.error))
+      return
+    }
+    setBusyId(commentId)
+    setError(null)
+    setNotice(null)
+    const result = await editMyNewsComment(commentId, nextBody)
+    setBusyId(null)
+    if (!result.ok) {
+      setError(newsCommentErrorMessage(result.error))
+      return
+    }
+    setEditingId(null)
+    setEditBody('')
+    if (result.outcome === 'pending') {
+      setNotice('Your edit was submitted for moderator review.')
+      await load()
+      return
+    }
+    setNotice('Comment updated.')
+    await load()
+  }
+
   async function removeOwn(commentId: string) {
     if (!window.confirm('Remove your comment?')) return
     setBusyId(commentId)
@@ -101,35 +140,48 @@ export function NewsCommentsSection({ slug }: { slug: string }) {
       setError(result.error)
       return
     }
+    if (editingId === commentId) {
+      setEditingId(null)
+      setEditBody('')
+    }
     setNotice('Comment removed.')
     await load()
   }
 
-  async function moderateStatus(comment: ModerationNewsComment) {
-    const nextStatus = comment.status === 'visible' ? 'removed' : 'visible'
+  async function moderateStatus(
+    comment: ModerationNewsComment,
+    nextStatus: 'visible' | 'removed',
+  ) {
     const actionLabel =
-      comment.status === 'pending'
+      comment.status === 'pending' && nextStatus === 'visible'
         ? 'Approve'
         : nextStatus === 'removed'
           ? 'Remove'
           : 'Restore'
-    const reason = window.prompt(
-      `${actionLabel} comment — enter a reason:`,
-    )?.trim()
-    if (!reason) return
+    const reasonRaw = window.prompt(
+      `${actionLabel} comment — optional reason (leave blank to skip):`,
+      '',
+    )
+    if (reasonRaw === null) return
     setBusyId(comment.id)
     setError(null)
     const result = await moderationSetNewsCommentStatus({
       commentId: comment.id,
       status: nextStatus,
-      reason,
+      reason: reasonRaw.trim(),
     })
     setBusyId(null)
     if (!result.ok) {
       setError(result.error)
       return
     }
-    setNotice(nextStatus === 'removed' ? 'Comment removed.' : 'Comment restored.')
+    setNotice(
+      nextStatus === 'removed'
+        ? 'Comment removed.'
+        : comment.status === 'pending'
+          ? 'Comment approved.'
+          : 'Comment restored.',
+    )
     await load()
   }
 
@@ -152,6 +204,112 @@ export function NewsCommentsSection({ slug }: { slug: string }) {
       return
     }
     setNotice(`${comment.username} can no longer post comments.`)
+  }
+
+  function menuItemsFor(
+    comment: NewsComment | ModerationNewsComment,
+    staffComment: ModerationNewsComment | null,
+    isOwn: boolean,
+  ): NewsCommentMenuItem[] {
+    const items: NewsCommentMenuItem[] = []
+    const canSelfEdit =
+      isOwn && (comment.status === 'visible' || comment.status === 'pending')
+    const canSelfRemove =
+      isOwn && (comment.status === 'visible' || comment.status === 'pending')
+
+    if (canSelfEdit) {
+      items.push({
+        id: 'edit',
+        label: 'Edit',
+        onSelect: () => startEdit(comment),
+      })
+    }
+    if (canSelfRemove) {
+      items.push({
+        id: 'remove-own',
+        label: 'Remove',
+        danger: true,
+        onSelect: () => {
+          void removeOwn(comment.id)
+        },
+      })
+    }
+
+    if (staffComment && !isOwn) {
+      if (comment.status === 'pending') {
+        items.push({
+          id: 'approve',
+          label: 'Approve',
+          onSelect: () => {
+            void moderateStatus(staffComment, 'visible')
+          },
+        })
+        items.push({
+          id: 'remove',
+          label: 'Remove',
+          danger: true,
+          onSelect: () => {
+            void moderateStatus(staffComment, 'removed')
+          },
+        })
+      } else if (comment.status === 'visible') {
+        items.push({
+          id: 'remove',
+          label: 'Remove',
+          danger: true,
+          onSelect: () => {
+            void moderateStatus(staffComment, 'removed')
+          },
+        })
+      } else {
+        items.push({
+          id: 'restore',
+          label: 'Restore',
+          onSelect: () => {
+            void moderateStatus(staffComment, 'visible')
+          },
+        })
+      }
+      items.push({
+        id: 'ban-7d',
+        label: 'Ban 7 days',
+        danger: true,
+        onSelect: () => {
+          void banAuthor(staffComment, false)
+        },
+      })
+      if (account?.staffRole === 'owner') {
+        items.push({
+          id: 'ban-permanent',
+          label: 'Ban permanently',
+          danger: true,
+          onSelect: () => {
+            void banAuthor(staffComment, true)
+          },
+        })
+      }
+    }
+
+    if (staffComment && isOwn && comment.status === 'pending') {
+      items.push({
+        id: 'approve-own',
+        label: 'Approve',
+        onSelect: () => {
+          void moderateStatus(staffComment, 'visible')
+        },
+      })
+    }
+    if (staffComment && isOwn && comment.status === 'removed') {
+      items.push({
+        id: 'restore-own',
+        label: 'Restore',
+        onSelect: () => {
+          void moderateStatus(staffComment, 'visible')
+        },
+      })
+    }
+
+    return items
   }
 
   const page = Math.floor(offset / PAGE_SIZE) + 1
@@ -192,6 +350,12 @@ export function NewsCommentsSection({ slug }: { slug: string }) {
         <ol className="news-comment-list">
           {comments.map((comment) => {
             const staffComment = 'authorId' in comment ? comment : null
+            const isOwn =
+              ('isMine' in comment && comment.isMine) ||
+              (staffComment != null && user?.id != null && staffComment.authorId === user.id)
+            const menuItems = menuItemsFor(comment, staffComment, isOwn)
+            const isEditing = editingId === comment.id
+            const nearLimit = editBody.length >= NEWS_COMMENT_MAX_LENGTH * 0.9
             return (
               <li
                 key={comment.id}
@@ -199,59 +363,70 @@ export function NewsCommentsSection({ slug }: { slug: string }) {
               >
                 <StagedAvatar avatarId={comment.avatarId} stageId={comment.stageId} />
                 <div className="news-comment-content">
-                  <div className="news-comment-meta">
-                    <strong>{comment.username}</strong>
-                    <time dateTime={comment.createdAt}>{formatCommentTime(comment.createdAt)}</time>
-                    {comment.status === 'removed' && <span>Removed</span>}
-                    {comment.status === 'pending' && <span>Pending review</span>}
+                  <div className="news-comment-top">
+                    <div className="news-comment-meta">
+                      <strong>{comment.username}</strong>
+                      <time dateTime={comment.createdAt}>
+                        {formatCommentTime(comment.createdAt)}
+                      </time>
+                      {comment.status === 'removed' && <span>Removed</span>}
+                      {comment.status === 'pending' && <span>Pending review</span>}
+                    </div>
+                    <NewsCommentMenu
+                      items={menuItems}
+                      disabled={busyId === comment.id || isEditing}
+                      label={`Actions for ${comment.username}'s comment`}
+                    />
                   </div>
-                  <p>{comment.body}</p>
-                  <div className="news-comment-actions">
-                    {!staffComment && 'isMine' in comment && comment.isMine && (
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
+                  {isEditing ? (
+                    <div className="news-comment-edit">
+                      <textarea
+                        className="news-composer-input"
+                        value={editBody}
+                        onChange={(event) => setEditBody(event.target.value)}
+                        maxLength={NEWS_COMMENT_MAX_LENGTH}
+                        rows={3}
                         disabled={busyId === comment.id}
-                        onClick={() => void removeOwn(comment.id)}
-                      >
-                        Remove
-                      </button>
-                    )}
-                    {staffComment && (
-                      <>
-                        <button
-                          type="button"
-                          className="btn btn-ghost"
-                          disabled={busyId === comment.id}
-                          onClick={() => void moderateStatus(staffComment)}
+                        aria-label="Edit comment"
+                      />
+                      <div className="news-comment-edit-footer">
+                        <span
+                          className={`news-composer-count${nearLimit ? ' is-near-limit' : ''}`}
                         >
-                          {comment.status === 'visible'
-                            ? 'Remove'
-                            : comment.status === 'pending'
-                              ? 'Approve'
-                              : 'Restore'}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-ghost"
-                          disabled={busyId === comment.id}
-                          onClick={() => void banAuthor(staffComment, false)}
-                        >
-                          Ban 7d
-                        </button>
-                        {account?.staffRole === 'owner' && (
+                          {editBody.length > 0
+                            ? `${editBody.length} / ${NEWS_COMMENT_MAX_LENGTH}`
+                            : ''}
+                        </span>
+                        <div className="news-comment-edit-actions">
                           <button
                             type="button"
                             className="btn btn-ghost"
                             disabled={busyId === comment.id}
-                            onClick={() => void banAuthor(staffComment, true)}
+                            onClick={() => {
+                              setEditingId(null)
+                              setEditBody('')
+                            }}
                           >
-                            Ban permanently
+                            Cancel
                           </button>
-                        )}
-                      </>
-                    )}
-                  </div>
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            disabled={
+                              busyId === comment.id ||
+                              editBody.trim().length === 0 ||
+                              editBody.trim() === comment.body.trim()
+                            }
+                            onClick={() => void saveEdit(comment.id)}
+                          >
+                            {busyId === comment.id ? 'Saving…' : 'Save'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p>{comment.body}</p>
+                  )}
                 </div>
               </li>
             )
@@ -269,7 +444,9 @@ export function NewsCommentsSection({ slug }: { slug: string }) {
           >
             Previous
           </button>
-          <span>Page {page} of {pages}</span>
+          <span>
+            Page {page} of {pages}
+          </span>
           <button
             type="button"
             className="btn btn-ghost"

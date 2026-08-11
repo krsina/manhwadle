@@ -231,7 +231,11 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
                 Milestones
               </h2>
               <p className="home-section-blurb">
-                Little medals for sticking with the daily grind.
+                {!user
+                  ? 'Sign up to unlock these medals and keep them across devices.'
+                  : awards.length > 0
+                    ? 'Your earned medals so far.'
+                    : 'Little medals for sticking with the daily grind.'}
               </p>
             </div>
             <div className="home-achievements-actions">
@@ -245,6 +249,7 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
           <AchievementBadges
             awards={awards}
             limit={homeMilestonesLimit}
+            lockedTeaser
             loading={Boolean(user) && awardsLoading}
             error={user ? awardsError : null}
             emptyLabel={

@@ -14,6 +14,7 @@ import {
   getDevLeaderboardSearch,
   getDevMyStanding,
 } from './leaderboardDevFake'
+import { isLocalOwnerPreviewActive } from './localOwnerPreview'
 
 export interface SiteModeStatus {
   mode: string
@@ -273,7 +274,13 @@ export async function fetchMyAchievements(): Promise<
   const fake = getDevAchievements()
   if (fake) return { ok: true, awards: fake }
 
+  // Local owner preview has no real JWT; don't call Supabase or surface an error.
+  if (isLocalOwnerPreviewActive()) {
+    return { ok: true, awards: [] }
+  }
+
   if (!isSupabaseConfigured() || !supabase) {
+    if (import.meta.env.DEV) return { ok: true, awards: [] }
     return { ok: false, error: 'unconfigured' }
   }
   const { data, error } = await supabase.rpc('get_my_achievements')

@@ -406,12 +406,71 @@ export function postDevNewsComment(
     : { ok: true, outcome: 'visible', comment: toPublicComment(row, author.userId) }
 }
 
+export function editDevMyNewsComment(
+  commentId: string,
+  body: string,
+  authorId = LOCAL_OWNER_USER_ID,
+):
+  | { ok: true; outcome: 'visible'; comment: NewsComment }
+  | { ok: true; outcome: 'pending' }
+  | { ok: false; error: string } {
+  const trimmed = body.trim()
+  if (!trimmed) return { ok: false, error: 'body_required' }
+  if (trimmed.length > 1000) return { ok: false, error: 'body_too_long' }
+  const row = ensureState().comments.find((item) => item.id === commentId)
+  if (
+    !row ||
+    row.authorId !== authorId ||
+    (row.status !== 'visible' && row.status !== 'pending')
+  ) {
+    return { ok: false, error: 'not_found' }
+  }
+  if (ensureState().commentBans.has(authorId)) {
+    return { ok: false, error: 'comment_banned' }
+  }
+  if (row.body.trim() === trimmed) {
+    return row.status === 'pending'
+      ? { ok: true, outcome: 'pending' }
+      : { ok: true, outcome: 'visible', comment: toPublicComment(row, authorId) }
+  }
+  const normalized = normalizeNewsCommentBody(trimmed)
+  const duplicate = ensureState().comments.some(
+    (item) =>
+      item.id !== commentId &&
+      item.authorId === authorId &&
+      normalizeNewsCommentBody(item.body) === normalized &&
+      Date.now() - new Date(item.createdAt).getTime() <= 24 * 60 * 60 * 1000,
+  )
+  if (duplicate) return { ok: false, error: 'spam_rejected' }
+  const decision = classifyNewsCommentBody(trimmed)
+  if (decision.action === 'reject') return { ok: false, error: 'spam_rejected' }
+  const now = new Date().toISOString()
+  row.body = trimmed
+  row.updatedAt = now
+  row.filterCategory = decision.category
+  row.filterRule = decision.rule
+  if (decision.action === 'quarantine') {
+    row.status = 'pending'
+    notify()
+    return { ok: true, outcome: 'pending' }
+  }
+  row.status = 'visible'
+  row.filterCategory = null
+  row.filterRule = null
+  notify()
+  return { ok: true, outcome: 'visible', comment: toPublicComment(row, authorId) }
+}
+
 export function deleteDevMyNewsComment(
   commentId: string,
   authorId = LOCAL_OWNER_USER_ID,
 ): { ok: true } | { ok: false; error: string } {
   const row = ensureState().comments.find((item) => item.id === commentId)
-  if (!row || row.authorId !== authorId || row.status !== 'visible') {
+  if (
+    !row ||
+    row.authorId !== authorId ||
+    (row.status !== 'visible' && row.status !== 'pending')
+  ) {
     return { ok: false, error: 'not_found' }
   }
   const now = new Date().toISOString()
@@ -430,7 +489,7 @@ export function setDevNewsCommentStatus(input: {
   reason: string
 }): { ok: true } | { ok: false; error: string } {
   const reason = input.reason.trim()
-  if (reason.length < 3) return { ok: false, error: 'reason_required' }
+  if (reason.length > 500) return { ok: false, error: 'reason_too_long' }
   const row = ensureState().comments.find((item) => item.id === input.commentId)
   if (!row) return { ok: false, error: 'not_found' }
   const now = new Date().toISOString()
@@ -439,7 +498,7 @@ export function setDevNewsCommentStatus(input: {
   row.removedByAuthor = false
   if (input.status === 'removed') {
     row.removedAt = now
-    row.removalReason = reason
+    row.removalReason = reason.length > 0 ? reason : null
   } else {
     row.removedAt = null
     row.removalReason = null
