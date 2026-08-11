@@ -6135,47 +6135,67 @@ a.modal-character-subtitle:hover {
 .home-archive-actions {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.35rem;
   flex-shrink: 0;
   margin: 0;
-  padding: 0;
-  border: none;
-  background: none;
-  color: inherit;
+  padding: 0.32rem 0.55rem 0.32rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink-soft);
   font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
   cursor: pointer;
+  transition:
+    transform 140ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
 .home-archive-label {
   margin: 0;
-  color: var(--ink-soft);
-  font-size: 0.9rem;
-  font-weight: 700;
-  line-height: 1;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.home-archive-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 0.9em;
+  height: 0.9em;
+  position: relative;
+  top: -2px;
+  color: var(--ink);
+  line-height: 0;
   transition: color 160ms ease;
 }
 
-.home-archive-actions .howto-btn {
-  pointer-events: none;
+.home-archive-icon .archive-toggle-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-.home-archive-actions:hover .home-archive-label,
-.home-archive-actions:focus-visible .home-archive-label {
-  color: var(--ink);
-}
-
-.home-archive-actions:hover .howto-btn,
-.home-archive-actions:focus-visible .howto-btn {
+.home-archive-actions:hover,
+.home-archive-actions:focus-visible {
   transform: translateY(-1px);
   border-color: var(--accent);
   color: var(--accent-deep);
 }
 
-.home-archive-actions:focus-visible {
-  outline: none;
+.home-archive-actions:hover .home-archive-icon,
+.home-archive-actions:focus-visible .home-archive-icon {
+  color: var(--accent-deep);
 }
 
-.home-archive-actions:focus-visible .howto-btn {
+.home-archive-actions:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -6198,6 +6218,8 @@ a.modal-character-subtitle:hover {
   border-radius: var(--radius);
   background: transparent;
   color: inherit;
+  font: inherit;
+  text-align: left;
   text-decoration: none;
   transition:
     background-color 0.15s ease,
@@ -6342,6 +6364,15 @@ button.mode-row-versus:focus-visible {
 .home-achievements,
 .home-news {
   min-width: 0;
+}
+
+.home-achievements,
+.home-news {
+  display: flex;
+  flex-direction: column;
+  /* Keep lower homepage panels from stretching past the viewport. */
+  max-height: min(52vh, 28rem);
+  overflow: hidden;
 }
 
 .leaderboard-panel {
@@ -7032,12 +7063,13 @@ button.mode-row-versus:focus-visible {
 .leaderboard-showcase-value {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.1rem;
+  gap: 0.2rem;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
   font-size: 0.66rem;
   color: var(--ink-soft);
   line-height: 1.1;
+  white-space: nowrap;
 }
 
 .leaderboard-showcase-value .leaderboard-value-num {
@@ -7146,8 +7178,7 @@ button.mode-row-versus:focus-visible {
   color: var(--ink-soft);
   font-size: 0.72rem;
   font-weight: 650;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .leaderboard-more {
@@ -7329,7 +7360,8 @@ button.mode-row-versus:focus-visible {
   text-decoration: underline;
 }
 
-.home-achievements .home-section-blurb {
+.home-achievements .home-section-blurb,
+.home-news .home-section-blurb {
   max-width: none;
   white-space: normal;
 }
@@ -7338,6 +7370,11 @@ button.mode-row-versus:focus-visible {
   margin-top: 0.9rem;
   grid-template-columns: repeat(auto-fill, minmax(7.25rem, 1fr));
   gap: 0.6rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.15rem;
 }
 
 .home-news-list {
@@ -7345,6 +7382,11 @@ button.mode-row-versus:focus-visible {
   margin: 0.9rem 0 0;
   padding: 0;
   display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.15rem;
 }
 
 .home-news-item {
@@ -7413,6 +7455,7 @@ button.mode-row-versus:focus-visible {
 }
 
 .home-news-status {
+  flex-shrink: 0;
   margin-top: 0.9rem;
 }
 
@@ -8226,12 +8269,44 @@ a.database-tile-link:hover .database-title {
     height: auto;
     min-height: 0;
     grid-template-columns: minmax(11rem, 0.9fr) minmax(0, 1.2fr);
+    /* Modes no longer set row height; keep character + rankings aligned. */
+    align-items: stretch;
+  }
+
+  /* Self-contained scrollable rankings when the side is no longer height-locked. */
+  .leaderboard-panel {
+    height: auto;
+    max-height: min(70vh, 34rem);
+    overflow: hidden;
+  }
+
+  .leaderboard-panel .leaderboard-list:not(.is-remainder) {
+    flex: 1 1 auto;
+    max-height: min(52vh, 26rem);
+  }
+
+  .home-achievements,
+  .home-news {
+    max-height: min(48vh, 24rem);
   }
 }
 
 @media (max-width: 720px) {
   .home-side {
     grid-template-columns: 1fr;
+  }
+
+  .leaderboard-panel {
+    max-height: min(58vh, 28rem);
+  }
+
+  .leaderboard-panel .leaderboard-list:not(.is-remainder) {
+    max-height: min(42vh, 22rem);
+  }
+
+  .home-achievements,
+  .home-news {
+    max-height: min(42vh, 20rem);
   }
 }
 
@@ -8256,13 +8331,13 @@ a.database-tile-link:hover .database-title {
   image-rendering: crisp-edges;
 }
 
-/* Bust crop: head + slight upper torso (list rows / auth chip). */
+/* Bust crop: head + slight upper torso (list rows / auth chip / Versus). */
 .pixel-avatar.is-bust img,
 .pixel-avatar.is-bust .pixel-avatar-img {
   object-fit: cover;
-  object-position: center 22%;
-  transform: scale(3.15);
-  transform-origin: center 22%;
+  object-position: var(--avatar-bust-x, 50%) var(--avatar-bust-y, 18%);
+  transform: scale(var(--avatar-bust-scale, 2.55));
+  transform-origin: var(--avatar-bust-x, 50%) var(--avatar-bust-y, 18%);
 }
 
 .pixel-avatar-sm {
@@ -9614,12 +9689,13 @@ a.database-tile-link:hover .database-title {
 .leaderboard-hero-value {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.1rem;
+  gap: 0.2rem;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
   font-size: 0.72rem;
   color: var(--ink-soft);
   line-height: 1.1;
+  white-space: nowrap;
 }
 
 @media (max-width: 700px) {
@@ -9710,7 +9786,7 @@ a.database-tile-link:hover .database-title {
 
 .versus-hero {
   display: grid;
-  gap: 1.15rem;
+  gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
@@ -9741,6 +9817,61 @@ a.database-tile-link:hover .database-title {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* The steps read as a full-width band, so the title keeps no dead space beside it. */
+@media (min-width: 700px) {
+  .versus-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.versus-side {
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+  min-width: 0;
+}
+
+.versus-list-preview {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.versus-list-preview li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-soft);
+  min-width: 0;
+}
+
+.versus-list-preview strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.versus-list-preview small,
+.versus-list-preview-more {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.versus-list-preview-more {
+  border-style: dashed;
+  justify-content: center;
+}
+
+.versus-panel > .btn {
+  justify-self: start;
 }
 
 .versus-steps li {
@@ -10085,11 +10216,12 @@ a.database-tile-link:hover .database-title {
   line-height: 1.35;
 }
 
+/* Tall and narrow: a roomier column of covers beats a wide, short one. */
 .saved-list-dialog {
   display: grid;
   gap: 1rem;
-  width: min(60rem, calc(100vw - 2rem));
-  max-height: min(48rem, calc(100vh - 2rem));
+  width: min(52rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
   overflow: auto;
 }
 
@@ -10298,6 +10430,12 @@ a.database-tile-link:hover .database-title {
 
 .saved-list-more {
   justify-self: start;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.saved-list-sentinel {
+  height: 1px;
 }
 
 .saved-list-chips,
@@ -11482,9 +11620,7 @@ a.database-tile-link:hover .database-title {
   }
 
   .versus-hero {
-    grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.72fr);
-    align-items: center;
-    gap: 1.75rem;
+    gap: 1.15rem;
   }
 
   .versus-live-rail {

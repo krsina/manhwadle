@@ -24,6 +24,7 @@ import { MultiplayerRoundProgress } from '../components/multiplayer/MultiplayerR
 import { MultiplayerRoundReveal } from '../components/multiplayer/MultiplayerRoundReveal'
 import { MultiplayerRoundBoard } from '../components/multiplayer/MultiplayerRoundBoard'
 import { MultiplayerTimer } from '../components/multiplayer/MultiplayerTimer'
+import { VersusAvatarPreview } from '../components/multiplayer/VersusAvatarPreview'
 import { KnownInfoPanel } from '../components/KnownInfoPanel'
 import { useMultiplayerRoom } from '../hooks/useMultiplayerRoom'
 import type { Manhwa } from '../lib/anilist-types'
@@ -61,7 +62,11 @@ import {
   leaveMultiplayerPage,
   multiplayerInteractionsBlocked,
 } from '../lib/multiplayerPageActions'
-import { listSavedLists, type SavedListSummary } from '../lib/savedListsApi'
+import {
+  listSavedLists,
+  SAVED_LIST_MAX_COUNT,
+  type SavedListSummary,
+} from '../lib/savedListsApi'
 import { versusRoomPath } from '../lib/routes'
 import { findById } from '../lib/search'
 
@@ -308,6 +313,7 @@ export function VersusPage() {
             ))}
           </ol>
         </header>
+        {import.meta.env.DEV && <VersusAvatarPreview />}
         {error && <p className="versus-error" role="alert">{error}</p>}
         <div className="versus-grid">
           <section className="versus-panel">
@@ -350,15 +356,9 @@ export function VersusPage() {
               >
                 {pending ? 'Creating…' : 'Create room'}
               </button>
-              <button
-                className="btn btn-ghost"
-                type="button"
-                onClick={() => setListManagerOpen(true)}
-              >
-                Manage saved lists
-              </button>
             </div>
           </section>
+          <div className="versus-side">
           <section className="versus-panel">
             <div className="versus-panel-head">
               <div>
@@ -399,6 +399,50 @@ export function VersusPage() {
               </button>
             </div>
           </section>
+          <section className="versus-panel">
+            <div className="versus-panel-head">
+              <div>
+                <h2>Saved lists</h2>
+                <p className="versus-muted">
+                  Your own title pools for collaborative rooms.
+                </p>
+              </div>
+              {savedLists.length > 0 && (
+                <span className="versus-chip">
+                  {savedLists.length}/{SAVED_LIST_MAX_COUNT}
+                </span>
+              )}
+            </div>
+            {savedLists.length > 0 ? (
+              <ul className="versus-list-preview">
+                {savedLists.slice(0, 3).map((list) => (
+                  <li key={list.id}>
+                    <strong>{list.name}</strong>
+                    <small>
+                      {list.entryCount} title{list.entryCount === 1 ? '' : 's'}
+                    </small>
+                  </li>
+                ))}
+                {savedLists.length > 3 && (
+                  <li className="versus-list-preview-more">
+                    +{savedLists.length - 3} more
+                  </li>
+                )}
+              </ul>
+            ) : (
+              <p className="versus-hint">
+                No lists yet. Build one to host a room from your own titles.
+              </p>
+            )}
+            <button
+              className="btn"
+              type="button"
+              onClick={() => setListManagerOpen(true)}
+            >
+              {savedLists.length > 0 ? 'Manage lists' : 'Create a list'}
+            </button>
+          </section>
+          </div>
         </div>
         <SavedListManagerDialog
           open={listManagerOpen}
@@ -563,6 +607,7 @@ export function VersusPage() {
 
   return (
     <main className="versus-page">
+      {import.meta.env.DEV && <VersusAvatarPreview />}
       <header className="versus-room-head">
         <div className="versus-room-id">
           <p className="versus-kicker">Room code</p>

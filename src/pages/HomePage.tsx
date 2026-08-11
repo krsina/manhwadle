@@ -30,6 +30,12 @@ import { saveReaderTaste, type ReaderTaste } from '../lib/readerTaste'
 import { MILESTONES_PATH, playPath } from '../lib/routes'
 import { createHomeIdleTracker, reportSecretEvent } from '../lib/secretEvents'
 import { syncAfterLocalChange } from '../lib/sync'
+import { useMatchMedia } from '../hooks/useMatchMedia'
+
+/** Matches `.home-side` stacking — fewer milestone tiles when space is tight. */
+const HOME_MOBILE_MQ = '(max-width: 720px)'
+const HOME_MILESTONES_DESKTOP = 12
+const HOME_MILESTONES_MOBILE = 6
 
 interface HomePageProps {
   taste: ReaderTaste | null
@@ -39,6 +45,7 @@ interface HomePageProps {
 export function HomePage({ taste, setTaste }: HomePageProps) {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const compactHome = useMatchMedia(HOME_MOBILE_MQ)
   const [siteStatus, setSiteStatus] = useState<PublicSiteStatus | null>(null)
   const [serverModes, setServerModes] = useState<string[] | null>(null)
   const [awards, setAwards] = useState<AchievementAward[]>([])
@@ -49,6 +56,9 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
   const [showArchive, setShowArchive] = useState(false)
   const [archiveAfterTaste, setArchiveAfterTaste] = useState(false)
   const todayKey = getTodayKey()
+  const homeMilestonesLimit = compactHome
+    ? HOME_MILESTONES_MOBILE
+    : HOME_MILESTONES_DESKTOP
 
   function requestArchive() {
     if (!taste) {
@@ -234,6 +244,7 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
           </div>
           <AchievementBadges
             awards={awards}
+            limit={homeMilestonesLimit}
             loading={Boolean(user) && awardsLoading}
             error={user ? awardsError : null}
             emptyLabel={

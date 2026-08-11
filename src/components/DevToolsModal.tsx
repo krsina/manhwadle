@@ -13,7 +13,7 @@ import {
   updateDevStanding,
   type DevStandingDraft,
 } from '../lib/leaderboardDevFake'
-import { DEV_ANIMATIONS_PATH, DEV_ACTION_STRIP_PREVIEW_PATH } from '../lib/routes'
+import { DEV_ANIMATIONS_PATH, DEV_ACTION_STRIP_PREVIEW_PATH, DEV_AVATAR_BUST_CROPS_PATH } from '../lib/routes'
 import { STREAK_PRESETS, streakTier } from '../lib/streakIntensity'
 /** Floating owner+DEV tools for Top Rankings + streak badge previews. */
 export function DevToolsLauncher() {
@@ -97,8 +97,9 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
         Dev tools
       </h2>
       <p id="dev-tools-desc" className="auth-modal-intro">
-        Test header streak intensity and Leaderboard without writing to Supabase. The page stays
-        visible behind this panel.
+        Test header streak intensity and Leaderboard without writing to Supabase. News uses seeded
+        local posts/comments, and you are treated as LocalOwner for staff UI. The page stays visible
+        behind this panel.
       </p>
 
       <section className="settings-section settings-section-first" aria-labelledby="dev-anim-heading">
@@ -119,6 +120,14 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
           style={{ marginLeft: '0.5rem' }}
         >
           Action strip preview
+        </Link>
+        <Link
+          className="btn btn-ghost"
+          to={DEV_AVATAR_BUST_CROPS_PATH}
+          onClick={onClose}
+          style={{ marginLeft: '0.5rem' }}
+        >
+          Avatar bust crops
         </Link>
       </section>
 
