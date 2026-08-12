@@ -10711,6 +10711,31 @@ a.database-tile-link:hover .database-title {
   background: color-mix(in srgb, var(--close) 7%, var(--panel));
 }
 
+.versus-active-room {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0 0 1rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel));
+}
+
+.versus-active-room h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.versus-active-room .versus-muted {
+  margin: 0;
+}
+
+.versus-active-room-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
 .multiplayer-mode-picker {
   display: grid;
   gap: 0.45rem;

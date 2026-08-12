@@ -147,12 +147,28 @@ export interface MultiplayerStateSnapshot {
   version: number
 }
 
+/** Compact occupancy summary for landing-page resume / leave. */
+export interface MultiplayerActiveRoomSummary {
+  id: string
+  code: string
+  status: MultiplayerRoomStatus
+  isHost: boolean
+  memberCount: number
+  maxPlayers: number
+}
+
 export interface MultiplayerRpcFailure {
   ok: false
   error: string
   migrationMissing?: boolean
   state?: MultiplayerStateSnapshot
+  /** Present when create/join is blocked by an existing seat. */
+  activeRoom?: MultiplayerActiveRoomSummary | null
 }
+
+export type MultiplayerActiveRoomResult =
+  | { ok: true; room: MultiplayerActiveRoomSummary | null }
+  | MultiplayerRpcFailure
 
 export interface MultiplayerStateSuccess {
   ok: true
