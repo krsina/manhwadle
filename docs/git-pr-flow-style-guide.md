@@ -39,7 +39,7 @@ npm run lint
 npm test
 npm run build          # includes build:catalog
 npm run check:dist
-npx playwright install --with-deps chromium firefox webkit   # once per machine / browser bump
+npx playwright install --with-deps chromium webkit   # once per machine / browser bump
 npm run test:e2e
 ```
 
@@ -106,7 +106,7 @@ Skip e2e only when the diff cannot affect the app shell, routes, or critical-pat
 | `lint` | oxlint issues |
 | `npm test` | Unit / parser regressions |
 | `build` + `check:dist` | Typecheck, catalog build, bundle budget |
-| `test:e2e` | Critical Playwright paths (chromium / firefox / webkit) |
+| `test:e2e` | Critical Playwright paths (chromium / webkit) |
 
 `staging-smoke` is stubbed off until live staging secrets are wired ([deployment.md](./deployment.md)). Do not treat a skipped staging job as “security verified.”
 
