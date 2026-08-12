@@ -16,10 +16,6 @@ export const heardleHowTo: HowToPlayGuide = {
       title: 'Read the colors',
       body: '🟩 = correct. 🟨 = close. ⬜ = not it. Year arrows show whether the answer is newer ↑ or older ↓.',
     },
-    {
-      title: 'Hard mode',
-      body: 'Hard mode stays strictly audio — no music video — and can serve instrumental BGM as well as vocal themes. Same daily title, tougher clip. It locks after your first guess.',
-    },
   ],
   footer: 'A new clip arrives every day. Prefer official uploads; some videos may be region-blocked.',
 }
