@@ -22,7 +22,7 @@ import {
   resolveDailyCharacterCrop,
   type CharacterCropFile,
 } from '../../lib/crops'
-import { isArchiveDate } from '../../lib/archive'
+import { isArchiveDate, isFirstTrySolve } from '../../lib/archive'
 import { characterDisplayName } from '../../lib/characterNames'
 import { displayTitle } from '../../lib/daily'
 import { useOwnerDevAccess } from '../../lib/useOwnerDevAccess'
@@ -343,8 +343,11 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
   const maxClueStep = Math.max(0, maxGuesses - 1)
   const canRevealMore = answerReady && canAdvanceClue(dayState, maxClueStep)
 
-  const firstTryWin =
-    dayState.status === 'won' && dayState.guessIds.length === 1
+  const firstTryWin = isFirstTrySolve({
+    won: dayState.status === 'won',
+    guessCount: dayState.guessIds.length,
+    hintsUsed: dayState.hintsUsed,
+  })
   const doubleSolve =
     firstTryWin && dayState.bonusNameCorrect === true
 
@@ -585,7 +588,11 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
   }) {
     if (dayState.bonusNameGuess != null) return
 
-    const firstTry = dayState.status === 'won' && dayState.guessIds.length === 1
+    const firstTry = isFirstTrySolve({
+      won: dayState.status === 'won',
+      guessCount: dayState.guessIds.length,
+      hintsUsed: dayState.hintsUsed,
+    })
     const isDoubleSolve = result.correct && firstTry
     const next: DayState = {
       ...dayState,
@@ -707,8 +714,8 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
                   enabled={hardMode}
                   disabled={!answerReady || hardModeLocked}
                   onChange={handleHardModeChange}
-                  titleOn="Black and white"
-                  titleOff="Black and white"
+                  titleOn="Pixelated + black and white"
+                  titleOff="Pixelated + black and white"
                 />
               </div>
               <CharacterClue
@@ -717,6 +724,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
                 finished={finished}
                 maxGuesses={maxGuesses}
                 progressiveZoom={hardMode}
+                progressivePixelate={hardMode}
                 canRevealMore={hardMode && canRevealMore}
                 onRevealMore={hardMode ? handleRevealMore : undefined}
                 grayscale={grayscale}

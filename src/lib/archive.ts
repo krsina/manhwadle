@@ -78,9 +78,29 @@ export function isDoubleSolveDayState(dayState: DayState | null | undefined): bo
   )
 }
 
-/** Series solved on the opening guess, whether or not the bonus was correct. */
+/**
+ * Opening-guess win with no free hints.
+ * First-try solves are strictly as-is — Reveal more gives up the badge.
+ */
+export function isFirstTrySolve(input: {
+  won: boolean
+  guessCount: number
+  hintsUsed?: number
+}): boolean {
+  return (
+    input.won &&
+    input.guessCount === 1 &&
+    (input.hintsUsed ?? 0) === 0
+  )
+}
+
+/** Series solved on the opening guess with no hints, whether or not the bonus was correct. */
 export function isFirstTryDayState(dayState: DayState | null | undefined): boolean {
-  return dayState?.status === 'won' && dayState.guessIds.length === 1
+  return isFirstTrySolve({
+    won: dayState?.status === 'won',
+    guessCount: dayState?.guessIds.length ?? 0,
+    hintsUsed: dayState?.hintsUsed,
+  })
 }
 
 /** Calendar cell status from puzzle availability + optional local DayState. */

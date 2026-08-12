@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  cropPixelScale,
   cropZoomScale,
   guessableCharacters,
   resolveDailyCharacterCrop,
@@ -41,6 +42,13 @@ describe('crops', () => {
     expect(cropZoomScale(0)).toBeGreaterThan(1)
     expect(cropZoomScale(5)).toBe(1)
     expect(cropZoomScale(0, { finished: true })).toBe(1)
+  })
+
+  it('cropPixelScale clears by the last failed guess and when finished', () => {
+    expect(cropPixelScale(0)).toBeGreaterThan(1)
+    expect(cropPixelScale(1)).toBeLessThan(cropPixelScale(0))
+    expect(cropPixelScale(5)).toBe(1)
+    expect(cropPixelScale(0, { finished: true })).toBe(1)
   })
 
   it('resolveDailyCharacterCrop prefers a saved crop URL', () => {

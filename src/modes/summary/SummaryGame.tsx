@@ -27,7 +27,7 @@ import {
   compareGuess,
   feedbackToShareLine,
 } from '../../lib/compare'
-import { isArchiveDate } from '../../lib/archive'
+import { isArchiveDate, isFirstTrySolve } from '../../lib/archive'
 import { displayTitle } from '../../lib/daily'
 import { useOwnerDevAccess } from '../../lib/useOwnerDevAccess'
 import { buildKnownInfo } from '../../lib/knowledge'
@@ -266,8 +266,11 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
     [dayState.status, answer],
   )
 
-  const firstTryWin =
-    dayState.status === 'won' && dayState.guessIds.length === 1
+  const firstTryWin = isFirstTrySolve({
+    won: dayState.status === 'won',
+    guessCount: dayState.guessIds.length,
+    hintsUsed: dayState.hintsUsed,
+  })
   const doubleSolve =
     firstTryWin && dayState.bonusNameCorrect === true
 
@@ -497,7 +500,11 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
   }) {
     if (dayState.bonusNameGuess != null) return
 
-    const firstTry = dayState.status === 'won' && dayState.guessIds.length === 1
+    const firstTry = isFirstTrySolve({
+      won: dayState.status === 'won',
+      guessCount: dayState.guessIds.length,
+      hintsUsed: dayState.hintsUsed,
+    })
     const isDoubleSolve = result.correct && firstTry
     const next: DayState = {
       ...dayState,

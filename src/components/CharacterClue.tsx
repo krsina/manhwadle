@@ -1,6 +1,6 @@
 import type { CharacterCropEntry } from '../lib/crops'
-import { clampFocus, cropZoomScale } from '../lib/crops'
-import { MediaImage } from './MediaImage'
+import { clampFocus, cropPixelScale, cropZoomScale } from '../lib/crops'
+import { CropPixelateCanvas } from './CropPixelateCanvas'
 import { RevealMoreButton } from './RevealMoreButton'
 
 interface CharacterClueProps {
@@ -13,10 +13,15 @@ interface CharacterClueProps {
   /** Optional grayscale filter (hard-mode helper) */
   grayscale?: boolean
   /**
-   * Progressive zoom-out ladder. Hard mode keeps it; normal mode shows the
-   * full portrait from the start.
+   * Progressive zoom-out ladder. Hard mode keeps this; normal Character mode
+   * shows the full portrait from the start.
    */
   progressiveZoom?: boolean
+  /**
+   * Progressive pixelation ladder (hard mode). Stacks with zoom — starts
+   * chunky and clears after wrong guesses / Reveal more.
+   */
+  progressivePixelate?: boolean
   /**
    * Shown under the clue after the round ends. On a win, wait until the bonus
    * name guess is answered so the clue board does not spoil it.
@@ -34,10 +39,14 @@ export function CharacterClue({
   onRevealMore,
   grayscale = false,
   progressiveZoom = true,
+  progressivePixelate = false,
   revealName = null,
 }: CharacterClueProps) {
   const scale = progressiveZoom
     ? cropZoomScale(failedGuesses, { finished })
+    : 1
+  const pixelScale = progressivePixelate
+    ? cropPixelScale(failedGuesses, { finished })
     : 1
   const focusX = clampFocus(crop.focusX)
   const focusY = clampFocus(crop.focusY, 28)
@@ -45,6 +54,13 @@ export function CharacterClue({
     ? maxGuesses
     : Math.min(failedGuesses + 1, maxGuesses)
   const shownName = finished ? revealName?.trim() || null : null
+  const progressive = progressiveZoom || progressivePixelate
+  const hintText =
+    progressiveZoom && progressivePixelate
+      ? 'Wrong guesses zoom out and clear pixels'
+      : progressivePixelate
+        ? 'Wrong guesses clear the pixels'
+        : 'Wrong guesses zoom out'
 
   return (
     <section className="crop-clue" aria-label="Character clue">
@@ -53,13 +69,13 @@ export function CharacterClue({
           <p className="clue-label">
             {finished
               ? 'Full reveal'
-              : progressiveZoom
+              : progressive
                 ? `Character clue ${step}/${maxGuesses}`
                 : 'Character clue'}
           </p>
-          {!finished && progressiveZoom && (
+          {!finished && progressive && (
             <div className="clue-hint-row">
-              <p className="clue-hint">Wrong guesses zoom out</p>
+              <p className="clue-hint">{hintText}</p>
               {onRevealMore && (
                 <RevealMoreButton
                   onClick={onRevealMore}
@@ -71,28 +87,27 @@ export function CharacterClue({
         </div>
         <div className={`crop-reveal-stage${shownName ? ' has-name' : ''}`}>
           <div className="crop-frame crop-frame-portrait">
-            <div
-              className="crop-zoom"
-              style={{
-                transform: `scale(${scale})`,
-                transformOrigin: `${focusX}% ${focusY}%`,
-              }}
-            >
-              <MediaImage
-                className={`crop-image${grayscale ? ' is-grayscale' : ''}`}
-                src={crop.imageUrl}
-                alt={
-                  shownName
-                    ? `Portrait of ${shownName}`
-                    : progressiveZoom
-                      ? 'Character clue. Wrong guesses zoom out the crop.'
-                      : 'Character clue.'
-                }
-                fallbackLabel="Character image unavailable"
-                draggable={false}
-                referrerPolicy="no-referrer"
-              />
-            </div>
+            <CropPixelateCanvas
+              src={crop.imageUrl}
+              alt={
+                shownName
+                  ? `Portrait of ${shownName}`
+                  : progressiveZoom && progressivePixelate
+                    ? 'Character clue. Wrong guesses zoom out and clear the pixels.'
+                    : progressivePixelate
+                      ? 'Character clue. Wrong guesses clear the pixels.'
+                      : progressiveZoom
+                        ? 'Character clue. Wrong guesses zoom out the crop.'
+                        : 'Character clue.'
+              }
+              fallbackLabel="Character image unavailable"
+              zoomScale={scale}
+              focusX={focusX}
+              focusY={focusY}
+              pixelSize={pixelScale}
+              grayscale={grayscale}
+              referrerPolicy="no-referrer"
+            />
           </div>
           {shownName && (
             <div className="crop-clue-reveal" aria-live="polite">
