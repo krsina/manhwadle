@@ -20,7 +20,7 @@ import {
   feedbackToShareLine,
 } from '../../lib/compare'
 import { manhwaHasCover } from '../../lib/cover'
-import { isArchiveDate } from '../../lib/archive'
+import { isArchiveDate, isFirstTrySolve } from '../../lib/archive'
 import { displayTitle } from '../../lib/daily'
 import { useOwnerDevAccess } from '../../lib/useOwnerDevAccess'
 import { buildKnownInfo } from '../../lib/knowledge'
@@ -231,15 +231,18 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
   const progress = clueProgress(dayState)
   const maxClueStep = Math.max(0, maxGuesses - 1)
   const canRevealMore =
-    answerReady && !hardMode && canAdvanceClue(dayState, maxClueStep)
+    answerReady && canAdvanceClue(dayState, maxClueStep)
 
   const bonusCharacter = useMemo(
     () => (dayState.status === 'won' ? pickMainCharacter(answer) : null),
     [dayState.status, answer],
   )
 
-  const firstTryWin =
-    dayState.status === 'won' && dayState.guessIds.length === 1
+  const firstTryWin = isFirstTrySolve({
+    won: dayState.status === 'won',
+    guessCount: dayState.guessIds.length,
+    hintsUsed: dayState.hintsUsed,
+  })
   const doubleSolve =
     firstTryWin && dayState.bonusNameCorrect === true
 
@@ -331,7 +334,7 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
   }
 
   function handleRevealMore() {
-    if (!answerReady || hardMode) return
+    if (!answerReady) return
     const next = advanceClue(dayState, maxClueStep)
     if (!next) return
     persistDay(next)
@@ -471,7 +474,11 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
   }) {
     if (dayState.bonusNameGuess != null) return
 
-    const firstTry = dayState.status === 'won' && dayState.guessIds.length === 1
+    const firstTry = isFirstTrySolve({
+      won: dayState.status === 'won',
+      guessCount: dayState.guessIds.length,
+      hintsUsed: dayState.hintsUsed,
+    })
     const isDoubleSolve = result.correct && firstTry
     const next: DayState = {
       ...dayState,
@@ -580,8 +587,8 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
                   enabled={hardMode}
                   disabled={!answerReady || hardModeLocked}
                   onChange={handleHardModeChange}
-                  titleOn="Black and white, no free zooms"
-                  titleOff="Black and white, no free zooms"
+                  titleOn="Pixelated + black and white"
+                  titleOff="Pixelated + black and white"
                 />
               </div>
               <CoverClue
@@ -592,8 +599,10 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
                 failedGuesses={progress}
                 finished={finished}
                 maxGuesses={maxGuesses}
+                progressiveZoom
+                progressivePixelate={hardMode}
                 canRevealMore={canRevealMore}
-                onRevealMore={hardMode ? undefined : handleRevealMore}
+                onRevealMore={handleRevealMore}
                 grayscale={hardMode}
                 focusX={
                   !isPractice && clue?.type === 'cover' && typeof clue.focus_x === 'number'

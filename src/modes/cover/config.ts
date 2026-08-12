@@ -6,7 +6,8 @@ export const coverModeMeta = {
   id: COVER_MODE_ID,
   name: 'Cover',
   tagline: 'Guess today’s manhwa from a zoomed-in cover.',
-  description: 'Study a tight cover crop and pull back the camera with each miss.',
+  description:
+    'Study a tight cover crop and pull back the camera with each miss. Hard Mode adds heavy pixelation.',
   presentationKey: 'cover' as const,
   availability: {
     requiredForAllMode: true,

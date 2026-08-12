@@ -1,9 +1,9 @@
 import type { Manhwa } from './anilist-types'
-import { clampFocus, cropZoomScale } from './crops'
+import { clampFocus, cropPixelScale, cropZoomScale } from './crops'
 import { hashString } from './daily'
 
-// Re-export zoom helpers so Cover mode can share Character's ladder.
-export { clampFocus, cropZoomScale }
+// Re-export zoom/pixel helpers so Cover mode can share Character's ladders.
+export { clampFocus, cropPixelScale, cropZoomScale }
 
 /** Titles with a usable cover art URL. */
 export function manhwaHasCover(manhwa: Manhwa): boolean {
