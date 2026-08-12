@@ -69,6 +69,16 @@ export function isValidMultiplayerInviteCode(value: string): boolean {
   )
 }
 
+/** Absolute invite URL friends can open or paste into Join. */
+export function buildMultiplayerInviteUrl(
+  code: string,
+  origin: string = typeof window !== 'undefined' ? window.location.origin : '',
+): string {
+  const normalized = normalizeMultiplayerInviteCode(code)
+  const base = origin.replace(/\/$/, '')
+  return `${base}/versus/${encodeURIComponent(normalized)}`
+}
+
 export function multiplayerErrorMessage(error: string): string {
   const messages: Record<string, string> = {
     auth_required: 'Sign in to play Versus.',
