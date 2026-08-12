@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  buildMultiplayerInviteUrl,
   createMultiplayerRoom,
   getMyActiveMultiplayerRoom,
   isMissingMultiplayerRpcError,
@@ -144,19 +143,15 @@ describe('multiplayer API contract', () => {
     expect(parseMultiplayerModes(['summary', 'unknown'])).toBeNull()
   })
 
-  it('accepts legacy and hardened invite codes, including pasted links', () => {
+  it('accepts legacy and hardened invite codes only', () => {
     expect(isValidMultiplayerInviteCode('ABC234')).toBe(true)
     expect(isValidMultiplayerInviteCode('ABCD2345')).toBe(true)
     expect(isValidMultiplayerInviteCode('ABCDE12')).toBe(false)
     expect(isValidMultiplayerInviteCode('ABCD_234')).toBe(false)
+    expect(normalizeMultiplayerInviteCode(' abcd2345 ')).toBe('ABCD2345')
     expect(
-      normalizeMultiplayerInviteCode(
-        'https://manhwadle.example/versus/abcd2345',
-      ),
-    ).toBe('ABCD2345')
-    expect(buildMultiplayerInviteUrl('abcd2345', 'https://manhwadle.example')).toBe(
-      'https://manhwadle.example/versus/ABCD2345',
-    )
+      isValidMultiplayerInviteCode('https://manhwadle.example/versus/abcd2345'),
+    ).toBe(false)
   })
 
   it('maps permanent and abuse-control errors to player-facing copy', () => {
@@ -365,13 +360,13 @@ describe('multiplayer API contract', () => {
     )
   })
 
-  it('normalizes a pasted invite link before joining', async () => {
+  it('normalizes a pasted invite code before joining', async () => {
     rpc.mockResolvedValue({
       data: { ok: true, joined: true, state: stateFixture() },
       error: null,
     })
     await joinMultiplayerRoom({
-      code: 'https://manhwadle.example/versus/abcd2345',
+      code: ' abcd2345 ',
       idempotencyKey: 'join:test-1',
     })
     expect(rpc).toHaveBeenCalledWith('multiplayer_join_room', {
