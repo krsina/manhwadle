@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  buildMultiplayerInviteUrl,
   createMultiplayerRoom,
   getMyActiveMultiplayerRoom,
   isMissingMultiplayerRpcError,
@@ -153,6 +154,9 @@ describe('multiplayer API contract', () => {
         'https://manhwadle.example/versus/abcd2345',
       ),
     ).toBe('ABCD2345')
+    expect(buildMultiplayerInviteUrl('abcd2345', 'https://manhwadle.example')).toBe(
+      'https://manhwadle.example/versus/ABCD2345',
+    )
   })
 
   it('maps permanent and abuse-control errors to player-facing copy', () => {

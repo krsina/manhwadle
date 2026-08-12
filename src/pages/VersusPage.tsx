@@ -28,10 +28,12 @@ import { VersusAvatarPreview } from '../components/multiplayer/VersusAvatarPrevi
 import { KnownInfoPanel } from '../components/KnownInfoPanel'
 import { useMultiplayerRoom } from '../hooks/useMultiplayerRoom'
 import type { Manhwa } from '../lib/anilist-types'
+import { copyTextToClipboard } from '../lib/clipboard'
 import { loadClientCatalog } from '../lib/clientCatalog'
 import { displayTitle } from '../lib/daily'
 import { buildKnownInfo } from '../lib/knowledge'
 import {
+  buildMultiplayerInviteUrl,
   createMultiplayerIdempotencyKey,
   createMultiplayerRoom,
   getMyActiveMultiplayerRoom,
@@ -106,7 +108,7 @@ const HOW_IT_WORKS = [
     title: 'Pick the modes',
     detail: `${MULTIPLAYER_ROUNDS_PER_MODE} rounds each, played in a fixed order.`,
   },
-  { title: 'Share the code', detail: 'Anyone with the invite code can take a seat.' },
+  { title: 'Share the invite', detail: 'Copy the invite link so friends can join with one paste.' },
   { title: 'Ready up', detail: 'The host starts once every player is ready.' },
 ]
 
@@ -127,9 +129,14 @@ function activeRoomPhaseLabel(status: MultiplayerRoomStatus): string {
 }
 
 export function VersusPage() {
-  const { roomId } = useParams<{ roomId: string }>()
+  const { roomId: roomIdParam } = useParams<{ roomId: string }>()
   const navigate = useNavigate()
   const { user, configured, loading: authLoading, needsUsername } = useAuth()
+  const inviteCodeFromPath =
+    roomIdParam && isValidMultiplayerInviteCode(roomIdParam)
+      ? normalizeMultiplayerInviteCode(roomIdParam)
+      : null
+  const roomId = inviteCodeFromPath ? undefined : roomIdParam
   const [catalog, setCatalog] = useState<Manhwa[]>([])
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [catalogError, setCatalogError] = useState(false)
@@ -138,7 +145,7 @@ export function VersusPage() {
   const [poolSource, setPoolSource] = useState<MultiplayerPoolSource>('both')
   const [savedLists, setSavedLists] = useState<SavedListSummary[]>([])
   const [listManagerOpen, setListManagerOpen] = useState(false)
-  const [joinCode, setJoinCode] = useState('')
+  const [joinCode, setJoinCode] = useState(inviteCodeFromPath ?? '')
   const [pending, setPending] = useState(false)
   const [readyDebounced, setReadyDebounced] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -214,6 +221,27 @@ export function VersusPage() {
     return () => window.clearTimeout(timer)
   }, [copied])
 
+  useEffect(() => {
+    if (!inviteCodeFromPath) return
+    setJoinCode(inviteCodeFromPath)
+    try {
+      sessionStorage.setItem('manhwadle:versus-pending-invite', inviteCodeFromPath)
+    } catch {
+      // private mode — join field still holds the code for this tab
+    }
+  }, [inviteCodeFromPath])
+
+  useEffect(() => {
+    if (inviteCodeFromPath || joinCode) return
+    try {
+      const stashed = sessionStorage.getItem('manhwadle:versus-pending-invite')
+      if (!stashed || !isValidMultiplayerInviteCode(stashed)) return
+      setJoinCode(normalizeMultiplayerInviteCode(stashed))
+    } catch {
+      // ignore
+    }
+  }, [inviteCodeFromPath, joinCode])
+
   useEffect(() => () => {
     if (readyDebounceTimerRef.current !== null) {
       window.clearTimeout(readyDebounceTimerRef.current)
@@ -250,6 +278,11 @@ export function VersusPage() {
     }
     if (!result.ok) return false
     if (options?.navigateToRoom) {
+      try {
+        sessionStorage.removeItem('manhwadle:versus-pending-invite')
+      } catch {
+        // ignore
+      }
       navigate(versusRoomPath(result.state.room.id))
       return true
     }
@@ -276,9 +309,15 @@ export function VersusPage() {
     setError(null)
   }
 
-  function copyInvite() {
-    void navigator.clipboard?.writeText(window.location.href)
-    setCopied(true)
+  async function copyInvite(code: string) {
+    const inviteUrl = buildMultiplayerInviteUrl(code)
+    const ok = await copyTextToClipboard(inviteUrl)
+    if (ok) {
+      setCopied(true)
+      setError(null)
+      return
+    }
+    setError(`Could not copy automatically. Share this invite code: ${code}`)
   }
 
   function updateJoinCode(value: string) {
@@ -459,7 +498,7 @@ export function VersusPage() {
             <div className="versus-panel-head">
               <div>
                 <h2>Join a room</h2>
-                <p className="versus-muted">Ask the host for their invite code.</p>
+                <p className="versus-muted">Paste an invite link or code from the host.</p>
               </div>
             </div>
             <div className="versus-form">
@@ -468,16 +507,16 @@ export function VersusPage() {
                 <input
                   className="versus-code"
                   value={joinCode}
-                  maxLength={8}
+                  maxLength={256}
                   autoCapitalize="characters"
                   autoComplete="off"
                   spellCheck={false}
                   onChange={(event) => updateJoinCode(event.target.value)}
-                  placeholder="ABCDEFGH"
+                  placeholder="Invite link or code"
                 />
               </label>
               <p className="versus-hint">
-                New codes are 8 characters. Existing 6-character invites still work.
+                Paste the full invite link, or an 8-character code (6-character invites still work).
               </p>
               <button
                 className="btn btn-primary btn-cta"
@@ -719,7 +758,7 @@ export function VersusPage() {
             {phaseLabel(room.status, roundNumber, totalRounds)}
           </span>
           <div className="versus-actions">
-            <button className="btn" type="button" onClick={copyInvite}>
+            <button className="btn" type="button" onClick={() => void copyInvite(room.code)}>
               {copied ? 'Invite copied' : 'Copy invite'}
             </button>
             <button
