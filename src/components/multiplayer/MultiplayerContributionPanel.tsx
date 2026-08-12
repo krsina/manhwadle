@@ -1,15 +1,11 @@
 import type { SavedListSummary } from '../../lib/savedListsApi'
-import { MULTIPLAYER_ROUNDS_PER_MODE } from '../../lib/multiplayerTypes'
 import type {
   MultiplayerListContributionSnapshot,
-  MultiplayerMode,
   MultiplayerPoolSummary,
 } from '../../lib/multiplayerTypes'
-import { multiplayerModeLabel } from './multiplayerModeMeta'
 
 interface MultiplayerContributionPanelProps {
   viewerUserId: string
-  selectedModes: MultiplayerMode[]
   contributions: MultiplayerListContributionSnapshot[]
   summary: MultiplayerPoolSummary
   savedLists: SavedListSummary[]
@@ -25,12 +21,15 @@ function contributorSummary(summary: MultiplayerPoolSummary): string {
   const players = summary.activeMemberCount || summary.contributorCount
   return `${summary.contributorCount} of ${players} player${
     players === 1 ? '' : 's'
-  } shared a list. Everyone else can just play.`
+  } shared a list.`
+}
+
+function uniqueTitleLabel(count: number): string {
+  return `${count} unique title${count === 1 ? '' : 's'}`
 }
 
 export function MultiplayerContributionPanel({
   viewerUserId,
-  selectedModes,
   contributions,
   summary,
   savedLists,
@@ -51,7 +50,7 @@ export function MultiplayerContributionPanel({
           </p>
         </div>
         <span className="versus-chip">
-          {summary.combinedEligibleCount} eligible titles
+          {uniqueTitleLabel(summary.uniqueTitleCount)}
         </span>
       </div>
       <p className="versus-contribution-status" role="status">
@@ -70,7 +69,7 @@ export function MultiplayerContributionPanel({
             <option value="">Not sharing a list</option>
             {savedLists.map((list) => (
               <option key={list.id} value={list.id}>
-                {list.name} ({list.entryCount})
+                {list.name}
               </option>
             ))}
           </select>
@@ -93,33 +92,12 @@ export function MultiplayerContributionPanel({
                 <strong>
                   {contribution.userId === viewerUserId ? 'You' : contribution.username}
                 </strong>
-                <small>{contribution.listName} · {contribution.entryCount} saved</small>
-              </div>
-              <div className="contribution-counts">
-                {selectedModes.map((mode) => (
-                  <span key={mode}>
-                    {multiplayerModeLabel(mode)} {contribution.eligibleCounts[mode] ?? 0}
-                  </span>
-                ))}
+                <small>{contribution.listName}</small>
               </div>
             </article>
           ))}
         </div>
       )}
-      <div className="contribution-mode-counts">
-        {selectedModes.map((mode) => {
-          const count = summary.perModeEligibleCounts[mode] ?? 0
-          const short = count < MULTIPLAYER_ROUNDS_PER_MODE
-          return (
-            <span
-              className={`contribution-mode-count${short ? ' is-short' : ''}`}
-              key={mode}
-            >
-              {multiplayerModeLabel(mode)} {count}/{MULTIPLAYER_ROUNDS_PER_MODE}
-            </span>
-          )
-        })}
-      </div>
     </section>
   )
 }

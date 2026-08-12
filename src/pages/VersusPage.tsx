@@ -730,7 +730,6 @@ export function VersusPage() {
               {room.poolSource === 'collaborative_lists' && (
                 <MultiplayerContributionPanel
                   viewerUserId={user.id}
-                  selectedModes={room.selectedModes}
                   contributions={state.listContributions}
                   summary={state.poolSummary}
                   savedLists={savedLists}

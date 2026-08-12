@@ -249,6 +249,7 @@ function parsePoolSummary(raw: unknown): MultiplayerPoolSummary {
       contributorCount: 0,
       requiredContributorCount: 0,
       activeMemberCount: 0,
+      uniqueTitleCount: 0,
       perModeEligibleCounts: {},
       combinedEligibleCount: 0,
     }
@@ -257,6 +258,7 @@ function parsePoolSummary(raw: unknown): MultiplayerPoolSummary {
     contributorCount: nonNegInt(raw.contributor_count),
     requiredContributorCount: nonNegInt(raw.required_contributor_count),
     activeMemberCount: nonNegInt(raw.active_member_count),
+    uniqueTitleCount: nonNegInt(raw.unique_title_count),
     perModeEligibleCounts: parseEligibleCounts(raw.per_mode_eligible_counts),
     combinedEligibleCount: nonNegInt(raw.combined_eligible_count),
   }

@@ -82,6 +82,8 @@ export interface MultiplayerPoolSummary {
   /** Minimum shared lists a collaborative room needs before it can start. */
   requiredContributorCount: number
   activeMemberCount: number
+  /** Distinct manhwa ids across every shared list in the room. */
+  uniqueTitleCount: number
   perModeEligibleCounts: Partial<Record<MultiplayerMode, number>>
   combinedEligibleCount: number
 }
