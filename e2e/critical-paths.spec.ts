@@ -258,7 +258,8 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('heading', { name: /Pick a past day/i })).toHaveCount(0)
   })
 
-  test('homepage has no serious axe violations', async ({ page }) => {
+  test('homepage has no serious axe violations', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'Axe once on Chromium is enough')
     await page.goto('/')
     const results = await new AxeBuilder({ page })
       .disableRules(['color-contrast'])
