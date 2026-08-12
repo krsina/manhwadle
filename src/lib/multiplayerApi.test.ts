@@ -116,6 +116,7 @@ function stateFixture() {
       contributor_count: 1,
       required_contributor_count: 1,
       active_member_count: 2,
+      unique_title_count: 10,
       per_mode_eligible_counts: { summary: 6, cover: 6 },
       combined_eligible_count: 8,
     },
@@ -200,6 +201,7 @@ describe('multiplayer API contract', () => {
       contributorCount: 1,
       requiredContributorCount: 1,
       activeMemberCount: 2,
+      uniqueTitleCount: 10,
       combinedEligibleCount: 8,
     })
 
