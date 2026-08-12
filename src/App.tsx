@@ -45,6 +45,9 @@ const ActionStripPreviewPage = lazyWithStaleReload(() =>
 const AvatarBustCropPage = lazyWithStaleReload(() =>
   import('./pages/AvatarBustCropPage').then((m) => ({ default: m.AvatarBustCropPage })),
 )
+const VersusEffectsDemoPage = lazyWithStaleReload(() =>
+  import('./pages/VersusEffectsDemoPage').then((m) => ({ default: m.VersusEffectsDemoPage })),
+)
 const PrivacyPage = lazyWithStaleReload(() =>
   import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
 )
@@ -209,6 +212,16 @@ function App() {
                   <LocalDevOrOwnerRoute>
                     <Suspense fallback={<RouteFallback />}>
                       <AvatarBustCropPage />
+                    </Suspense>
+                  </LocalDevOrOwnerRoute>
+                }
+              />
+              <Route
+                path="dev/versus-effects"
+                element={
+                  <LocalDevOrOwnerRoute>
+                    <Suspense fallback={<RouteFallback />}>
+                      <VersusEffectsDemoPage />
                     </Suspense>
                   </LocalDevOrOwnerRoute>
                 }

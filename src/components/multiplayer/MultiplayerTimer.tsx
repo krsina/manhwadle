@@ -8,7 +8,7 @@ interface MultiplayerTimerProps {
   endsAt: string | null
   serverNow?: string | null
   label: string
-  /** Phase length; supplies the depletion bar and urgency thresholds. */
+  /** Phase length; controls whether warning and critical thresholds apply. */
   durationMs?: number
   variant?: 'inline' | 'hero'
 }
@@ -48,6 +48,7 @@ export function MultiplayerTimer({
   const readout = showSecondsOnly
     ? String(totalSeconds)
     : `${minutes}:${seconds.toString().padStart(2, '0')}`
+  const accessibleLabel = label.trim().replace(/:$/, '')
 
   const urgencyEnabled = durationMs == null || durationMs >= URGENCY_MIN_DURATION_MS
   const urgency = !urgencyEnabled
@@ -57,24 +58,16 @@ export function MultiplayerTimer({
       : remaining <= WARNING_MS
         ? ' is-warning'
         : ''
-  const ratio =
-    durationMs && durationMs > 0 ? Math.min(1, Math.max(0, remaining / durationMs)) : null
-
   return (
     <div
       className={`multiplayer-timer multiplayer-timer-${variant}${urgency}`}
       role="timer"
-      aria-label={`${label}: ${readout}`}
+      aria-label={`${accessibleLabel}: ${readout}`}
       aria-live={remaining <= CRITICAL_MS ? 'polite' : 'off'}
       aria-atomic="true"
     >
       <small>{label}</small>
       <strong>{readout}</strong>
-      {ratio != null && (
-        <span className="multiplayer-timer-bar" aria-hidden="true">
-          <span style={{ transform: `scaleX(${ratio})` }} />
-        </span>
-      )}
     </div>
   )
 }

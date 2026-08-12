@@ -9871,7 +9871,8 @@ a.database-tile-link:hover .database-title {
 }
 
 /* Group Versus */
-.versus-page {
+.versus-page,
+.versus-effects-demo {
   /* No shared danger token in the palette; Versus urgency borrows the streak red. */
   --versus-danger: #f87171;
   width: 100%;
@@ -9880,7 +9881,8 @@ a.database-tile-link:hover .database-title {
   animation: rise 500ms ease both;
 }
 
-[data-theme='light'] .versus-page {
+[data-theme='light'] .versus-page,
+[data-theme='light'] .versus-effects-demo {
   --versus-danger: #b91c1c;
 }
 
@@ -10171,6 +10173,14 @@ a.database-tile-link:hover .database-title {
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.7rem 1rem;
+}
+
+.multiplayer-round-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  margin-left: auto;
 }
 
 .versus-panel-head > div {
@@ -10861,24 +10871,57 @@ a.database-tile-link:hover .database-title {
 }
 
 .multiplayer-player {
+  --player-state-color: var(--line);
   display: grid;
   grid-template-columns: 1.5rem 3rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.55rem;
   min-height: 3.35rem;
   padding: 0.4rem 0.6rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--player-state-color);
   border-radius: 10px;
   background: var(--panel-soft);
+  transition:
+    border-color 220ms ease,
+    background-color 220ms ease,
+    box-shadow 220ms ease;
 }
 
 .multiplayer-player.is-solved {
-  border-color: color-mix(in srgb, var(--correct) 42%, var(--line));
+  --player-state-color: color-mix(in srgb, var(--correct) 58%, var(--line));
+  background: color-mix(in srgb, var(--correct) 5%, var(--panel-soft));
+}
+
+.multiplayer-player.is-failed {
+  --player-state-color: color-mix(in srgb, var(--versus-danger) 58%, var(--line));
+  background: color-mix(in srgb, var(--versus-danger) 5%, var(--panel-soft));
 }
 
 .multiplayer-player.is-self {
-  border-color: var(--accent);
+  --player-state-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 7%, var(--panel));
+}
+
+.multiplayer-player.is-self.is-solved {
+  --player-state-color: color-mix(in srgb, var(--correct) 58%, var(--line));
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--correct) 7%, transparent),
+      transparent 42%
+    ),
+    color-mix(in srgb, var(--accent) 5%, var(--panel));
+}
+
+.multiplayer-player.is-self.is-failed {
+  --player-state-color: color-mix(in srgb, var(--versus-danger) 58%, var(--line));
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--versus-danger) 7%, transparent),
+      transparent 42%
+    ),
+    color-mix(in srgb, var(--accent) 5%, var(--panel));
 }
 
 .multiplayer-player.is-empty,
@@ -11026,41 +11069,92 @@ a.database-tile-link:hover .database-title {
   grid-template-columns: minmax(0, 1fr);
 }
 
-.versus-live-rail {
+.versus-battle-layout {
   display: grid;
-  gap: 1rem;
-  align-content: start;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
 }
 
-.versus-known {
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--line);
+.versus-battle-standings {
+  display: grid;
+  grid-column: 1 / -1;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--panel-soft);
 }
 
-.versus-rail-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
+.versus-battle-standings .multiplayer-roster {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-/* The rail is narrow; player names win the space over lobby-only tags. */
-.versus-live-rail .multiplayer-player {
-  grid-template-columns: 1.35rem 2.6rem minmax(0, 1fr) auto;
-  gap: 0.45rem;
+.versus-battle-standings.is-count-2 .multiplayer-roster {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.versus-live-rail .multiplayer-player-portrait {
+.versus-battle-standings.is-count-3 .multiplayer-roster {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.versus-battle-standings.is-count-5 .multiplayer-roster,
+.versus-battle-standings.is-count-6 .multiplayer-roster {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.versus-battle-standings.is-count-7 .multiplayer-roster,
+.versus-battle-standings.is-count-8 .multiplayer-roster {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.versus-battle-standings .multiplayer-player {
+  grid-template-columns: 1.4rem 2.6rem minmax(0, 1fr) auto;
+}
+
+.versus-battle-standings .multiplayer-player-portrait {
   width: 2.6rem;
   height: 2.6rem;
 }
 
-.versus-live-rail .multiplayer-player-tag:not(.is-self-tag) {
-  display: none;
+.versus-battle-standings.is-crowded .multiplayer-player {
+  grid-template-columns: 1.2rem 2.25rem minmax(0, 1fr) auto;
+  gap: 0.38rem;
+  min-height: 2.85rem;
+  padding: 0.32rem 0.45rem;
 }
 
-.versus-live-rail .multiplayer-player-score {
-  font-size: 1rem;
+.versus-battle-standings.is-crowded .multiplayer-player-portrait {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.versus-battle-standings.is-crowded .multiplayer-player-handle,
+.versus-battle-standings.is-crowded .multiplayer-player-score {
+  font-size: 0.76rem;
+}
+
+.versus-battle-standings.is-crowded .multiplayer-player-tag,
+.versus-battle-standings.is-crowded .multiplayer-player-note {
+  font-size: 0.58rem;
+}
+
+.versus-battle-board {
+  position: relative;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--panel-soft);
+}
+
+.versus-battle-known {
+  padding: 0.75rem;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--panel-soft);
+}
+
+.versus-battle-known .versus-known {
+  padding: 0;
+  border: 0;
 }
 
 .versus-round-id {
@@ -11142,8 +11236,27 @@ a.database-tile-link:hover .database-title {
   text-align: center;
 }
 
+.versus-countdown-stage {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-height: 13rem;
+  overflow: hidden;
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.versus-countdown-stage .versus-effect-layer {
+  animation-duration: 1s;
+}
+
 .versus-countdown .multiplayer-timer-hero {
   max-width: 22rem;
+}
+
+.versus-final {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
 }
 
 .versus-intermission {
@@ -11445,22 +11558,31 @@ a.database-tile-link:hover .database-title {
   font-variant-numeric: tabular-nums;
 }
 
-.multiplayer-timer-bar {
-  width: 100%;
-  height: 3px;
-  margin-top: 0.32rem;
-  border-radius: 999px;
-  background: var(--line-strong);
-  overflow: hidden;
+.multiplayer-timer-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  width: max-content;
+  min-width: 0;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  white-space: nowrap;
 }
 
-.multiplayer-timer-bar > span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--accent);
-  transform-origin: left center;
-  transition: transform 250ms linear;
+.multiplayer-timer-inline small {
+  font-size: 0.62rem;
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+.multiplayer-timer-inline strong {
+  min-width: 4ch;
+  font-size: 1.2rem;
+  line-height: 1;
+  text-align: right;
 }
 
 .multiplayer-timer.is-warning {
@@ -11469,10 +11591,6 @@ a.database-tile-link:hover .database-title {
 
 .multiplayer-timer.is-warning strong {
   color: var(--close-ink);
-}
-
-.multiplayer-timer.is-warning .multiplayer-timer-bar > span {
-  background: var(--close);
 }
 
 .multiplayer-timer.is-critical {
@@ -11484,11 +11602,8 @@ a.database-tile-link:hover .database-title {
   animation: versus-pulse 1s ease-in-out infinite;
 }
 
-.multiplayer-timer.is-critical .multiplayer-timer-bar > span {
-  background: var(--versus-danger);
-}
-
 .multiplayer-timer-hero {
+  grid-template-columns: 1fr;
   justify-items: center;
   width: 100%;
   padding: 1.15rem 1rem 1.25rem;
@@ -11504,58 +11619,56 @@ a.database-tile-link:hover .database-title {
   display: grid;
   gap: 0.65rem;
   margin: 0;
-  padding-top: 0.9rem;
+  padding-top: 0.7rem;
   border-top: 1px solid var(--line);
 }
 
 .multiplayer-reveal-answer {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.55rem 0.7rem;
   align-items: center;
-  gap: 0.75rem;
   margin: 0;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--correct) 40%, var(--line));
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--correct) 10%, var(--panel));
+  padding: 0.45rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--correct) 34%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--correct) 8%, var(--panel));
 }
 
 .multiplayer-reveal-cover {
-  flex-shrink: 0;
-  width: 3.1rem;
+  width: 2.4rem;
   aspect-ratio: 2 / 3;
   object-fit: cover;
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 4px;
   background: var(--panel-muted);
+}
+
+.multiplayer-reveal-cover.media-fallback {
+  display: grid;
+  place-items: center;
+  font-size: 0.58rem;
+  color: var(--ink-soft);
 }
 
 .multiplayer-reveal-answer-copy {
   display: grid;
-  gap: 0.12rem;
+  gap: 0.05rem;
   min-width: 0;
 }
 
 .multiplayer-reveal-answer a {
   color: inherit;
+  text-decoration: none;
 }
 
-.multiplayer-reveal-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.15rem 0.45rem;
-  color: var(--ink-soft);
-  font-size: 0.8rem;
-}
-
-.multiplayer-reveal-meta span:not(:last-child)::after {
-  content: '\00B7';
-  margin-left: 0.45rem;
-  color: var(--incorrect);
+.multiplayer-reveal-answer a:hover {
+  text-decoration: underline;
 }
 
 .multiplayer-reveal-answer small {
   color: var(--ink-soft);
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -11563,48 +11676,161 @@ a.database-tile-link:hover .database-title {
 
 .multiplayer-reveal-answer strong {
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
 
-.multiplayer-reveal ul {
+.multiplayer-reveal-meta {
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+
+.multiplayer-reveal-board {
   display: grid;
+  gap: 0.25rem;
+}
+
+.multiplayer-reveal-board-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 0.5rem;
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.multiplayer-reveal-board-head span {
+  color: var(--ink-soft);
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.multiplayer-reveal-players {
+  display: grid;
+  gap: 1px;
   margin: 0;
   padding: 0;
   list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--line);
+  overflow: hidden;
 }
 
-.multiplayer-reveal li {
+.multiplayer-reveal.is-crowded .multiplayer-reveal-players {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.multiplayer-reveal-player {
   display: grid;
-  gap: 0.25rem;
+  grid-template-columns: 5.25rem minmax(0, 1fr) 1.1rem;
+  gap: 0.35rem 0.45rem;
+  align-items: baseline;
+  min-height: 1.85rem;
+  margin: 0;
+  padding: 0.32rem 0.5rem;
+  background: var(--panel);
+}
+
+.multiplayer-reveal-player.is-self {
+  background: color-mix(in srgb, var(--accent) 7%, var(--panel));
+}
+
+.multiplayer-reveal-player.is-solved .multiplayer-reveal-name {
+  color: var(--correct);
+}
+
+.multiplayer-reveal-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.multiplayer-reveal-name em {
+  color: var(--accent);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .multiplayer-reveal-guesses {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem;
+  align-items: baseline;
+  gap: 0.12rem 0.2rem;
+  min-width: 0;
+  color: var(--ink-soft);
+  font-size: 0.74rem;
+  line-height: 1.3;
+}
+
+.multiplayer-reveal-sep {
+  color: color-mix(in srgb, var(--ink-soft) 70%, transparent);
+  font-size: 0.68rem;
 }
 
 .multiplayer-reveal-guess {
-  padding: 0.14rem 0.45rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel-soft);
-  color: var(--ink-soft);
-  font-size: 0.8rem;
   overflow-wrap: anywhere;
 }
 
 .multiplayer-reveal-guess.is-correct {
   color: var(--correct);
-  border-color: color-mix(in srgb, var(--correct) 45%, var(--line));
-  background: color-mix(in srgb, var(--correct) 12%, var(--panel));
+  font-weight: 750;
 }
 
 .multiplayer-reveal-empty {
   color: var(--ink-soft);
-  font-size: 0.85rem;
+  font-size: 0.74rem;
+}
+
+.multiplayer-reveal-mark {
+  justify-self: end;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.multiplayer-reveal-mark.is-solved {
+  color: var(--correct);
+}
+
+.versus-effects-reveal {
+  min-height: 100%;
+  padding: 0.1rem 0 0.35rem;
+  overflow: auto;
+}
+
+.versus-effects-reveal .multiplayer-reveal {
+  padding-top: 0.2rem;
+  border-top: 0;
+}
+
+@media (max-width: 720px) {
+  .multiplayer-reveal.is-crowded .multiplayer-reveal-players {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .multiplayer-reveal-player {
+    grid-template-columns: 4.5rem minmax(0, 1fr) 1rem;
+    padding: 0.28rem 0.42rem;
+  }
 }
 
 .versus-recap {
@@ -11774,29 +12000,17 @@ a.database-tile-link:hover .database-title {
     gap: 1.5rem;
   }
 
-  /* Active match: wide clue column + slim standings rail. */
-  .versus-grid.is-playing {
-    grid-template-columns: minmax(0, 1fr) minmax(17rem, 19rem);
-    gap: 1.25rem;
-  }
-
-  .versus-grid.is-playing .versus-match-main {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    border-radius: 0;
+  .versus-battle-layout.has-known {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 19rem);
   }
 
   .versus-hero {
     gap: 1.15rem;
   }
 
-  .versus-live-rail {
+  .versus-battle-known {
     position: sticky;
     top: 1rem;
-    max-height: calc(100vh - 2rem);
-    overflow: auto;
-    scrollbar-width: thin;
   }
 }
 
@@ -11828,15 +12042,1157 @@ a.database-tile-link:hover .database-title {
     flex-direction: column;
   }
 
-  .multiplayer-timer {
-    justify-items: start;
+  .multiplayer-timer-inline {
+    align-self: flex-end;
+    width: fit-content;
+    justify-items: end;
   }
 
   .multiplayer-timer-hero {
     justify-items: center;
   }
 
+  .versus-battle-standings .multiplayer-roster {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .versus-panel-foot .btn-cta {
     flex-basis: 100%;
+  }
+}
+
+/* Versus effects preview and reusable battle feedback layer */
+.versus-effects-demo {
+  display: grid;
+  gap: 1rem;
+  padding: 0.5rem 0 2.5rem;
+}
+
+.versus-effects-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.versus-effects-head h1 {
+  margin: 0.1rem 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  letter-spacing: -0.04em;
+}
+
+.versus-effects-head p:not(.modal-kicker) {
+  max-width: 46rem;
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.versus-effects-head nav {
+  display: flex;
+  flex: none;
+  gap: 0.55rem;
+  padding-bottom: 0.35rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.versus-effects-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+
+.versus-effects-mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-right: auto;
+}
+
+.versus-effects-toolbar .btn {
+  min-height: 2.35rem;
+  padding: 0.48rem 0.72rem;
+}
+
+.versus-effects-toolbar .btn.is-active {
+  border-color: var(--accent);
+  color: var(--accent-deep);
+  background: var(--accent-glow);
+}
+
+.versus-effects-toolbar .btn-primary {
+  background: color-mix(in srgb, var(--accent) 82%, var(--paper));
+}
+
+.versus-effects-volume {
+  display: grid;
+  grid-template-columns: auto minmax(5rem, 8rem) 3rem;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.versus-effects-player-count {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.versus-effects-player-count select {
+  min-height: 2.35rem;
+  padding: 0.35rem 1.6rem 0.35rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--panel-soft);
+  font: inherit;
+}
+
+.versus-effects-volume output {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.versus-effects-flow {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.8fr) minmax(12rem, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow-soft);
+}
+
+.versus-effects-flow-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.versus-effects-flow-copy small {
+  color: var(--accent-deep);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.versus-effects-flow-copy span {
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.versus-effects-flow-track {
+  height: 0.45rem;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--chip);
+}
+
+.versus-effects-flow-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  box-shadow: 0 0 0.8rem var(--accent-glow);
+  transition: width 320ms ease;
+}
+
+.versus-effects-flow-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.versus-effects-flow-actions .btn {
+  min-height: 2.2rem;
+  padding: 0.42rem 0.62rem;
+  font-size: 0.76rem;
+}
+
+.versus-effects-audio-note {
+  margin: 0;
+  color: var(--incorrect);
+  font-size: 0.84rem;
+}
+
+.versus-effects-workspace {
+  display: block;
+}
+
+.versus-effects-arena {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow-soft);
+}
+
+.versus-effects-arena {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: clamp(0.8rem, 2vw, 1.15rem);
+  isolation: isolate;
+}
+
+.versus-effects-arena-head,
+.versus-effects-round-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.versus-effects-arena-head {
+  margin-bottom: 0.8rem;
+}
+
+.versus-effects-arena-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+}
+
+.versus-effects-arena-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.7rem;
+}
+
+.versus-effects-arena-title > span {
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.versus-effects-match {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.versus-effects-match.has-known {
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 19rem);
+}
+
+.versus-effects-board {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--panel-soft);
+}
+
+/* Growing guesses stay in normal document flow. Effects pin to a fixed clue band. */
+.versus-effects-play {
+  position: relative;
+  isolation: isolate;
+}
+
+.versus-effects-play .versus-effect-layer {
+  inset: auto;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 18.5rem;
+}
+
+.versus-effects-play .versus-effects-clue {
+  min-height: 18.5rem;
+  margin: 0;
+}
+
+.versus-effects-round-head {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.versus-effects-round-copy {
+  display: grid;
+  gap: 0.05rem;
+}
+
+.versus-effects-round-head .multiplayer-timer {
+  min-width: 0;
+  margin-left: auto;
+  justify-self: end;
+  text-align: right;
+}
+
+.versus-effects-round-head small,
+.versus-effects-standings small {
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.versus-effects-round-number {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  color: var(--accent-deep);
+  background: var(--accent-glow);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.versus-effects-clue {
+  display: grid;
+  min-height: 20rem;
+  margin: 0.9rem 0;
+  place-items: center;
+  align-content: center;
+  gap: 0.45rem;
+  border: 1px dashed var(--line);
+  border-radius: calc(var(--radius) - 3px);
+  background: var(--panel);
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.versus-effects-clue > span {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 5rem;
+  line-height: 1;
+  opacity: 0.55;
+}
+
+.versus-effects-clue p {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.versus-effects-clue > strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.versus-effects-clue.is-lobby {
+  border-style: solid;
+  background: var(--panel);
+}
+
+.versus-effects-clue.is-lobby > span {
+  width: 5rem;
+  height: 5rem;
+  padding-top: 1.55rem;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  font-family: var(--font-body);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.versus-effects-clue.is-intermission {
+  border-color: color-mix(in srgb, var(--correct) 45%, var(--line));
+  background: color-mix(in srgb, var(--correct-bg) 28%, var(--panel));
+}
+
+.versus-effects-clue.is-intermission > span {
+  color: var(--correct);
+}
+
+.versus-effects-clue.is-completed {
+  border-color: color-mix(in srgb, var(--close) 55%, var(--line));
+  background: color-mix(in srgb, var(--close-bg) 25%, var(--panel));
+}
+
+.versus-effects-clue.is-completed > span {
+  color: var(--close);
+}
+
+.versus-effects-guess-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink-soft);
+  background: var(--panel);
+  font-size: 0.82rem;
+}
+
+.versus-effects-guess-row span,
+.versus-effects-guess-row b {
+  padding: 0.65rem 0.75rem;
+}
+
+.versus-effects-guess-row b {
+  color: var(--paper);
+  background: var(--accent);
+}
+
+.versus-effects-standings {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--panel-soft);
+}
+
+.versus-effects-standings .multiplayer-roster {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.versus-effects-standings.is-count-3 .multiplayer-roster {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.versus-effects-standings.is-count-6 .multiplayer-roster {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.versus-effects-standings.is-count-8 .multiplayer-roster {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.versus-effects-standings .multiplayer-player {
+  grid-template-columns: 1.4rem 2.6rem minmax(0, 1fr) auto;
+}
+
+.versus-effects-standings .is-self-tag {
+  color: var(--ink);
+}
+
+.versus-effects-standings.is-crowded .multiplayer-player {
+  grid-template-columns: 1.2rem 2.25rem minmax(0, 1fr) auto;
+  gap: 0.38rem;
+  min-height: 2.85rem;
+  padding: 0.32rem 0.45rem;
+}
+
+.versus-effects-standings.is-crowded .multiplayer-player-portrait {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.versus-effects-standings.is-crowded .multiplayer-player-handle,
+.versus-effects-standings.is-crowded .multiplayer-player-score {
+  font-size: 0.76rem;
+}
+
+.versus-effects-standings.is-crowded .multiplayer-player-tag,
+.versus-effects-standings.is-crowded .multiplayer-player-note {
+  font-size: 0.58rem;
+}
+
+.versus-effects-known-panel {
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--panel-soft);
+}
+
+.versus-effects-known-panel .known {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.versus-battle-board.is-inline-correct-guess .feedback-row:last-child,
+.versus-battle-board.is-inline-incorrect-guess .feedback-row:last-child,
+.versus-effects-play.is-inline-correct-guess .feedback-row:last-child,
+.versus-effects-play.is-inline-incorrect-guess .feedback-row:last-child {
+  position: relative;
+  z-index: 1;
+  border-radius: 10px;
+}
+
+.versus-battle-board.is-inline-correct-guess .feedback-row:last-child,
+.versus-effects-play.is-inline-correct-guess .feedback-row:last-child {
+  border-color: color-mix(in srgb, var(--correct) 65%, var(--line));
+  animation: versus-inline-guess-correct 0.9s ease-out;
+}
+
+.versus-battle-board.is-inline-incorrect-guess .feedback-row:last-child,
+.versus-effects-play.is-inline-incorrect-guess .feedback-row:last-child {
+  animation: versus-inline-guess-incorrect 0.7s ease-out;
+}
+
+.versus-effects-standings.is-inline-opponent-solved .multiplayer-player.is-solved:not(.is-self) {
+  animation: versus-inline-rival-solved 1.05s ease-out;
+}
+
+.versus-effects-standings.is-inline-opponent-solved
+  .multiplayer-player.is-solved:not(.is-self)
+  .multiplayer-player-score {
+  animation: versus-inline-score-emphasis 0.95s ease-out;
+  color: var(--correct);
+}
+
+.versus-effects-standings.is-inline-score-change .multiplayer-player.is-self {
+  animation: versus-inline-lead-change 0.95s ease-out;
+}
+
+.versus-effects-standings.is-inline-score-change .multiplayer-player.is-self .multiplayer-player-score {
+  animation: versus-inline-score-emphasis 0.9s ease-out;
+  color: var(--close);
+}
+
+.multiplayer-player.is-cue-solve {
+  animation: versus-inline-rival-solved 1.05s ease-out;
+}
+
+.multiplayer-player.is-cue-solve .multiplayer-player-score {
+  animation: versus-inline-score-emphasis 0.95s ease-out;
+  color: var(--correct);
+}
+
+.multiplayer-player.is-cue-fail {
+  animation: versus-inline-rival-failed 1.05s ease-out;
+}
+
+.multiplayer-player.is-cue-fail .multiplayer-player-score {
+  animation: versus-inline-score-emphasis 0.95s ease-out;
+  color: var(--versus-danger);
+}
+
+.multiplayer-player.is-cue-score {
+  animation: versus-inline-lead-change 0.95s ease-out;
+}
+
+.multiplayer-player.is-cue-score .multiplayer-player-score {
+  animation: versus-inline-score-emphasis 0.9s ease-out;
+  color: var(--close);
+}
+
+@keyframes versus-inline-guess-correct {
+  0% {
+    background-color: var(--panel);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--correct) 0%, transparent);
+  }
+  32% {
+    background-color: color-mix(in srgb, var(--correct) 10%, var(--panel));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--correct) 22%, transparent);
+  }
+  100% {
+    background-color: var(--panel);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--correct) 0%, transparent);
+  }
+}
+
+@keyframes versus-inline-guess-incorrect {
+  0% {
+    border-color: var(--line);
+    background-color: var(--panel);
+  }
+  30% {
+    border-color: color-mix(in srgb, var(--incorrect) 55%, var(--line));
+    background-color: color-mix(in srgb, var(--incorrect) 7%, var(--panel));
+  }
+  100% {
+    border-color: var(--line);
+    background-color: var(--panel);
+  }
+}
+
+@keyframes versus-inline-rival-solved {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--correct) 0%, transparent);
+  }
+  32% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--correct) 20%, transparent),
+      0 0 18px color-mix(in srgb, var(--correct) 14%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--correct) 0%, transparent);
+  }
+}
+
+@keyframes versus-inline-rival-failed {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--versus-danger) 0%, transparent);
+  }
+  32% {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--versus-danger) 20%, transparent),
+      0 0 18px color-mix(in srgb, var(--versus-danger) 14%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--versus-danger) 0%, transparent);
+  }
+}
+
+@keyframes versus-inline-lead-change {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--close) 0%, transparent);
+  }
+  35% {
+    box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--close) 80%, transparent);
+  }
+  100% {
+    box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--close) 0%, transparent);
+  }
+}
+
+@keyframes versus-inline-score-emphasis {
+  0% {
+    opacity: 0.7;
+  }
+  35% {
+    opacity: 1;
+    text-shadow: 0 0 12px currentColor;
+  }
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .versus-battle-board.is-inline-correct-guess .feedback-row:last-child,
+  .versus-battle-board.is-inline-incorrect-guess .feedback-row:last-child,
+  .multiplayer-player.is-cue-solve,
+  .multiplayer-player.is-cue-solve .multiplayer-player-score,
+  .multiplayer-player.is-cue-fail,
+  .multiplayer-player.is-cue-fail .multiplayer-player-score,
+  .multiplayer-player.is-cue-score,
+  .multiplayer-player.is-cue-score .multiplayer-player-score,
+  .versus-effects-play.is-inline-correct-guess .feedback-row:last-child,
+  .versus-effects-play.is-inline-incorrect-guess .feedback-row:last-child,
+  .versus-effects-standings.is-inline-opponent-solved .multiplayer-player.is-solved:not(.is-self),
+  .versus-effects-standings.is-inline-opponent-solved
+    .multiplayer-player.is-solved:not(.is-self)
+    .multiplayer-player-score,
+  .versus-effects-standings.is-inline-score-change .multiplayer-player.is-self,
+  .versus-effects-standings.is-inline-score-change .multiplayer-player.is-self .multiplayer-player-score {
+    animation: none;
+  }
+}
+
+.versus-effects-caption {
+  display: flex;
+  gap: 0.7rem;
+  align-items: start;
+  min-height: 3.4rem;
+  margin-top: 0.8rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel-soft);
+}
+
+.versus-effects-caption p {
+  margin: 0.12rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.versus-effects-tone {
+  width: 0.35rem;
+  height: 2.25rem;
+  flex: none;
+  border-radius: 99px;
+  background: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.versus-effects-tone.is-green {
+  background: var(--correct);
+}
+
+.versus-effects-tone.is-red {
+  background: var(--versus-danger);
+}
+
+.versus-effects-tone.is-gold {
+  background: var(--close);
+}
+
+.versus-effects-tone.is-violet {
+  background: color-mix(in srgb, var(--accent) 55%, var(--incorrect));
+}
+
+.versus-effects-catalog-modal {
+  display: flex;
+  width: min(40rem, calc(100vw - 2rem));
+  max-width: none;
+  max-height: min(46rem, calc(100vh - 2rem));
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.versus-effects-catalog-modal .settings-muted {
+  margin: 0.3rem 2.5rem 0.8rem 0;
+}
+
+.versus-effects-catalog-backdrop {
+  background: color-mix(in srgb, var(--backdrop) 72%, transparent);
+}
+
+.versus-effects-cue-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-height: min(35rem, calc(100vh - 12rem));
+  overflow-y: auto;
+  padding: 0.45rem;
+  border-top: 1px solid var(--line);
+  scrollbar-width: thin;
+}
+
+.versus-effects-cue {
+  display: grid;
+  grid-template-columns: 0.35rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.62rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--ink);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.versus-effects-cue:hover,
+.versus-effects-cue:focus-visible {
+  border-color: var(--line);
+  background: var(--panel-soft);
+}
+
+.versus-effects-cue.is-active {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.versus-effects-cue > span:first-child {
+  width: 0.3rem;
+  height: 1.9rem;
+  border-radius: 99px;
+  background: var(--accent);
+}
+
+.versus-effects-cue.is-green > span:first-child {
+  background: var(--correct);
+}
+
+.versus-effects-cue.is-red > span:first-child {
+  background: var(--versus-danger);
+}
+
+.versus-effects-cue.is-gold > span:first-child {
+  background: var(--close);
+}
+
+.versus-effects-cue.is-violet > span:first-child {
+  background: color-mix(in srgb, var(--accent) 55%, var(--incorrect));
+}
+
+.versus-effects-cue > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+}
+
+.versus-effects-cue small {
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.versus-effects-cue > b {
+  color: var(--ink-soft);
+  font-size: 0.62rem;
+}
+
+.versus-effect-layer {
+  --effect-color: var(--accent);
+  --effect-glow: var(--accent-glow);
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+  animation: versus-effect-layer-out 2.1s ease both;
+}
+
+.versus-effect-layer.is-green {
+  --effect-color: var(--correct);
+  --effect-glow: var(--correct-bg);
+}
+
+.versus-effect-layer.is-red {
+  --effect-color: var(--versus-danger);
+  --effect-glow: color-mix(in srgb, var(--versus-danger) 24%, transparent);
+}
+
+.versus-effect-layer.is-gold {
+  --effect-color: var(--close);
+  --effect-glow: var(--close-bg);
+}
+
+.versus-effect-layer.is-violet {
+  --effect-color: color-mix(in srgb, var(--accent) 55%, var(--incorrect));
+  --effect-glow: color-mix(in srgb, var(--accent-glow) 55%, var(--incorrect-bg));
+}
+
+.versus-effect-vignette {
+  position: absolute;
+  inset: 0;
+  border: 0.45rem solid color-mix(in srgb, var(--effect-color) 32%, transparent);
+  background: color-mix(in srgb, var(--effect-color) 7%, transparent);
+  box-shadow: inset 0 0 2.5rem color-mix(in srgb, var(--effect-color) 18%, transparent);
+  opacity: 0;
+  animation: versus-effect-vignette 1.3s ease-out both;
+}
+
+.versus-effect-scan {
+  position: absolute;
+  inset: -25% 0 auto;
+  height: 3px;
+  background: var(--effect-color);
+  box-shadow: 0 0 1.2rem var(--effect-color);
+  opacity: 0.45;
+  animation: versus-effect-scan 0.8s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+
+.versus-effect-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7rem;
+  height: 7rem;
+  margin: -3.5rem 0 0 -3.5rem;
+  border: 2px solid var(--effect-color);
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 2rem var(--effect-glow), inset 0 0 1.5rem var(--effect-glow);
+  animation: versus-effect-ring 1s ease-out both;
+}
+
+.versus-effect-ring.is-ring-two {
+  animation-delay: 0.12s;
+}
+
+.versus-effect-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: min(22rem, calc(100% - 2rem));
+  min-height: 11.5rem;
+  justify-items: center;
+  align-content: center;
+  padding: 1.1rem 1.4rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--effect-color) 80%, var(--line));
+  border-radius: 10px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--panel) 96%, var(--effect-color));
+  box-shadow: 0 1.1rem 3rem color-mix(in srgb, var(--effect-color) 25%, transparent);
+  text-align: center;
+  backdrop-filter: blur(8px);
+  transform: translate(-50%, -50%);
+  animation: versus-effect-card-in 1.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.versus-effect-card small {
+  color: var(--effect-color);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.versus-effect-card > strong {
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 5vw, 2.35rem);
+  letter-spacing: -0.035em;
+}
+
+.versus-effect-glyph {
+  display: grid;
+  width: 3.2rem;
+  height: 3.2rem;
+  margin-bottom: 0.3rem;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--effect-color);
+  background: var(--effect-glow);
+}
+
+.versus-effect-glyph svg {
+  width: 2rem;
+  height: 2rem;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.versus-effect-count {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(3.4rem, 10vw, 5.2rem) !important;
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.08em !important;
+  text-shadow: none;
+}
+
+.versus-effect-layer.is-countdown .versus-effect-card {
+  min-height: 11.5rem;
+}
+
+.versus-effect-layer.is-countdown .versus-effect-card > strong:not(.versus-effect-count),
+.versus-effect-layer.is-countdown .versus-effect-card > small {
+  display: none;
+}
+
+.versus-effect-points {
+  margin-top: 0.3rem;
+  color: var(--effect-color);
+  font-size: 0.82rem;
+}
+
+.versus-effect-particles {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.versus-effect-particles i {
+  --particle-angle: calc(var(--particle) * 20deg);
+  position: absolute;
+  width: 0.35rem;
+  height: 0.85rem;
+  border-radius: 2px;
+  background: var(--effect-color);
+  box-shadow: 0 0 0.6rem var(--effect-glow);
+  opacity: 0;
+  animation: versus-effect-particle 1.2s ease-out both;
+  animation-delay: calc(var(--particle) * 12ms);
+}
+
+.versus-effect-layer.is-incorrect-guess .versus-effect-card,
+.versus-effect-layer.is-round-loss .versus-effect-card {
+  animation-name: versus-effect-card-loss;
+}
+
+.versus-effect-layer.is-match-victory .versus-effect-card {
+  animation-duration: 1.8s;
+}
+
+.versus-effect-layer.is-match-victory {
+  animation-duration: 3s;
+}
+
+.versus-effect-layer.is-match-defeat .versus-effect-vignette {
+  animation-duration: 2s;
+}
+
+.versus-effect-layer.is-answer-reveal .versus-effect-card {
+  width: min(24rem, calc(100% - 2rem));
+}
+
+@keyframes versus-effect-vignette {
+  0% { opacity: 0; }
+  18% { opacity: 0.95; }
+  100% { opacity: 0.18; }
+}
+
+@keyframes versus-effect-layer-out {
+  0%,
+  72% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+@keyframes versus-effect-scan {
+  0% { transform: translateY(-10%); opacity: 0; }
+  24% { opacity: 0.55; }
+  100% { transform: translateY(600%); opacity: 0; }
+}
+
+@keyframes versus-effect-ring {
+  0% { transform: scale(0.2); opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { transform: scale(4.5); opacity: 0; }
+}
+
+@keyframes versus-effect-card-in {
+  0% { transform: translate(-50%, calc(-50% + 0.85rem)) scale(0.9); opacity: 0; }
+  18% { transform: translate(-50%, calc(-50% - 0.12rem)) scale(1.03); opacity: 1; }
+  32% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0.94; }
+}
+
+@keyframes versus-effect-card-loss {
+  0% { transform: translate(-50%, -50%) scale(0.96); opacity: 0; }
+  16% { transform: translate(calc(-50% - 0.45rem), -50%) scale(1); opacity: 1; }
+  22% { transform: translate(calc(-50% + 0.35rem), -50%); }
+  28% { transform: translate(calc(-50% - 0.15rem), -50%); }
+  38%, 100% { transform: translate(-50%, -50%); opacity: 0.94; }
+}
+
+@keyframes versus-effect-particle {
+  0% { transform: rotate(var(--particle-angle)) translateY(0) scale(0); opacity: 0; }
+  15% { opacity: 1; }
+  100% {
+    transform: rotate(var(--particle-angle)) translateY(-13rem) rotate(240deg) scale(0.55);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 980px) {
+  .versus-effects-flow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .versus-effects-flow-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .versus-effects-match,
+  .versus-effects-match.has-known {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .versus-effects-head {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .versus-effects-toolbar {
+    align-items: stretch;
+  }
+
+  .versus-effects-mode {
+    width: 100%;
+  }
+
+  .versus-effects-mode .btn {
+    flex: 1 1 auto;
+  }
+
+  .versus-effects-volume {
+    width: 100%;
+    grid-template-columns: auto 1fr 3rem;
+  }
+
+  .versus-effects-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .versus-effects-flow-track {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .versus-effects-flow-actions .btn {
+    flex: 1;
+  }
+
+  .versus-effects-standings {
+    grid-template-columns: 1fr;
+  }
+
+  .versus-effects-standings.is-count-3 .multiplayer-roster,
+  .versus-effects-standings.is-count-4 .multiplayer-roster,
+  .versus-effects-standings.is-count-6 .multiplayer-roster,
+  .versus-effects-standings.is-count-8 .multiplayer-roster {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .versus-effects-known-panel .known {
+    grid-template-columns: 1fr;
+  }
+
+  .versus-effects-play .versus-effect-layer,
+  .versus-effects-play .versus-effects-clue {
+    height: 16.5rem;
+    min-height: 16.5rem;
+  }
+
+  .versus-effects-round-head {
+    align-items: start;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .versus-effects-round-head .multiplayer-timer {
+    grid-column: 1 / -1;
+    width: auto;
+    justify-self: end;
+    justify-items: end;
+  }
+
+  .versus-effects-round-head .multiplayer-round-actions {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+
+  .versus-effects-clue {
+    min-height: 16rem;
+  }
+
+  .versus-effects-cue-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 460px) {
+  .versus-effects-standings.is-count-3 .multiplayer-roster,
+  .versus-effects-standings.is-count-4 .multiplayer-roster,
+  .versus-effects-standings.is-count-6 .multiplayer-roster,
+  .versus-effects-standings.is-count-8 .multiplayer-roster {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .versus-effects-flow-track > span {
+    transition: none;
+  }
+
+  .versus-effect-vignette,
+  .versus-effect-card,
+  .versus-effect-layer {
+    animation-duration: 1ms !important;
+  }
+
+  .versus-effect-scan,
+  .versus-effect-ring,
+  .versus-effect-particles {
+    display: none;
   }
 }

@@ -24,6 +24,8 @@ interface MultiplayerRosterProps {
   members: MultiplayerRosterMember[]
   maxPlayers: number
   showScores?: boolean
+  outcomeEmphasis?: Readonly<Record<string, 'solve' | 'fail'>>
+  scoreEmphasisUserId?: string | null
 }
 
 function attemptLabel(member: MultiplayerRosterMember): string {
@@ -43,10 +45,20 @@ function attemptLabel(member: MultiplayerRosterMember): string {
   }
 }
 
+function attemptFailed(member: MultiplayerRosterMember): boolean {
+  return (
+    member.attemptStatus === 'lost' ||
+    member.attemptStatus === 'surrendered' ||
+    member.attemptStatus === 'timed_out'
+  )
+}
+
 export function MultiplayerRoster({
   members,
   maxPlayers,
   showScores = false,
+  outcomeEmphasis = {},
+  scoreEmphasisUserId = null,
 }: MultiplayerRosterProps) {
   const byScore = [...members].sort(
     (left, right) => right.totalScore - left.totalScore || left.seat - right.seat,
@@ -66,11 +78,17 @@ export function MultiplayerRoster({
             member.stageId ?? DEFAULT_STAGE_ID,
           ),
         } as CSSProperties
+        const outcomeCue = outcomeEmphasis[member.userId]
         return (
           <li
             className={`multiplayer-player${member.isSelf ? ' is-self' : ''}${
               member.status === 'withdrawn' ? ' is-withdrawn' : ''
-            }${member.attemptStatus === 'won' ? ' is-solved' : ''}`}
+            }${member.attemptStatus === 'won' ? ' is-solved' : ''}${
+              attemptFailed(member) ? ' is-failed' : ''
+            }${outcomeCue === 'solve' ? ' is-cue-solve' : ''}${
+              outcomeCue === 'fail' ? ' is-cue-fail' : ''
+            }${scoreEmphasisUserId === member.userId ? ' is-cue-score' : ''
+            }`}
             key={member.userId}
           >
             <span
