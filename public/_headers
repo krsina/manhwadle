@@ -23,6 +23,12 @@
 /*.svg
   Cache-Control: public, max-age=86400
 
+/favicon.svg
+  Cache-Control: public, max-age=300, must-revalidate
+
+/icon-192.svg
+  Cache-Control: public, max-age=300, must-revalidate
+
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
   X-Robots-Tag: index, follow
