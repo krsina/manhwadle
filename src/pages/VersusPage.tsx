@@ -35,7 +35,6 @@ import { loadClientCatalog } from '../lib/clientCatalog'
 import { displayTitle } from '../lib/daily'
 import { buildKnownInfo } from '../lib/knowledge'
 import {
-  buildMultiplayerInviteUrl,
   createMultiplayerIdempotencyKey,
   createMultiplayerRoom,
   getMyActiveMultiplayerRoom,
@@ -117,7 +116,7 @@ const HOW_IT_WORKS = [
     title: 'Pick the modes',
     detail: `${MULTIPLAYER_ROUNDS_PER_MODE} rounds each, played in a fixed order.`,
   },
-  { title: 'Share the invite', detail: 'Copy the invite link so friends can join with one paste.' },
+  { title: 'Share the invite', detail: 'Copy the invite code and send it to your friends.' },
   { title: 'Ready up', detail: 'The host starts once every player is ready.' },
 ]
 
@@ -419,8 +418,8 @@ export function VersusPage() {
   }
 
   async function copyInvite(code: string) {
-    const inviteUrl = buildMultiplayerInviteUrl(code)
-    const ok = await copyTextToClipboard(inviteUrl)
+    const inviteCode = normalizeMultiplayerInviteCode(code)
+    const ok = await copyTextToClipboard(inviteCode)
     if (ok) {
       setCopied(true)
       setError(null)
@@ -431,16 +430,8 @@ export function VersusPage() {
 
   function updateJoinCode(value: string) {
     const normalized = normalizeMultiplayerInviteCode(value)
-    if (isValidMultiplayerInviteCode(normalized)) {
-      setJoinCode(normalized)
-      return
-    }
-    setJoinCode(
-      value
-        .toUpperCase()
-        .replace(/[^A-Z2-9]/g, '')
-        .slice(0, 8),
-    )
+    if (/[^A-Z2-9]/.test(normalized)) return
+    setJoinCode(normalized.slice(0, 8))
   }
 
   async function toggleReady(roomId: string, ready: boolean) {
@@ -607,7 +598,7 @@ export function VersusPage() {
             <div className="versus-panel-head">
               <div>
                 <h2>Join a room</h2>
-                <p className="versus-muted">Paste an invite link or code from the host.</p>
+                <p className="versus-muted">Enter the invite code from the host.</p>
               </div>
             </div>
             <div className="versus-form">
@@ -616,16 +607,16 @@ export function VersusPage() {
                 <input
                   className="versus-code"
                   value={joinCode}
-                  maxLength={256}
+                  maxLength={8}
                   autoCapitalize="characters"
                   autoComplete="off"
                   spellCheck={false}
                   onChange={(event) => updateJoinCode(event.target.value)}
-                  placeholder="Invite link or code"
+                  placeholder="Invite code"
                 />
               </label>
               <p className="versus-hint">
-                Paste the full invite link, or an 8-character code (6-character invites still work).
+                Enter the 8-character invite code (6-character invites still work).
               </p>
               <button
                 className="btn btn-primary btn-cta"
@@ -871,7 +862,7 @@ export function VersusPage() {
           </span>
           <div className="versus-actions">
             <button className="btn" type="button" onClick={() => void copyInvite(room.code)}>
-              {copied ? 'Invite copied' : 'Copy invite'}
+              {copied ? 'Invite code copied' : 'Copy invite'}
             </button>
             <button
               className="btn btn-ghost"

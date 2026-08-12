@@ -52,31 +52,13 @@ export const MULTIPLAYER_INVITE_CODE_PATTERN =
   /^(?:[A-Z2-9]{6}|[A-Z2-9]{8})$/
 
 export function normalizeMultiplayerInviteCode(value: string): string {
-  const trimmed = value.trim().toUpperCase()
-  if (MULTIPLAYER_INVITE_CODE_PATTERN.test(trimmed)) return trimmed
-  try {
-    const url = new URL(trimmed)
-    const candidate = url.pathname.split('/').filter(Boolean).at(-1) ?? ''
-    return MULTIPLAYER_INVITE_CODE_PATTERN.test(candidate) ? candidate : trimmed
-  } catch {
-    return trimmed
-  }
+  return value.trim().toUpperCase()
 }
 
 export function isValidMultiplayerInviteCode(value: string): boolean {
   return MULTIPLAYER_INVITE_CODE_PATTERN.test(
     normalizeMultiplayerInviteCode(value),
   )
-}
-
-/** Absolute invite URL friends can open or paste into Join. */
-export function buildMultiplayerInviteUrl(
-  code: string,
-  origin: string = typeof window !== 'undefined' ? window.location.origin : '',
-): string {
-  const normalized = normalizeMultiplayerInviteCode(code)
-  const base = origin.replace(/\/$/, '')
-  return `${base}/versus/${encodeURIComponent(normalized)}`
 }
 
 export function multiplayerErrorMessage(error: string): string {
