@@ -54,4 +54,39 @@ describe('MultiplayerRoster', () => {
     expect(html).toContain('is-bust')
     expect(html).toContain('Open slot')
   })
+
+  it('marks solved and exhausted players with terminal state classes', () => {
+    const html = renderToStaticMarkup(
+      <MultiplayerRoster
+        maxPlayers={3}
+        showScores
+        members={[
+          member('user1', 100, { attemptStatus: 'won' }),
+          member('user2', 0, { attemptStatus: 'lost', guessCount: 6 }),
+          member('user3', 0, { attemptStatus: 'timed_out', guessCount: 4 }),
+        ]}
+      />,
+    )
+    expect(html).toContain('is-solved')
+    expect(html.match(/is-failed/g)).toHaveLength(2)
+  })
+
+  it('targets transient outcome and lead emphasis to the changed seats', () => {
+    const html = renderToStaticMarkup(
+      <MultiplayerRoster
+        maxPlayers={3}
+        showScores
+        outcomeEmphasis={{ user1: 'solve', user2: 'fail' }}
+        scoreEmphasisUserId="user3"
+        members={[
+          member('user1', 100),
+          member('user2', 0),
+          member('user3', 200),
+        ]}
+      />,
+    )
+    expect(html).toContain('is-cue-solve')
+    expect(html).toContain('is-cue-fail')
+    expect(html).toContain('is-cue-score')
+  })
 })

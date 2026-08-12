@@ -13,7 +13,12 @@ import {
   updateDevStanding,
   type DevStandingDraft,
 } from '../lib/leaderboardDevFake'
-import { DEV_ANIMATIONS_PATH, DEV_ACTION_STRIP_PREVIEW_PATH, DEV_AVATAR_BUST_CROPS_PATH } from '../lib/routes'
+import {
+  DEV_ACTION_STRIP_PREVIEW_PATH,
+  DEV_ANIMATIONS_PATH,
+  DEV_AVATAR_BUST_CROPS_PATH,
+  DEV_VERSUS_EFFECTS_PATH,
+} from '../lib/routes'
 import { STREAK_PRESETS, streakTier } from '../lib/streakIntensity'
 /** Floating owner+DEV tools for Top Rankings + streak badge previews. */
 export function DevToolsLauncher() {
@@ -128,6 +133,14 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
           style={{ marginLeft: '0.5rem' }}
         >
           Avatar bust crops
+        </Link>
+        <Link
+          className="btn btn-ghost"
+          to={DEV_VERSUS_EFFECTS_PATH}
+          onClick={onClose}
+          style={{ marginLeft: '0.5rem' }}
+        >
+          Versus effects
         </Link>
       </section>
 

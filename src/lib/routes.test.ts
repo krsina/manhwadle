@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  DEV_VERSUS_EFFECTS_PATH,
   legacyPlayRedirectTarget,
   parsePlayModeParam,
   playPath,
@@ -91,6 +92,12 @@ describe('readLegacyModeId', () => {
 describe('staff paths', () => {
   it('keeps comment moderation on its own route', () => {
     expect(STAFF_COMMENTS_PATH).toBe('/staff/comments')
+  })
+})
+
+describe('dev paths', () => {
+  it('keeps the Versus effects lab on a stable route', () => {
+    expect(DEV_VERSUS_EFFECTS_PATH).toBe('/dev/versus-effects')
   })
 })
 

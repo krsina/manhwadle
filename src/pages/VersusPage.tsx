@@ -23,8 +23,10 @@ import {
 import { MultiplayerRoundProgress } from '../components/multiplayer/MultiplayerRoundProgress'
 import { MultiplayerRoundReveal } from '../components/multiplayer/MultiplayerRoundReveal'
 import { MultiplayerRoundBoard } from '../components/multiplayer/MultiplayerRoundBoard'
+import { MultiplayerSurrenderControl } from '../components/multiplayer/MultiplayerSurrenderControl'
 import { MultiplayerTimer } from '../components/multiplayer/MultiplayerTimer'
 import { VersusAvatarPreview } from '../components/multiplayer/VersusAvatarPreview'
+import { VersusEffectLayer } from '../components/multiplayer/VersusEffectLayer'
 import { KnownInfoPanel } from '../components/KnownInfoPanel'
 import { useMultiplayerRoom } from '../hooks/useMultiplayerRoom'
 import type { Manhwa } from '../lib/anilist-types'
@@ -51,7 +53,6 @@ import {
 } from '../lib/multiplayerApi'
 import { buildMultiplayerFeedbackRows } from '../lib/multiplayerFeedback'
 import {
-  MULTIPLAYER_COUNTDOWN_MS,
   MULTIPLAYER_INTERMISSION_MS,
   MULTIPLAYER_MIN_PLAYERS,
   MULTIPLAYER_ROUND_MS,
@@ -61,7 +62,15 @@ import {
   type MultiplayerMutationResult,
   type MultiplayerPoolSource,
   type MultiplayerRoomStatus,
+  type MultiplayerStateSnapshot,
 } from '../lib/multiplayerTypes'
+import { collectVersusCueEvents } from '../lib/versusCueOrchestrator'
+import type { VersusEffectId } from '../lib/versusEffects'
+import { playVersusSound } from '../lib/versusSounds'
+import {
+  multiplayerClockOffsetMs,
+  multiplayerRemainingMs,
+} from '../lib/multiplayerTime'
 import {
   leaveMultiplayerPage,
   multiplayerInteractionsBlocked,
@@ -152,8 +161,24 @@ export function VersusPage() {
   const [copied, setCopied] = useState(false)
   const [activeRoom, setActiveRoom] = useState<MultiplayerActiveRoomSummary | null>(null)
   const [activeRoomLoading, setActiveRoomLoading] = useState(false)
+  const [guessCue, setGuessCue] = useState<{
+    effect: 'correct-guess' | 'incorrect-guess'
+    run: number
+  } | null>(null)
+  const [rosterCues, setRosterCues] = useState<
+    Record<string, { outcome: 'solve' | 'fail'; run: number }>
+  >({})
+  const [scoreCue, setScoreCue] = useState<{ userId: string; run: number } | null>(null)
+  const [overlayCue, setOverlayCue] = useState<{
+    effect: Extract<VersusEffectId, 'match-victory' | 'match-defeat' | 'match-draw'>
+    run: number
+  } | null>(null)
+  const [countdownStep, setCountdownStep] = useState<3 | 2 | 1>(3)
   const syncedSettingsRef = useRef('')
   const readyDebounceTimerRef = useRef<number | null>(null)
+  const cueSnapshotRef = useRef<MultiplayerStateSnapshot | null>(null)
+  const cueRunRef = useRef(0)
+  const cueTimersRef = useRef<number[]>([])
   const roomState = useMultiplayerRoom(roomId, {
     enabled: Boolean(user && roomId),
   })
@@ -216,6 +241,89 @@ export function VersusPage() {
   }, [state])
 
   useEffect(() => {
+    if (!state) return
+    const events = collectVersusCueEvents(cueSnapshotRef.current, state, user?.id ?? '')
+    cueSnapshotRef.current = state
+    let soundIndex = 0
+
+    for (const event of events) {
+      if ('sound' in event && event.sound) {
+        const sound = event.sound
+        const timer = window.setTimeout(() => {
+          void playVersusSound(sound, { volume: 0.55 })
+        }, soundIndex * 140)
+        cueTimersRef.current.push(timer)
+        soundIndex += 1
+      }
+
+      const run = cueRunRef.current + 1
+      cueRunRef.current = run
+      if (event.kind === 'guess') {
+        setGuessCue({ effect: event.effect, run })
+        const timer = window.setTimeout(() => {
+          setGuessCue((current) => (current?.run === run ? null : current))
+        }, 1_050)
+        cueTimersRef.current.push(timer)
+      } else if (event.kind === 'roster') {
+        setRosterCues((current) => ({
+          ...current,
+          [event.userId]: { outcome: event.outcome, run },
+        }))
+        const timer = window.setTimeout(() => {
+          setRosterCues((current) => {
+            if (current[event.userId]?.run !== run) return current
+            const nextCues = { ...current }
+            delete nextCues[event.userId]
+            return nextCues
+          })
+        }, 1_100)
+        cueTimersRef.current.push(timer)
+      } else if (event.kind === 'score') {
+        setScoreCue({ userId: event.userId, run })
+        const timer = window.setTimeout(() => {
+          setScoreCue((current) => (current?.run === run ? null : current))
+        }, 1_000)
+        cueTimersRef.current.push(timer)
+      } else if (event.kind === 'overlay') {
+        setOverlayCue({ effect: event.effect, run })
+        const timer = window.setTimeout(() => {
+          setOverlayCue((current) => (current?.run === run ? null : current))
+        }, 3_200)
+        cueTimersRef.current.push(timer)
+      }
+    }
+  }, [state, user?.id])
+
+  useEffect(() => {
+    if (!state || state.room.status !== 'countdown') {
+      setCountdownStep(3)
+      return
+    }
+    const endsAt =
+      state.rounds.find((round) => round.index === state.room.currentRoundIndex)?.startsAt ??
+      state.room.phaseEndsAt
+    const offsetMs = multiplayerClockOffsetMs(state.serverNow)
+    const update = () => {
+      const seconds = Math.max(
+        1,
+        Math.min(3, Math.ceil(multiplayerRemainingMs(endsAt, offsetMs) / 1_000)),
+      ) as 3 | 2 | 1
+      setCountdownStep(seconds)
+    }
+    update()
+    const timer = window.setInterval(update, 100)
+    return () => window.clearInterval(timer)
+  }, [state])
+
+  useEffect(() => {
+    if (state?.room.status !== 'countdown') return
+    void playVersusSound('countdown', {
+      volume: 0.55,
+      countdownStep,
+    })
+  }, [countdownStep, state?.room.status])
+
+  useEffect(() => {
     if (!copied) return
     const timer = window.setTimeout(() => setCopied(false), 2_000)
     return () => window.clearTimeout(timer)
@@ -246,6 +354,7 @@ export function VersusPage() {
     if (readyDebounceTimerRef.current !== null) {
       window.clearTimeout(readyDebounceTimerRef.current)
     }
+    cueTimersRef.current.forEach((timer) => window.clearTimeout(timer))
   }, [])
 
   async function runMutation(
@@ -661,6 +770,9 @@ export function VersusPage() {
       isSelf: member.userId === user?.id,
     }
   })
+  const rosterOutcomeEmphasis: Record<string, 'solve' | 'fail'> = Object.fromEntries(
+    Object.entries(rosterCues).map(([userId, cue]) => [userId, cue.outcome]),
+  )
 
   async function leaveRoom() {
     await leaveMultiplayerPage(
@@ -914,6 +1026,12 @@ export function VersusPage() {
         </div>
       ) : room.status === 'completed' ? (
         <section className="versus-panel versus-final">
+          {overlayCue && (
+            <VersusEffectLayer
+              key={`${overlayCue.effect}-${overlayCue.run}`}
+              effect={overlayCue.effect}
+            />
+          )}
           <div className="versus-panel-head">
             <div>
               <p className="versus-kicker">Match complete</p>
@@ -927,7 +1045,19 @@ export function VersusPage() {
             </div>
             <span className="versus-chip">{totalRounds} rounds</span>
           </div>
-          <MultiplayerRoster members={roster} maxPlayers={room.maxPlayers} showScores />
+          <div
+            className={`versus-battle-standings is-count-${roster.length}${
+              roster.length > 4 ? ' is-crowded' : ''
+            }`}
+          >
+            <MultiplayerRoster
+              members={roster}
+              maxPlayers={room.maxPlayers}
+              showScores
+              outcomeEmphasis={rosterOutcomeEmphasis}
+              scoreEmphasisUserId={scoreCue?.userId}
+            />
+          </div>
           <MultiplayerMatchRecap
             entries={recapEntries}
             catalog={catalog}
@@ -943,18 +1073,48 @@ export function VersusPage() {
           </div>
         </section>
       ) : (
-        <div className="versus-grid is-playing">
-          <section className="versus-panel versus-match-main">
+        <div
+          className={`versus-battle-layout${
+            room.status === 'active' && ownAttempt ? ' has-known' : ''
+          }`}
+        >
+          <aside
+            className={`versus-battle-standings is-count-${roster.length}${
+              roster.length > 4 ? ' is-crowded' : ''
+            }`}
+            aria-label="Live standings"
+          >
+            <MultiplayerRoster
+              members={roster}
+              maxPlayers={room.maxPlayers}
+              showScores
+              outcomeEmphasis={rosterOutcomeEmphasis}
+              scoreEmphasisUserId={scoreCue?.userId}
+            />
+          </aside>
+          <section
+            className={`versus-panel versus-match-main versus-battle-board${
+              guessCue ? ` is-inline-${guessCue.effect}` : ''
+            }`}
+          >
             {room.status === 'countdown' ? (
               <div className="versus-countdown">
                 <p className="versus-kicker">Get ready</p>
-                <MultiplayerTimer
-                  endsAt={currentRound?.startsAt ?? room.phaseEndsAt}
-                  serverNow={state.serverNow}
-                  label="Round starts in"
-                  durationMs={MULTIPLAYER_COUNTDOWN_MS}
-                  variant="hero"
-                />
+                <div className="versus-countdown-stage">
+                  <VersusEffectLayer
+                    key={`countdown-${countdownStep}`}
+                    effect="countdown"
+                    message={String(countdownStep)}
+                  />
+                  <span
+                    className="visually-hidden"
+                    role="timer"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
+                    Round starts in {countdownStep}
+                  </span>
+                </div>
                 {currentRound && (
                   <p className="versus-muted">
                     Up first: {multiplayerModeLabel(currentRound.mode)} · Round{' '}
@@ -1010,12 +1170,26 @@ export function VersusPage() {
                       </h2>
                     </div>
                   </div>
-                  <MultiplayerTimer
-                    endsAt={currentRound.endsAt ?? room.phaseEndsAt}
-                    serverNow={state.serverNow}
-                    label="Time left"
-                    durationMs={MULTIPLAYER_ROUND_MS}
-                  />
+                  <div className="multiplayer-round-actions">
+                    {ownAttempt.status === 'active' && (
+                      <MultiplayerSurrenderControl
+                        disabled={roomInteractionBlocked}
+                        onConfirm={() => void runMutation(() => surrenderMultiplayerRound({
+                          roomId: room.id,
+                          roundId: currentRound.id,
+                          idempotencyKey: createMultiplayerIdempotencyKey(
+                            `surrender-${currentRound.id}`,
+                          ),
+                        }))}
+                      />
+                    )}
+                    <MultiplayerTimer
+                      endsAt={currentRound.endsAt ?? room.phaseEndsAt}
+                      serverNow={state.serverNow}
+                      label="Time left:"
+                      durationMs={MULTIPLAYER_ROUND_MS}
+                    />
+                  </div>
                 </div>
                 <MultiplayerRoundProgress
                   rounds={state.rounds}
@@ -1065,43 +1239,22 @@ export function VersusPage() {
                         ? 'Solved — waiting for the other players.'
                         : 'Round over for you — waiting for the other players.'}
                   </p>
-                  {ownAttempt.status === 'active' && (
-                    <button
-                      className="btn btn-ghost"
-                      type="button"
-                      disabled={roomInteractionBlocked}
-                      onClick={() => void runMutation(() => surrenderMultiplayerRound({
-                        roomId: room.id,
-                        roundId: currentRound.id,
-                        idempotencyKey: createMultiplayerIdempotencyKey(
-                          `surrender-${currentRound.id}`,
-                        ),
-                      }))}
-                    >
-                      Surrender round
-                    </button>
-                  )}
                 </div>
               </>
             ) : (
               <p className="versus-muted">Synchronizing round…</p>
             )}
           </section>
-          <aside className="versus-panel versus-live-rail">
-            <div className="versus-rail-head">
-              <h2>Live standings</h2>
-              <span className="versus-chip">{room.memberCount} in</span>
-            </div>
-            <MultiplayerRoster members={roster} maxPlayers={room.maxPlayers} showScores />
-            {room.status === 'active' && ownAttempt && (
+          {room.status === 'active' && ownAttempt && (
+            <aside className="versus-panel versus-battle-known">
               <div className="versus-known">
                 <KnownInfoPanel
                   info={buildKnownInfo(feedback)}
                   hasGuesses={feedback.length > 0}
                 />
               </div>
-            )}
-          </aside>
+            </aside>
+          )}
         </div>
       )}
       <SavedListManagerDialog
