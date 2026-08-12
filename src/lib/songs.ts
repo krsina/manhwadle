@@ -58,16 +58,14 @@ export function filterPoolBySongs(
 }
 
 /**
- * Deterministic daily/practice song pick for a manhwa.
- * Hard mode may select BGM; normal uses vocals only.
+ * Deterministic daily/practice song pick for a manhwa (vocals only).
  */
 export function pickSongForDay(
   manhwaId: number,
   dateKey: string,
   seedPrefix: string,
-  hardMode: boolean,
 ): ManhwaSong | null {
-  const candidates = songsForManhwa(manhwaId, { includeBgm: hardMode })
+  const candidates = songsForManhwa(manhwaId, { includeBgm: false })
   if (candidates.length === 0) return null
   const index =
     hashString(`${seedPrefix}:song:${manhwaId}:${dateKey}`) % candidates.length

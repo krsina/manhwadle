@@ -3,7 +3,7 @@ import { heardleModeMeta } from './config'
 import { HeardleGame } from './HeardleGame'
 
 /**
- * Heardle variant: progressive YouTube OST clips (vocals; hard adds BGM).
+ * Heardle variant: progressive YouTube OST clips.
  */
 export const heardleMode: GameModeDefinition = {
   ...heardleModeMeta,

@@ -24,7 +24,7 @@ describe('songs catalog', () => {
     expect(songs.some((s) => /die die/i.test(s.songTitle))).toBe(true)
   })
 
-  it('hard mode includes BGM candidates', () => {
+  it('can include BGM candidates when requested', () => {
     const vocalOnly = songsForManhwa(105398, { includeBgm: false })
     const withBgm = songsForManhwa(105398, { includeBgm: true })
     expect(withBgm.length).toBeGreaterThan(vocalOnly.length)
@@ -41,8 +41,8 @@ describe('songs catalog', () => {
   })
 
   it('picks songs deterministically', () => {
-    const a = pickSongForDay(105398, '2026-07-17', 'manhwadle:heardle:both', false)
-    const b = pickSongForDay(105398, '2026-07-17', 'manhwadle:heardle:both', false)
+    const a = pickSongForDay(105398, '2026-07-17', 'manhwadle:heardle:both')
+    const b = pickSongForDay(105398, '2026-07-17', 'manhwadle:heardle:both')
     expect(a?.id).toBe(b?.id)
     expect(a?.kind).toBe('vocal')
   })

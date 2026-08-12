@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../components/AuthProvider'
 import { FeedbackGrid } from '../../components/FeedbackGrid'
 import { GuessInput } from '../../components/GuessInput'
-import { HardModeToggle } from '../../components/HardModeToggle'
 import { KnownInfoPanel } from '../../components/KnownInfoPanel'
 import { ResultModal } from '../../components/ResultModal'
 import { SongClue } from '../../components/SongClue'
@@ -54,24 +53,6 @@ import {
 import type { GameModeProps } from '../types'
 import { heardleModeMeta } from './config'
 
-const HARD_MODE_STORAGE_KEY = 'manhwadle:heardle:hard-mode'
-
-function loadHardModePreference(): boolean {
-  try {
-    return localStorage.getItem(HARD_MODE_STORAGE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
-function saveHardModePreference(enabled: boolean) {
-  try {
-    localStorage.setItem(HARD_MODE_STORAGE_KEY, enabled ? '1' : '0')
-  } catch {
-    /* ignore */
-  }
-}
-
 function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): GuessFeedback[] {
   const labels = state.guessLabels ?? []
   return state.guessIds.flatMap((id, index) => {
@@ -98,7 +79,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
   const tasteSeed = withTastePrefix(seedPrefix, taste)
   const tasteStorage = withTastePrefix(storagePrefix, taste)
 
-  /** Daily answer always from vocal-covered titles (same puzzle normal/hard). */
+  /** Daily answer from vocal-covered titles. */
   const playablePool = useMemo(
     () => filterPoolBySongs(pool, { includeBgm: false }),
     [pool],
@@ -147,15 +128,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
     }
     const saved = loadDayState(dateKey, tasteStorage)
     if (saved && saved.answerId === dailyAnswer.id) return saved
-    return createInitialState(dateKey, dailyAnswer.id, {
-      hardMode: loadHardModePreference(),
-    })
-  })
-
-  const [hardMode, setHardMode] = useState(() => {
-    if (dayState.hardMode != null) return dayState.hardMode
-    if (dayState.guessIds.length > 0) return false
-    return loadHardModePreference()
+    return createInitialState(dateKey, dailyAnswer.id)
   })
 
   const songSeed = isPractice
@@ -184,25 +157,20 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       } satisfies ManhwaSong
     }
     return pickSongForDay(
-        answer.id,
-        isPractice ? `${dateKey}:practice:${answer.id}` : dateKey,
-        songSeed,
-        hardMode,
-      )
-  }, [answer.id, dateKey, songSeed, hardMode, isPractice, clue])
+      answer.id,
+      isPractice ? `${dateKey}:practice:${answer.id}` : dateKey,
+      songSeed,
+    )
+  }, [answer.id, dateKey, songSeed, isPractice, clue])
 
   useEffect(() => {
     if (!hasSongs || isPractice || !answerSettled) return
     const saved = loadDayState(dateKey, tasteStorage)
     if (saved && saved.answerId === dailyAnswer.id) {
       setDayState(saved)
-      if (saved.hardMode != null) setHardMode(saved.hardMode)
-      else if (saved.guessIds.length > 0) setHardMode(false)
-      else setHardMode(loadHardModePreference())
       setShowResult(saved.status === 'won' || saved.status === 'lost')
       return
     }
-    const preferredHard = loadHardModePreference()
     let didReset = false
     setDayState((prev) => {
       if (
@@ -214,12 +182,9 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
         return prev
       }
       didReset = true
-      return createInitialState(dateKey, dailyAnswer.id, {
-        hardMode: preferredHard,
-      })
+      return createInitialState(dateKey, dailyAnswer.id)
     })
     if (didReset) {
-      setHardMode(preferredHard)
       setShowResult(false)
       setShowSurrender(false)
     }
@@ -230,19 +195,6 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       hasSongs && (dayState.status === 'won' || dayState.status === 'lost'),
   )
   const [showSurrender, setShowSurrender] = useState(false)
-
-  const hardModeLocked = dayState.guessIds.length > 0
-
-  function handleHardModeChange(next: boolean) {
-    if (hardModeLocked) return
-    saveHardModePreference(next)
-    setHardMode(next)
-    setDayState((prev) => {
-      const updated = { ...prev, hardMode: next }
-      if (!isPractice) saveDayState(updated, tasteStorage)
-      return updated
-    })
-  }
 
   const feedbackRows = useMemo(
     () => (hasSongs ? buildFeedbackRows(dayState, answer, guessPool) : []),
@@ -262,9 +214,8 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
   const canRevealMore = answerReady && canAdvanceClue(dayState, maxClueStep)
 
   const clipSeconds = clipSecondsForGuesses(progress, maxGuesses)
-  /** Hard mode stays audio-only; normal mode reveals the MV only on the last hint. */
-  const showVideo =
-    !hardMode && (finished || progress >= maxClueStep)
+  /** Music video unlocks on the last hint or when the round ends. */
+  const showVideo = finished || progress >= maxClueStep
 
   const bonusCharacter = useMemo(
     () => (dayState.status === 'won' ? pickMainCharacter(answer) : null),
@@ -298,7 +249,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
         dayState.bonusNameGuess != null ? Boolean(dayState.bonusNameCorrect) : null,
       doubleSolve,
       archive: isArchive,
-      hardMode,
+      hardMode: false,
       hintsUsed: dayState.hintsUsed ?? 0,
     })
   }, [
@@ -310,7 +261,6 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
     taste,
     doubleSolve,
     isArchive,
-    hardMode,
   ])
 
   function persistDay(next: DayState) {
@@ -355,7 +305,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       taste,
       guessIds: next.guessIds,
       hintsUsed: next.hintsUsed ?? 0,
-      hardMode: Boolean(next.hardMode ?? hardMode),
+      hardMode: false,
       surrendered,
       dateKey,
       onResult: (result) => {
@@ -380,7 +330,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       ...dayState,
       answerId: answer.id,
       status: 'lost',
-      hardMode,
+      hardMode: false,
     }
     persistDay(next)
     submitTerminal(next, false, true)
@@ -402,7 +352,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       guessIds: transition.guessIds,
       guessLabels,
       status: transition.status,
-      hardMode,
+      hardMode: false,
     }
     const won = transition.status === 'won'
     const lost = transition.status === 'lost'
@@ -442,7 +392,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
         taste,
         guessId: manhwa.id,
         hintsUsed: dayState.hintsUsed ?? 0,
-        hardMode,
+        hardMode: false,
         dateKey,
       })
 
@@ -473,7 +423,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
         guessIds: ranked.guessIds,
         guessLabels,
         status: ranked.dayStatus,
-        hardMode,
+        hardMode: false,
       }
       persistDay(next)
       if (ranked.finalized) {
@@ -494,9 +444,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
     const nextIndex = randomPlayableIndex(playablePool, answer.id)
     const nextAnswer = playablePool[nextIndex]!
     setPracticeIndex(nextIndex)
-    setDayState(
-      createInitialState(dateKey, nextAnswer.id, { hardMode }),
-    )
+    setDayState(createInitialState(dateKey, nextAnswer.id))
     setShowResult(false)
     setShowSurrender(false)
   }
@@ -618,14 +566,6 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
                 >
                   I give up
                 </button>
-                <HardModeToggle
-                  enabled={hardMode}
-                  disabled={!answerReady || hardModeLocked}
-                  onChange={handleHardModeChange}
-                  titleOn="BGM pool · audio only (no video)"
-                  titleOff="BGM pool · audio only (no video)"
-                  titleLocked="Hard mode locks after your first guess"
-                />
               </div>
               <SongClue
                 song={song}
@@ -706,7 +646,7 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
             guessCount={dayState.guessIds.length}
             maxGuesses={maxGuesses}
             hintsUsed={dayState.hintsUsed ?? 0}
-            hardMode={hardMode}
+            hardMode={false}
             shareText={shareText}
             shareLines={shareLines}
             onClose={() => setShowResult(false)}
