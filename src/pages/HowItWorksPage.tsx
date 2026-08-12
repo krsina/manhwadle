@@ -10,9 +10,12 @@ export function HowItWorksPage() {
         <h2>Daily modes</h2>
         <p>
           Four modes share the same UTC day. Summary uses written clues. Character shows a
-          portrait by default (Hard Mode keeps progressive zoom). Cover zooms out as you guess.
-          Heardle plays a short theme clip via YouTube embeds. You get a limited number of
-          guesses; hard mode and hints change the difficulty, not the answer set for that day.
+          portrait by default (Hard Mode adds zoom and heavy pixelation). Cover zooms out as
+          you guess (Hard Mode adds pixelation). Heardle plays a short theme clip via YouTube
+          embeds — hints lengthen the listen, and the music video unlocks on the last hint.
+          You get a limited number of guesses; hard mode and hints change the difficulty, not
+          the answer set for that day. First-try solves require getting it right as-is — using
+          Reveal more gives that up.
         </p>
       </section>
       <section>

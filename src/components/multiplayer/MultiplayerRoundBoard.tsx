@@ -115,7 +115,7 @@ export function MultiplayerModeClue({
       failedGuesses={failedGuesses}
       finished={finished}
       maxGuesses={6}
-      showVideo
+      showVideo={finished || failedGuesses >= 5}
     />
   )
 }

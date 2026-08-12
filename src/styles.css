@@ -1014,6 +1014,19 @@ a.site-icon-btn {
   filter: grayscale(1);
 }
 
+.crop-pixelate-canvas-wrap {
+  width: 100%;
+  height: 100%;
+}
+
+.crop-pixelate-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
 .character-test-bar {
   display: flex;
   flex-wrap: wrap;

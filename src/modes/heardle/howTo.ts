@@ -6,7 +6,7 @@ export const heardleHowTo: HowToPlayGuide = {
   steps: [
     {
       title: 'Hit play',
-      body: 'You get a short clip from a webtoon OST, anime theme, or drama OST. Wrong guesses unlock a longer listen and zoom the music video out, or tap Reveal more without spending a guess.',
+      body: 'You get a short clip from a webtoon OST, anime theme, or drama OST. Wrong guesses unlock a longer listen, or tap Reveal more without spending a guess. The music video unlocks on the last hint. Using hints gives up a first-try solve.',
     },
     {
       title: 'Type a title',

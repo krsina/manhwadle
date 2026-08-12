@@ -71,9 +71,28 @@ describe('archive helpers', () => {
         answerId: 1,
         guessIds: [1],
         status: 'won',
+        hintsUsed: 1,
+      }),
+    ).toBe('won')
+    expect(
+      getArchiveCellStatus(true, {
+        dateKey: '2026-07-15',
+        answerId: 1,
+        guessIds: [1],
+        status: 'won',
         bonusNameCorrect: true,
       }),
     ).toBe('double-solve')
+    expect(
+      getArchiveCellStatus(true, {
+        dateKey: '2026-07-15',
+        answerId: 1,
+        guessIds: [1],
+        status: 'won',
+        hintsUsed: 2,
+        bonusNameCorrect: true,
+      }),
+    ).toBe('won')
     expect(
       getArchiveCellStatus(true, {
         dateKey: '2026-07-15',

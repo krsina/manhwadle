@@ -203,6 +203,37 @@ export function cropZoomScale(
   return ZOOM_LADDER[index]!
 }
 
+/**
+ * Viewport mosaic block size in CSS pixels after N failed guesses
+ * (higher = chunkier). 1 = fully clear. Pixelation is applied to the
+ * zoomed frame so hard mode stays readable instead of collapsing to one tile.
+ */
+const PIXEL_LADDER = [
+  22,
+  17, // skipped by PIXEL_START_OFFSET
+  12, // guess 1 (0 fails)
+  9, // guess 2
+  7, // guess 3
+  5, // guess 4
+  3, // guess 5
+  1, // last guess — clear
+] as const
+
+const PIXEL_START_OFFSET = 2
+
+/** Progressive pixelation block scale (1 = clear). */
+export function cropPixelScale(
+  failedGuesses: number,
+  { finished = false }: { finished?: boolean } = {},
+): number {
+  if (finished) return 1
+  const index = Math.min(
+    Math.max(0, failedGuesses) + PIXEL_START_OFFSET,
+    PIXEL_LADDER.length - 1,
+  )
+  return PIXEL_LADDER[index]!
+}
+
 export function clampFocus(value: number | null | undefined, fallback = 50): number {
   if (value == null || Number.isNaN(value)) return fallback
   return Math.min(100, Math.max(0, value))

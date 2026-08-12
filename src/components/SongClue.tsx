@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { clampFocus, cropZoomScale } from '../lib/crops'
-import { hashString } from '../lib/daily'
 import type { ManhwaSong } from '../lib/songs'
 import { HEARDLE_CLIP_SECONDS, songSourceLabel } from '../lib/songs'
 import { RevealMoreButton } from './RevealMoreButton'
@@ -42,19 +40,10 @@ interface SongClueProps {
   failedGuesses: number
   finished: boolean
   maxGuesses: number
-  /** When false, audio-only (hard mode / no video frame). */
+  /** When false, audio-only (hard mode / pre-final hint / no video frame). */
   showVideo: boolean
   canRevealMore?: boolean
   onRevealMore?: () => void
-}
-
-/** Deterministic zoom origin for MV frames (biased upper/center). */
-function songFocusOrigin(songId: string): { focusX: number; focusY: number } {
-  const h = hashString(`manhwadle:heardle:zoom:${songId}`)
-  return {
-    focusX: clampFocus(40 + (h % 21)),
-    focusY: clampFocus(28 + ((h >>> 8) % 25), 40),
-  }
 }
 
 let apiPromise: Promise<void> | null = null
@@ -80,7 +69,7 @@ function loadYouTubeApi(): Promise<void> {
   return apiPromise
 }
 
-/** YouTube-backed Heardle clip player with Play-gated progressive reveal. */
+/** YouTube-backed Heardle clip player with Play-gated progressive length. */
 export function SongClue({
   song,
   clipSeconds,
@@ -122,10 +111,6 @@ export function SongClue({
     (sec) => (sec / barMaxSeconds) * 100,
   )
 
-  const scale = cropZoomScale(failedGuesses, { finished })
-  const { focusX, focusY } = songFocusOrigin(song.id)
-  const originX = clampFocus(focusX)
-  const originY = clampFocus(focusY, 40)
   const step = finished
     ? maxGuesses
     : Math.min(failedGuesses + 1, maxGuesses)
@@ -379,7 +364,7 @@ export function SongClue({
           <div className="clue-hint-row">
             <p className="clue-hint">
               {showVideo
-                ? 'Wrong guesses lengthen the clip and zoom out'
+                ? 'Last hint — music video unlocked'
                 : 'Wrong guesses lengthen the clip'}
             </p>
             {onRevealMore && (
@@ -397,17 +382,7 @@ export function SongClue({
           className={`song-clue-player-wrap${showVideo ? '' : ' is-hidden-video'}`}
           aria-hidden={showVideo && !error ? undefined : true}
         >
-          <div
-            className="song-clue-zoom"
-            style={
-              showVideo
-                ? {
-                    transform: `scale(${scale})`,
-                    transformOrigin: `${originX}% ${originY}%`,
-                  }
-                : undefined
-            }
-          >
+          <div className="song-clue-zoom">
             <div ref={hostRef} className="song-clue-player" />
           </div>
           {!showVideo && !error && (

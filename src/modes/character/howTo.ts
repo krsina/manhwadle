@@ -10,7 +10,7 @@ export const characterHowTo: HowToPlayGuide = {
     },
     {
       title: 'Hard mode (optional)',
-      body: 'Hard Mode can show any cast member, including supporting roles, forces black and white, and starts extreme close-up — wrong guesses zoom out, or tap Reveal more without spending a guess. A Color toggle unlocks on your last guess. Hard Mode locks after your first guess.',
+      body: 'Hard Mode can show any cast member, including supporting roles, forces black and white, and starts extreme close-up + heavily pixelated — wrong guesses zoom out and clear the pixels, or tap Reveal more without spending a guess. A Color toggle unlocks on your last guess. Hard Mode locks after your first guess.',
     },
     {
       title: 'Type a title',

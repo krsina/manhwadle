@@ -4,6 +4,7 @@ import { characterImageUrl } from '../lib/anilist-types'
 import { characterDisplayName } from '../lib/characterNames'
 import { displayTitle, formatCountdown, msUntilNextUtcMidnight } from '../lib/daily'
 import { formatGuessScore } from '../lib/compare'
+import { isFirstTrySolve } from '../lib/archive'
 import { collectCharacters } from '../lib/search'
 import { nameOrderVariants, namesMatch } from '../lib/nameMatch'
 import { BonusCelebrate } from './BonusCelebrate'
@@ -148,7 +149,7 @@ export function ResultModal({
   const showBonus = Boolean(won && bonusCharacter)
   const bonusPending = showBonus && !bonusResult
   const bonusCorrect = bonusResult?.correct === true
-  const firstTry = won && guessCount === 1
+  const firstTry = isFirstTrySolve({ won, guessCount, hintsUsed })
   const doubleSolve = firstTry && bonusCorrect
   const showCharacter = Boolean(revealCharacter)
   // Don't spoil the bonus: reveal the depicted name only after it's answered

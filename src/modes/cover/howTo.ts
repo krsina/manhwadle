@@ -10,7 +10,7 @@ export const coverHowTo: HowToPlayGuide = {
     },
     {
       title: 'Hard mode (optional)',
-      body: 'Hard Mode forces black & white and disables Reveal more. The zoom ladder stays the same. It locks after your first guess.',
+      body: 'Hard Mode keeps the zoom ladder and adds heavy pixelation in black & white. Wrong guesses zoom out and clear the pixels, or tap Reveal more without spending a guess. It locks after your first guess.',
     },
     {
       title: 'Type a title',
