@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { reportCaughtError } from '../lib/errorReporting'
+import { isStaleAssetError, reloadForStaleAssets } from '../lib/staleAssetReload'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -9,6 +10,7 @@ interface ErrorBoundaryProps {
 
 interface ErrorBoundaryState {
   error: Error | null
+  reloadingForUpdate: boolean
 }
 
 /**
@@ -16,13 +18,17 @@ interface ErrorBoundaryState {
  * Integrates with optional privacy-safe monitoring when configured.
  */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { error: null }
+  state: ErrorBoundaryState = { error: null, reloadingForUpdate: false }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return { error }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
+    if (isStaleAssetError(error) && reloadForStaleAssets('error-boundary')) {
+      this.setState({ reloadingForUpdate: true })
+      return
+    }
     reportCaughtError(error, {
       source: 'ErrorBoundary',
       label: this.props.label ?? 'app',
@@ -35,12 +41,35 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   private handleReset = (): void => {
-    this.setState({ error: null })
+    this.setState({ error: null, reloadingForUpdate: false })
   }
 
   render() {
-    const { error } = this.state
+    const { error, reloadingForUpdate } = this.state
     if (!error) return this.props.children
+
+    if (isStaleAssetError(error)) {
+      return (
+        <div className="error-boundary" role="status" aria-live="polite">
+          <div className="error-boundary-card">
+            <p className="error-boundary-kicker">Updating</p>
+            <h1 className="error-boundary-title">Loading the latest Manhwadle</h1>
+            <p className="error-boundary-body">
+              {reloadingForUpdate
+                ? 'A new version just shipped. Refreshing so you can keep playing.'
+                : 'A new version just shipped. Reload to pick it up — your local progress stays in this browser.'}
+            </p>
+            {!reloadingForUpdate && (
+              <div className="error-boundary-actions">
+                <button type="button" className="btn btn-primary" onClick={this.handleReload}>
+                  Reload page
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
 
     return (
       <div className="error-boundary" role="alert" aria-live="assertive">
