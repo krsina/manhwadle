@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useState } from 'react'
+import { Suspense, useCallback, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider } from './components/AuthProvider'
 import { AppLayout } from './components/AppLayout'
@@ -6,6 +6,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { OwnerDevRoute } from './components/OwnerDevRoute'
 import { LocalDevOrOwnerRoute } from './components/LocalDevOrOwnerRoute'
 import { StaffRoute } from './components/StaffRoute'
+import { lazyWithStaleReload } from './lib/lazyWithStaleReload'
 import {
   loadReaderTaste,
   saveReaderTaste,
@@ -14,75 +15,75 @@ import {
 import { NEWS_PATH, newsPath } from './lib/routes'
 import './styles.css'
 
-const HomePage = lazy(() =>
+const HomePage = lazyWithStaleReload(() =>
   import('./pages/HomePage').then((m) => ({ default: m.HomePage })),
 )
-const MilestonesPage = lazy(() =>
+const MilestonesPage = lazyWithStaleReload(() =>
   import('./pages/MilestonesPage').then((m) => ({ default: m.MilestonesPage })),
 )
-const PlayPage = lazy(() =>
+const PlayPage = lazyWithStaleReload(() =>
   import('./pages/PlayPage').then((m) => ({ default: m.PlayPage })),
 )
-const VersusPage = lazy(() =>
+const VersusPage = lazyWithStaleReload(() =>
   import('./pages/VersusPage').then((m) => ({ default: m.VersusPage })),
 )
-const SettingsPage = lazy(() =>
+const SettingsPage = lazyWithStaleReload(() =>
   import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 )
-const ShopPage = lazy(() =>
+const ShopPage = lazyWithStaleReload(() =>
   import('./pages/ShopPage').then((m) => ({ default: m.ShopPage })),
 )
-const LeaderboardPage = lazy(() =>
+const LeaderboardPage = lazyWithStaleReload(() =>
   import('./pages/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })),
 )
-const AnimationCreatorPage = lazy(() =>
+const AnimationCreatorPage = lazyWithStaleReload(() =>
   import('./pages/AnimationCreatorPage').then((m) => ({ default: m.AnimationCreatorPage })),
 )
-const ActionStripPreviewPage = lazy(() =>
+const ActionStripPreviewPage = lazyWithStaleReload(() =>
   import('./pages/ActionStripPreviewPage').then((m) => ({ default: m.ActionStripPreviewPage })),
 )
-const AvatarBustCropPage = lazy(() =>
+const AvatarBustCropPage = lazyWithStaleReload(() =>
   import('./pages/AvatarBustCropPage').then((m) => ({ default: m.AvatarBustCropPage })),
 )
-const PrivacyPage = lazy(() =>
+const PrivacyPage = lazyWithStaleReload(() =>
   import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
 )
-const AboutPage = lazy(() =>
+const AboutPage = lazyWithStaleReload(() =>
   import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })),
 )
-const HowItWorksPage = lazy(() =>
+const HowItWorksPage = lazyWithStaleReload(() =>
   import('./pages/HowItWorksPage').then((m) => ({ default: m.HowItWorksPage })),
 )
-const DatabasePage = lazy(() =>
+const DatabasePage = lazyWithStaleReload(() =>
   import('./pages/DatabasePage').then((m) => ({ default: m.DatabasePage })),
 )
-const TermsPage = lazy(() =>
+const TermsPage = lazyWithStaleReload(() =>
   import('./pages/TermsPage').then((m) => ({ default: m.TermsPage })),
 )
-const AttributionPage = lazy(() =>
+const AttributionPage = lazyWithStaleReload(() =>
   import('./pages/AttributionPage').then((m) => ({ default: m.AttributionPage })),
 )
-const ModerationAppealsPage = lazy(() =>
+const ModerationAppealsPage = lazyWithStaleReload(() =>
   import('./pages/ModerationAppealsPage').then((m) => ({
     default: m.ModerationAppealsPage,
   })),
 )
-const UpdatesPage = lazy(() =>
+const UpdatesPage = lazyWithStaleReload(() =>
   import('./pages/UpdatesPage').then((m) => ({ default: m.UpdatesPage })),
 )
-const UpdateDetailPage = lazy(() =>
+const UpdateDetailPage = lazyWithStaleReload(() =>
   import('./pages/UpdateDetailPage').then((m) => ({ default: m.UpdateDetailPage })),
 )
-const StaffDashboardPage = lazy(() =>
+const StaffDashboardPage = lazyWithStaleReload(() =>
   import('./pages/StaffDashboardPage').then((m) => ({ default: m.StaffDashboardPage })),
 )
-const StaffModerationPage = lazy(() =>
+const StaffModerationPage = lazyWithStaleReload(() =>
   import('./pages/StaffDashboardPage').then((m) => ({ default: m.StaffModerationPage })),
 )
-const StaffCommentsPage = lazy(() =>
+const StaffCommentsPage = lazyWithStaleReload(() =>
   import('./pages/StaffDashboardPage').then((m) => ({ default: m.StaffCommentsPage })),
 )
-const AnalyticsDashboardPage = lazy(() =>
+const AnalyticsDashboardPage = lazyWithStaleReload(() =>
   import('./pages/AnalyticsDashboardPage').then((m) => ({
     default: m.AnalyticsDashboardPage,
   })),

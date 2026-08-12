@@ -1,23 +1,24 @@
-import { lazy, type ComponentType } from 'react'
+import { type ComponentType } from 'react'
 import { characterModeMeta } from './character/config'
 import { coverModeMeta } from './cover/config'
 import { heardleModeMeta } from './heardle/config'
 import { summaryModeMeta } from './summary/config'
+import { lazyWithStaleReload } from '../lib/lazyWithStaleReload'
 import type { GameModeDefinition, GameModeProps } from './types'
 
 /** Default guessing variant — summary clue + attribute feedback */
 export const DEFAULT_MODE_ID = summaryModeMeta.id
 
-const SummaryGame = lazy(() =>
+const SummaryGame = lazyWithStaleReload(() =>
   import('./summary/SummaryGame').then((m) => ({ default: m.SummaryGame })),
 )
-const CharacterGame = lazy(() =>
+const CharacterGame = lazyWithStaleReload(() =>
   import('./character/CharacterGame').then((m) => ({ default: m.CharacterGame })),
 )
-const CoverGame = lazy(() =>
+const CoverGame = lazyWithStaleReload(() =>
   import('./cover/CoverGame').then((m) => ({ default: m.CoverGame })),
 )
-const HeardleGame = lazy(() =>
+const HeardleGame = lazyWithStaleReload(() =>
   import('./heardle/HeardleGame').then((m) => ({ default: m.HeardleGame })),
 )
 
