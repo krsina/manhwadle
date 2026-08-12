@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   createMultiplayerRoom,
+  getMyActiveMultiplayerRoom,
   isMissingMultiplayerRpcError,
   isValidMultiplayerInviteCode,
   joinMultiplayerRoom,
   multiplayerErrorMessage,
   normalizeMultiplayerInviteCode,
+  parseMultiplayerActiveRoom,
   parseMultiplayerModes,
   parseMultiplayerState,
   setMultiplayerListContribution,
@@ -222,6 +224,82 @@ describe('multiplayer API contract', () => {
     const badRounds = stateFixture()
     badRounds.room.rounds_per_mode = 2
     expect(parseMultiplayerState(badRounds)).toBeNull()
+  })
+
+  it('parses active-room occupancy summaries for resume/leave', () => {
+    expect(
+      parseMultiplayerActiveRoom({
+        id: 'room-9',
+        code: 'RESUME01',
+        status: 'lobby',
+        is_host: true,
+        member_count: 1,
+        max_players: 8,
+      }),
+    ).toEqual({
+      id: 'room-9',
+      code: 'RESUME01',
+      status: 'lobby',
+      isHost: true,
+      memberCount: 1,
+      maxPlayers: 8,
+    })
+    expect(parseMultiplayerActiveRoom(null)).toBeNull()
+  })
+
+  it('loads the viewer active room and surfaces create blockers with room details', async () => {
+    rpc.mockResolvedValueOnce({
+      data: {
+        ok: true,
+        room: {
+          id: 'room-9',
+          code: 'RESUME01',
+          status: 'lobby',
+          is_host: true,
+          member_count: 1,
+          max_players: 8,
+        },
+      },
+      error: null,
+    })
+    await expect(getMyActiveMultiplayerRoom()).resolves.toEqual({
+      ok: true,
+      room: {
+        id: 'room-9',
+        code: 'RESUME01',
+        status: 'lobby',
+        isHost: true,
+        memberCount: 1,
+        maxPlayers: 8,
+      },
+    })
+
+    rpc.mockResolvedValueOnce({
+      data: {
+        ok: false,
+        error: 'active_room_exists',
+        room: {
+          id: 'room-9',
+          code: 'RESUME01',
+          status: 'lobby',
+          is_host: true,
+          member_count: 1,
+          max_players: 8,
+        },
+      },
+      error: null,
+    })
+    const blocked = await createMultiplayerRoom({
+      selectedModes: ['summary'],
+      maxPlayers: 4,
+      idempotencyKey: 'create:blocked',
+    })
+    expect(blocked).toMatchObject({
+      ok: false,
+      error: 'active_room_exists',
+      activeRoom: { id: 'room-9', code: 'RESUME01', status: 'lobby' },
+    })
+    expect(multiplayerErrorMessage('active_room_exists')).toMatch(/Resume/i)
   })
 
   it('calls create with selected modes and a stable caller key', async () => {

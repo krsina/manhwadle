@@ -27,6 +27,9 @@ const singleContributorMigration = readSql(
 const fullCatalogCapMigration = readSql(
   'supabase/migrations/20260811194713_saved_lists_full_catalog_cap.sql',
 )
+const resumeActiveRoomMigration = readSql(
+  'supabase/migrations/20260812053913_multiplayer_resume_active_room.sql',
+)
 
 describe('group multiplayer backend migration contracts', () => {
   it('keeps every multiplayer table private and restores no versus objects', () => {
@@ -508,6 +511,21 @@ describe('collaborative Versus pools migration contracts', () => {
     )
     expect(collaborativePoolsMigration).toContain(
       'grant execute on function public.export_saved_lists_account(uuid)\n  to service_role',
+    )
+  })
+
+  it('exposes the viewer active seat for resume and leave after a closed tab', () => {
+    expect(resumeActiveRoomMigration).toContain(
+      'function app_private.multiplayer_active_room_payload(p_user_id uuid)',
+    )
+    expect(resumeActiveRoomMigration).toContain(
+      'function public.multiplayer_get_my_active_room()',
+    )
+    expect(resumeActiveRoomMigration).toContain(
+      "'error', 'active_room_exists',\n        'room', app_private.multiplayer_active_room_payload(v_uid)",
+    )
+    expect(resumeActiveRoomMigration).toContain(
+      'grant execute on function public.multiplayer_get_my_active_room()\n  to authenticated, service_role',
     )
   })
 })

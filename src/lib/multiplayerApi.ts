@@ -5,6 +5,8 @@ import {
   MULTIPLAYER_MODE_ORDER,
   MULTIPLAYER_POOL_SOURCES,
   MULTIPLAYER_ROUNDS_PER_MODE,
+  type MultiplayerActiveRoomResult,
+  type MultiplayerActiveRoomSummary,
   type MultiplayerAttemptSnapshot,
   type MultiplayerAttemptStatus,
   type MultiplayerIdempotentInput,
@@ -76,7 +78,8 @@ export function multiplayerErrorMessage(error: string): string {
     room_unavailable: 'That room is unavailable.',
     room_not_joinable: 'That invite is invalid or the room is no longer open.',
     room_full: 'That room is full.',
-    active_room_exists: 'Leave your current Versus room before joining another.',
+    active_room_exists:
+      'You still have an open Versus room. Resume it or leave before starting another.',
     member_inactive: 'You have left this match.',
     not_room_member: 'You are no longer a member of this room.',
     players_not_ready: 'Every player must be ready.',
@@ -264,6 +267,34 @@ function parsePoolSummary(raw: unknown): MultiplayerPoolSummary {
   }
 }
 
+export function parseMultiplayerActiveRoom(
+  raw: unknown,
+): MultiplayerActiveRoomSummary | null {
+  if (raw == null) return null
+  if (!isRecord(raw)) return null
+  const id = stringValue(raw.id)
+  const code = stringValue(raw.code)
+  if (!id || !code || !isOneOf(raw.status, ROOM_STATUSES)) return null
+  return {
+    id,
+    code,
+    status: raw.status,
+    isHost: Boolean(raw.is_host),
+    memberCount: nonNegInt(raw.member_count),
+    maxPlayers: Math.min(
+      MULTIPLAYER_MAX_PLAYERS,
+      Math.max(MULTIPLAYER_MIN_PLAYERS, nonNegInt(raw.max_players, 2)),
+    ),
+  }
+}
+
+function activeRoomFromResponse(
+  data: Record<string, unknown> | null | undefined,
+): MultiplayerActiveRoomSummary | null | undefined {
+  if (!data || !('room' in data)) return undefined
+  return parseMultiplayerActiveRoom(data.room)
+}
+
 export function parseMultiplayerMember(
   raw: unknown,
 ): MultiplayerMemberSnapshot | null {
@@ -439,6 +470,7 @@ async function callStateRpc(
             ? data.error
             : expected,
         state: isRecord(data) ? stateFromResponse(data) ?? undefined : undefined,
+        activeRoom: isRecord(data) ? activeRoomFromResponse(data) : undefined,
       }
     }
     const state = stateFromResponse(data)
@@ -478,6 +510,7 @@ async function callMutationRpc(
             ? data.error
             : expected,
         state: isRecord(data) ? stateFromResponse(data) ?? undefined : undefined,
+        activeRoom: isRecord(data) ? activeRoomFromResponse(data) : undefined,
       }
     }
     const state = stateFromResponse(data)
@@ -515,6 +548,40 @@ export function getMultiplayerState(roomId: string): Promise<MultiplayerStateRes
     { p_room_id: roomId },
     'unexpected_multiplayer_state',
   )
+}
+
+export async function getMyActiveMultiplayerRoom(): Promise<MultiplayerActiveRoomResult> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { ok: false, error: 'not_configured' }
+  }
+  try {
+    const { data, error } = await supabase.rpc('multiplayer_get_my_active_room')
+    if (error) {
+      return {
+        ok: false,
+        error: error.message,
+        migrationMissing: isMissingMultiplayerRpcError(error.message),
+      }
+    }
+    if (!isRecord(data) || data.ok !== true) {
+      return {
+        ok: false,
+        error:
+          isRecord(data) && typeof data.error === 'string'
+            ? data.error
+            : 'unexpected_multiplayer_active_room',
+        activeRoom: isRecord(data) ? activeRoomFromResponse(data) : undefined,
+      }
+    }
+    return { ok: true, room: parseMultiplayerActiveRoom(data.room) }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    return {
+      ok: false,
+      error: message,
+      migrationMissing: isMissingMultiplayerRpcError(message),
+    }
+  }
 }
 
 export function createMultiplayerRoom(

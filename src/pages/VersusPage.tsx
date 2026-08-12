@@ -34,6 +34,7 @@ import { buildKnownInfo } from '../lib/knowledge'
 import {
   createMultiplayerIdempotencyKey,
   createMultiplayerRoom,
+  getMyActiveMultiplayerRoom,
   isValidMultiplayerInviteCode,
   joinMultiplayerRoom,
   leaveMultiplayerRoom,
@@ -53,6 +54,7 @@ import {
   MULTIPLAYER_MIN_PLAYERS,
   MULTIPLAYER_ROUND_MS,
   MULTIPLAYER_ROUNDS_PER_MODE,
+  type MultiplayerActiveRoomSummary,
   type MultiplayerMode,
   type MultiplayerMutationResult,
   type MultiplayerPoolSource,
@@ -108,6 +110,22 @@ const HOW_IT_WORKS = [
   { title: 'Ready up', detail: 'The host starts once every player is ready.' },
 ]
 
+function activeRoomPhaseLabel(status: MultiplayerRoomStatus): string {
+  switch (status) {
+    case 'lobby':
+      return 'Lobby'
+    case 'countdown':
+      return 'Starting'
+    case 'active':
+    case 'intermission':
+      return 'In play'
+    case 'completed':
+      return 'Complete'
+    default:
+      return 'Closed'
+  }
+}
+
 export function VersusPage() {
   const { roomId } = useParams<{ roomId: string }>()
   const navigate = useNavigate()
@@ -125,6 +143,8 @@ export function VersusPage() {
   const [readyDebounced, setReadyDebounced] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [activeRoom, setActiveRoom] = useState<MultiplayerActiveRoomSummary | null>(null)
+  const [activeRoomLoading, setActiveRoomLoading] = useState(false)
   const syncedSettingsRef = useRef('')
   const readyDebounceTimerRef = useRef<number | null>(null)
   const roomState = useMultiplayerRoom(roomId, {
@@ -144,9 +164,29 @@ export function VersusPage() {
     }
   }, [])
 
+  const refreshActiveRoom = useCallback(async () => {
+    if (!user || roomId) {
+      setActiveRoom(null)
+      setActiveRoomLoading(false)
+      return
+    }
+    setActiveRoomLoading(true)
+    const result = await getMyActiveMultiplayerRoom()
+    setActiveRoomLoading(false)
+    if (result.ok) {
+      setActiveRoom(result.room)
+      return
+    }
+    if (result.activeRoom) setActiveRoom(result.activeRoom)
+  }, [roomId, user])
+
   useEffect(() => {
     void loadCatalog()
   }, [loadCatalog])
+
+  useEffect(() => {
+    void refreshActiveRoom()
+  }, [refreshActiveRoom])
 
   useEffect(() => {
     if (!user) {
@@ -200,6 +240,9 @@ export function VersusPage() {
       return false
     }
     setPending(false)
+    if (!result.ok && result.activeRoom) {
+      setActiveRoom(result.activeRoom)
+    }
     const nextError = mutationError(result)
     if (nextError) {
       setError(nextError)
@@ -212,6 +255,25 @@ export function VersusPage() {
     }
     await roomState.refresh()
     return true
+  }
+
+  async function leaveActiveSeat() {
+    if (!activeRoom || pending) return
+    setPending(true)
+    setError(null)
+    const result = await leaveMultiplayerRoom({
+      roomId: activeRoom.id,
+      idempotencyKey: createMultiplayerIdempotencyKey('leave-room'),
+    })
+    setPending(false)
+    if (!result.ok) {
+      setError(multiplayerErrorMessage(
+        result.migrationMissing ? 'migration_missing' : result.error,
+      ))
+      return
+    }
+    setActiveRoom(null)
+    setError(null)
   }
 
   function copyInvite() {
@@ -315,6 +377,40 @@ export function VersusPage() {
         </header>
         {import.meta.env.DEV && <VersusAvatarPreview />}
         {error && <p className="versus-error" role="alert">{error}</p>}
+        {activeRoomLoading && !activeRoom ? (
+          <p className="versus-hint" aria-busy="true">Checking for an open room…</p>
+        ) : null}
+        {activeRoom && (
+          <section className="versus-active-room" aria-label="Open Versus room">
+            <div>
+              <h2>You still have an open room</h2>
+              <p className="versus-muted">
+                Closing the tab does not leave the seat. Resume{' '}
+                <strong>{activeRoom.code}</strong>
+                {` (${activeRoomPhaseLabel(activeRoom.status)})`} or leave before
+                creating or joining another.
+              </p>
+            </div>
+            <div className="versus-active-room-actions">
+              <button
+                className="btn btn-primary"
+                type="button"
+                disabled={pending}
+                onClick={() => navigate(versusRoomPath(activeRoom.id))}
+              >
+                Resume room
+              </button>
+              <button
+                className="btn"
+                type="button"
+                disabled={pending}
+                onClick={() => void leaveActiveSeat()}
+              >
+                {pending ? 'Leaving…' : activeRoom.status === 'lobby' ? 'Leave lobby' : 'Leave room'}
+              </button>
+            </div>
+          </section>
+        )}
         <div className="versus-grid">
           <section className="versus-panel">
             <div className="versus-panel-head">

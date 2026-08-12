@@ -147,6 +147,7 @@ describe('puzzle pool lane generation', () => {
       bonus_name_normalized: 'blademaster',
     })
     expect(summary?.meta.character_clues).toBeUndefined()
+    expect(summary?.meta.answer_label).toBeTruthy()
     expect(summary?.meta.answer_fingerprint).toMatchObject({
       genres: ['Action'],
       tags: ['Male Protagonist'],

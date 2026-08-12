@@ -28,6 +28,21 @@ function nested(
   return isRecord(row[key]) ? row[key] : {}
 }
 
+/**
+ * Pool meta historically omitted answer_label, so the server fell back to
+ * `#<guess_id>`. Prefer the public catalog title in that case.
+ */
+export function resolveMultiplayerDisplayLabel(
+  rawLabel: unknown,
+  guessId: number,
+): string | undefined {
+  if (typeof rawLabel !== 'string') return undefined
+  const label = rawLabel.trim()
+  if (!label) return undefined
+  if (label === `#${guessId}` || label === `Title ${guessId}`) return undefined
+  return label
+}
+
 export function buildMultiplayerFeedbackRows(
   rawRows: Record<string, unknown>[] | null,
   guessIds: number[] | null,
@@ -59,8 +74,7 @@ export function buildMultiplayerFeedbackRows(
     return [{
       manhwa: guess,
       isCorrect: row.is_correct === true,
-      displayLabel:
-        typeof row.display_label === 'string' ? row.display_label : undefined,
+      displayLabel: resolveMultiplayerDisplayLabel(row.display_label, rawGuessId),
       genres: {
         tone: tone(genres.tone),
         shared: strings(genres.shared),

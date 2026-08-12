@@ -293,6 +293,16 @@ function answerFingerprint(manhwa) {
   }
 }
 
+/** Public display title for versus feedback / round answers. */
+function displayTitle(manhwa) {
+  return (
+    manhwa.title?.english?.trim() ||
+    manhwa.title?.romaji?.trim() ||
+    manhwa.title?.native?.trim() ||
+    `#${manhwa.id}`
+  )
+}
+
 function blurbIndex(input) {
   if (input instanceof Set) return new Map([...input].map((id) => [id, null]))
   return new Map(
@@ -347,6 +357,7 @@ function heardleClues(manhwa) {
 export function buildPoolEntryMeta(mode, manhwa, authored, crops) {
   const bonus = buildBonusNameMeta(manhwa)
   const meta = {
+    answer_label: displayTitle(manhwa),
     answer_fingerprint: answerFingerprint(manhwa),
   }
 
