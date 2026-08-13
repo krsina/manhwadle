@@ -161,7 +161,7 @@ describe('parseAvatarShopSnapshot', () => {
   })
 
   it('ships the full Style A catalog offline, with both defaults owned', () => {
-    expect(AVATAR_CATALOG_FALLBACK).toHaveLength(18)
+    expect(AVATAR_CATALOG_FALLBACK).toHaveLength(19)
     expect(AVATAR_CATALOG_FALLBACK.filter((item) => item.owned)).toHaveLength(2)
     expect(AVATAR_CATALOG_FALLBACK.filter((item) => item.limitedTime)).toHaveLength(2)
     expect(AVATAR_CATALOG_FALLBACK.slice(0, 2).map((item) => item.id)).toEqual([
@@ -171,6 +171,12 @@ describe('parseAvatarShopSnapshot', () => {
     expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === DEFAULT_AVATAR_ID)?.equipped).toBe(
       true,
     )
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_ember_crown')).toMatchObject({
+      name: 'Ember Crown',
+      price: 7000,
+      rarity: 'epic',
+      owned: false,
+    })
     expect(STAGE_CATALOG_FALLBACK).toHaveLength(3)
     expect(STAGE_CATALOG_FALLBACK.filter((item) => item.owned)).toHaveLength(1)
     expect(STAGE_CATALOG_FALLBACK.filter((item) => item.limitedTime)).toHaveLength(1)
