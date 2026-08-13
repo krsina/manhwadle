@@ -389,6 +389,25 @@ export const AVATAR_CHARACTER_META: readonly AvatarCharacterMeta[] = [
       aura: 'A few floating red rose petals (compact)',
     },
   },
+  {
+    id: 'avatar_ember_crown',
+    name: 'Ember Crown',
+    description: 'Fiery orange ponytail, gold-collar cape, and a held fireball.',
+    assetPath: 'ember-crown.png',
+    assetKey: 'avatar_ember_crown',
+    starter: false,
+    price: 7000,
+    rarity: 'epic',
+    inspirationSeries: 'Royal fire mage',
+    inspirationCharacter: 'Ember crown pyromancer',
+    traits: {
+      hair: 'Vibrant fiery orange high ponytail with a gold band and loose face-framing strands',
+      eyes: 'Simple Style A crimson-red irises, limited pupil/highlight pixels, stern focused brows, tiny closed mouth',
+      outfit: 'Dark high-collared cape with a wide gold collar band and oval red gem, black sweetheart neckline into a deep red V-bodice, black dress with gold filigree, gold wrist bangles, dark boots',
+      props: 'MUST hold ONE oversized glowing orange-yellow fireball in the RIGHT hand',
+      aura: 'Compact cel ember sparks behind/around the figure',
+    },
+  },
 ] as const
 
 const META_BY_ID = new Map(AVATAR_CHARACTER_META.map((character) => [character.id, character]))

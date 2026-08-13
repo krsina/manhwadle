@@ -25,6 +25,9 @@ const explorerReplaceMigrationPath = path.resolve(
 const freeClaimExplorersMigrationPath = path.resolve(
   'supabase/migrations/20260811041103_fix_free_claim_explorers.sql',
 )
+const emberCrownMigrationPath = path.resolve(
+  'supabase/migrations/20260813083244_avatar_ember_crown_shop.sql',
+)
 const stageMigrationPath = path.resolve('supabase/migrations/20260719110000_avatar_stage_shop.sql')
 const hasWholeCharacterMigration = fs.existsSync(wholeCharacterMigrationPath)
 const wholeCharacterMigration = hasWholeCharacterMigration
@@ -45,10 +48,13 @@ const explorerReplaceMigration = fs.existsSync(explorerReplaceMigrationPath)
 const freeClaimExplorersMigration = fs.existsSync(freeClaimExplorersMigrationPath)
   ? fs.readFileSync(freeClaimExplorersMigrationPath, 'utf8')
   : ''
+const emberCrownMigration = fs.existsSync(emberCrownMigrationPath)
+  ? fs.readFileSync(emberCrownMigrationPath, 'utf8')
+  : ''
 const stageMigration = fs.existsSync(stageMigrationPath)
   ? fs.readFileSync(stageMigrationPath, 'utf8')
   : ''
-const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}\n${limitedTimeMigration}\n${skyMeadowLimitedTimeMigration}\n${explorerReplaceMigration}\n${freeClaimExplorersMigration}`
+const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}\n${limitedTimeMigration}\n${skyMeadowLimitedTimeMigration}\n${explorerReplaceMigration}\n${freeClaimExplorersMigration}\n${emberCrownMigration}`
 
 describe('avatar shop migration contracts', () => {
   it('makes point sources idempotent and balances non-negative', () => {
@@ -105,6 +111,13 @@ describe.runIf(hasWholeCharacterMigration)('whole-character avatar shop migratio
     expect(wave1Migration).toContain('avatar_plum_blossom_blade')
     expect(wave1Migration).toContain('avatar_villainess_rose')
     expect(wave1Migration).not.toContain('and id not in (')
+  })
+
+  it('adds Ember Crown without re-running the old whitelist deactivation', () => {
+    expect(emberCrownMigration).toContain('avatar_ember_crown')
+    expect(emberCrownMigration).toContain('7000')
+    expect(emberCrownMigration).toContain("'epic'")
+    expect(emberCrownMigration).not.toContain('and id not in (')
   })
 
   it('adds limited-time free claims without auto-granting all price-0 avatars', () => {

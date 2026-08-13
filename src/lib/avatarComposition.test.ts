@@ -29,21 +29,23 @@ const WAVE1_IDS = [
   'avatar_beast_pact_hunter',
   'avatar_villainess_rose',
 ] as const
+const EMBER_CROWN_IDS = ['avatar_ember_crown'] as const
 
 describe('avatarComposition', () => {
   it('exposes the whole-character catalog contract including wave-1 and limited-time claims', () => {
-    expect(AVATAR_CHARACTER_META).toHaveLength(18)
+    expect(AVATAR_CHARACTER_META).toHaveLength(19)
     expect(AVATAR_CHARACTER_META.map((character) => character.id)).toEqual([
       ...LIMITED_TIME_IDS,
       ...STARTER_IDS,
       ...LEGACY_PREMIUM_IDS,
       ...WAVE1_IDS,
+      ...EMBER_CROWN_IDS,
     ])
     expect(DEFAULT_AVATAR_ID).toBe('avatar_default_female')
     expect(AVATAR_CHARACTER_META.filter((character) => character.starter)).toHaveLength(2)
     expect(AVATAR_CHARACTER_META.filter((character) => character.limitedTime)).toHaveLength(2)
-    expect(AVATAR_CHARACTER_META.filter((character) => character.price > 0)).toHaveLength(14)
-    expect(AVATAR_CHARACTER_META.filter((character) => character.rarity === 'epic')).toHaveLength(3)
+    expect(AVATAR_CHARACTER_META.filter((character) => character.price > 0)).toHaveLength(15)
+    expect(AVATAR_CHARACTER_META.filter((character) => character.rarity === 'epic')).toHaveLength(4)
   })
 
   it('prices and rarities match the product contract', () => {
@@ -63,6 +65,12 @@ describe('avatarComposition', () => {
     expect(getAvatarCharacterMeta('avatar_undead_marshal')).toMatchObject({
       price: 7000,
       rarity: 'epic',
+    })
+    expect(getAvatarCharacterMeta('avatar_ember_crown')).toMatchObject({
+      price: 7000,
+      rarity: 'epic',
+      starter: false,
+      description: 'Fiery orange ponytail, gold-collar cape, and a held fireball.',
     })
     const defaultFemale = getAvatarCharacterMeta(DEFAULT_AVATAR_ID)
     const defaultMale = getAvatarCharacterMeta('avatar_default_male')
@@ -111,6 +119,7 @@ describe('avatarComposition', () => {
     expect(describeAvatar('avatar_shadow_hunter')).toBe('Shadow Hunter')
     expect(describeAvatar('avatar_skybreaker_monk')).toBe('Skybreaker Monk')
     expect(describeAvatar('avatar_villainess_rose')).toBe('Villainess Rose')
+    expect(describeAvatar('avatar_ember_crown')).toBe('Ember Crown')
     expect(describeAvatar('not-a-character')).toBe(describeAvatar(DEFAULT_AVATAR_ID))
   })
 
@@ -154,6 +163,9 @@ describe('avatarComposition', () => {
     )
     expect(avatarAssetUrl('avatar_explorer_a')).toMatch(
       new RegExp(`^${STYLE_A_BASE}/explorer-a\\.png\\?v=\\d+$`),
+    )
+    expect(avatarAssetUrl('avatar_ember_crown')).toMatch(
+      new RegExp(`^${STYLE_A_BASE}/ember-crown\\.png\\?v=\\d+$`),
     )
     expect(avatarAssetUrl('not-a-character')).toBe(avatarAssetUrl(DEFAULT_AVATAR_ID))
   })
