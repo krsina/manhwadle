@@ -212,10 +212,10 @@ describe('rollGacha', () => {
   })
 
   it('uses weighted bands when pity is not in play', () => {
-    expect(GACHA_RATES).toEqual({ common: 0.05, rare: 0.7, epic: 0.24, legendary: 0.01 })
-    const common = rollGacha({ pity: emptyGachaPity(), ownedIds: emptyOwned }, sequenceRng([0, 0]))
-    const rare = rollGacha({ pity: emptyGachaPity(), ownedIds: emptyOwned }, sequenceRng([0.7, 0]))
-    const epic = rollGacha({ pity: emptyGachaPity(), ownedIds: emptyOwned }, sequenceRng([0.95, 0]))
+    expect(GACHA_RATES).toEqual({ common: 0.45, rare: 0.34, epic: 0.2, legendary: 0.01 })
+    const common = rollGacha({ pity: emptyGachaPity(), ownedIds: emptyOwned }, sequenceRng([0.44, 0]))
+    const rare = rollGacha({ pity: emptyGachaPity(), ownedIds: emptyOwned }, sequenceRng([0.45, 0]))
+    const epic = rollGacha({ pity: emptyGachaPity(), ownedIds: emptyOwned }, sequenceRng([0.79, 0]))
     // Legendary band starts at 0.99.
     const legendary = rollGacha(
       { pity: emptyGachaPity(), ownedIds: emptyOwned },

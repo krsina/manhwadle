@@ -8,6 +8,10 @@ const migration = fs.readFileSync(
   path.resolve('supabase/migrations/20260904080000_gacha_shop.sql'),
   'utf8',
 )
+const ratesMigration = fs.readFileSync(
+  path.resolve('supabase/migrations/20260904100000_gacha_rates.sql'),
+  'utf8',
+)
 
 describe('gacha shop migration contract', () => {
   it('exposes banner RPCs, pity, pull cost, and gacha-only catalog purchases', () => {
@@ -31,10 +35,10 @@ describe('gacha shop migration contract', () => {
       'revoke all on function app_private.grant_gacha_copy(uuid, text) from public, anon, authenticated',
     )
     expect(migration).toContain(`-${GACHA_PULL_COST}`)
-    expect(migration).toContain('v_rand < 0.05')
-    expect(migration).toContain('v_rand < 0.75')
-    expect(migration).toContain('v_rand < 0.99')
-    expect(GACHA_RATES).toMatchObject({ common: 0.05, rare: 0.7, epic: 0.24, legendary: 0.01 })
+    expect(ratesMigration).toContain('v_rand < 0.45')
+    expect(ratesMigration).toContain('v_rand < 0.79')
+    expect(ratesMigration).toContain('v_rand < 0.99')
+    expect(GACHA_RATES).toMatchObject({ common: 0.45, rare: 0.34, epic: 0.2, legendary: 0.01 })
     expect(migration).toContain(`pulls_since_rare_plus >= ${GACHA_SOFT_PITY}`)
     expect(migration).toContain(`v_next % ${GACHA_HARD_PITY} = 0`)
     expect(migration).toContain(`when 'common' then ${GACHA_WEEKLY_PRICES.common}`)
