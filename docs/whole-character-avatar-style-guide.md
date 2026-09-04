@@ -245,6 +245,7 @@ Fail and regenerate if: wrong head ratio, blurry AA, missing signature props, fr
 | `public/avatar-characters/style-a/` | Whole-character generation outputs |
 | `docs/avatar-character-roster-wave1.md` | Wave-1 character briefs + shop copy |
 | `scripts/avatar-roster/wave-1.json` | Machine-readable wave-1 roster |
+| `scripts/avatar-roster/wave-popular-50.json` | Machine-readable popular-wave 50 roster |
 | `scripts/process-whole-character-style-a.ps1` | Chroma key + review sheets (discovers `*-style-a-chroma.png`) |
 | `docs/avatar-stage-background-style-guide.md` | Style A scenic stage backdrops |
 | `public/avatar-stages/style-a/` | Stage plates behind home / shop avatars |

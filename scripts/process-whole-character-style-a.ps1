@@ -22,17 +22,25 @@ public static class WholeCharacterProcessor
 {
     static bool IsMagenta(Color color)
     {
-        return color.A > 8
-            && color.R > 140
+        if (color.A <= 8) return false;
+        // Classic hot magenta #FF00FF-ish
+        if (color.R > 140
             && color.B > 125
-            && color.G < Math.Min(color.R, color.B) * 0.62;
+            && color.G < Math.Min(color.R, color.B) * 0.62)
+            return true;
+        // Red chroma matte used on some redesign plates (R-dominant, near-zero G).
+        // Keep intentional reds (collar/eyes/crest): those have more green or lower R.
+        return color.R > 170
+            && color.G < 28
+            && color.B < color.R * 0.55
+            && (color.R - color.G) >= 130;
     }
 
     static bool IsSoftMagentaFringe(Color color)
     {
         if (color.A <= 8) return false;
         var minRB = Math.Min(color.R, color.B);
-        return minRB > 90
+        return minRB >= 80
             && color.G + 18 < minRB
             && (Math.Max(color.R, color.B) - color.G) >= 28
             && (color.R + color.B) > color.G * 2.15;

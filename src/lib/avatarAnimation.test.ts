@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import {
-  AVATAR_CHARACTER_META,
-  avatarIdentityPromptLines,
-  getAvatarCharacterMeta,
-} from './avatarComposition'
+import { AVATAR_CHARACTER_META, getAvatarCharacterMeta } from './avatarComposition'
+import { avatarIdentityPromptLines, avatarTraits } from './avatarTraits'
 import {
   DEFAULT_FRAME_PLAN,
   buildAnimationJob,
@@ -20,18 +17,20 @@ describe('avatar inspiration context', () => {
     for (const row of AVATAR_CHARACTER_META) {
       expect(row.inspirationSeries.length).toBeGreaterThan(0)
       expect(row.inspirationCharacter.length).toBeGreaterThan(0)
-      expect(row.traits.hair.length).toBeGreaterThan(0)
-      expect(row.traits.outfit.length).toBeGreaterThan(0)
-      expect(row.traits.props.length).toBeGreaterThan(0)
+      const traits = avatarTraits(row.id)
+      expect(traits.hair.length).toBeGreaterThan(0)
+      expect(traits.outfit.length).toBeGreaterThan(0)
+      expect(traits.props.length).toBeGreaterThan(0)
     }
   })
 
   it('includes Mount Hua context on Plum Blossom Blade', () => {
     const plum = AVATAR_CHARACTER_META.find((r) => r.id === 'avatar_plum_blossom_blade')
+    const plumTraits = avatarTraits('avatar_plum_blossom_blade')
     expect(plum?.inspirationSeries).toMatch(/Mount Hua|murim/i)
-    expect(plum?.traits.outfit).toMatch(/murim robe/i)
-    expect(plum?.traits.outfit).toMatch(/pink trim/i)
-    expect(plum?.traits.eyes).toMatch(/crimson|red/i)
+    expect(plumTraits.outfit).toMatch(/martial arts robe|murim robe/i)
+    expect(plumTraits.outfit).toMatch(/red collar|pink trim|plum-blossom crest/i)
+    expect(plumTraits.eyes).toMatch(/crimson|red|maroon/i)
     expect(avatarIdentityPromptLines('avatar_plum_blossom_blade').join(' ')).toMatch(/plum/i)
   })
 })

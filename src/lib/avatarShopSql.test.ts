@@ -28,6 +28,45 @@ const freeClaimExplorersMigrationPath = path.resolve(
 const emberCrownMigrationPath = path.resolve(
   'supabase/migrations/20260813083244_avatar_ember_crown_shop.sql',
 )
+const whiteCoatIncarnationMigrationPath = path.resolve(
+  'supabase/migrations/20260814031900_avatar_white_coat_incarnation_shop.sql',
+)
+const blackCoatIncarnationMigrationPath = path.resolve(
+  'supabase/migrations/20260814032000_avatar_black_coat_incarnation_shop.sql',
+)
+const scarletCapeHeirMigrationPath = path.resolve(
+  'supabase/migrations/20260814033000_avatar_scarlet_cape_heir_shop.sql',
+)
+const pinkburstMageMigrationPath = path.resolve(
+  'supabase/migrations/20260814035000_avatar_pinkburst_mage_shop.sql',
+)
+const shawlSpiritMediumMigrationPath = path.resolve(
+  'supabase/migrations/20260814036000_avatar_shawl_spirit_medium_shop.sql',
+)
+const whiteBloomSaintessMigrationPath = path.resolve(
+  'supabase/migrations/20260814038000_avatar_white_bloom_saintess_shop.sql',
+)
+const popularWave50MigrationPath = path.resolve(
+  'supabase/migrations/20260814080000_avatar_popular_wave50_shop.sql',
+)
+const violetBeretMageMigrationPath = path.resolve(
+  'supabase/migrations/20260903214000_avatar_violet_beret_mage_shop.sql',
+)
+const stonehammerBarbarianMigrationPath = path.resolve(
+  'supabase/migrations/20260903164000_avatar_stonehammer_barbarian_shop.sql',
+)
+const ashbloomMercenaryMigrationPath = path.resolve(
+  'supabase/migrations/20260903215000_avatar_ashbloom_mercenary_shop.sql',
+)
+const crimsonTipMaidMigrationPath = path.resolve(
+  'supabase/migrations/20260903220000_avatar_crimson_tip_maid_shop.sql',
+)
+const hollowGazeBoxerMigrationPath = path.resolve(
+  'supabase/migrations/20260903230000_avatar_hollow_gaze_boxer_shop.sql',
+)
+const silentPlumBladeMigrationPath = path.resolve(
+  'supabase/migrations/20260904010000_avatar_silent_plum_blade_shop.sql',
+)
 const stageMigrationPath = path.resolve('supabase/migrations/20260719110000_avatar_stage_shop.sql')
 const hasWholeCharacterMigration = fs.existsSync(wholeCharacterMigrationPath)
 const wholeCharacterMigration = hasWholeCharacterMigration
@@ -51,10 +90,49 @@ const freeClaimExplorersMigration = fs.existsSync(freeClaimExplorersMigrationPat
 const emberCrownMigration = fs.existsSync(emberCrownMigrationPath)
   ? fs.readFileSync(emberCrownMigrationPath, 'utf8')
   : ''
+const whiteCoatIncarnationMigration = fs.existsSync(whiteCoatIncarnationMigrationPath)
+  ? fs.readFileSync(whiteCoatIncarnationMigrationPath, 'utf8')
+  : ''
+const blackCoatIncarnationMigration = fs.existsSync(blackCoatIncarnationMigrationPath)
+  ? fs.readFileSync(blackCoatIncarnationMigrationPath, 'utf8')
+  : ''
+const scarletCapeHeirMigration = fs.existsSync(scarletCapeHeirMigrationPath)
+  ? fs.readFileSync(scarletCapeHeirMigrationPath, 'utf8')
+  : ''
+const pinkburstMageMigration = fs.existsSync(pinkburstMageMigrationPath)
+  ? fs.readFileSync(pinkburstMageMigrationPath, 'utf8')
+  : ''
+const shawlSpiritMediumMigration = fs.existsSync(shawlSpiritMediumMigrationPath)
+  ? fs.readFileSync(shawlSpiritMediumMigrationPath, 'utf8')
+  : ''
+const whiteBloomSaintessMigration = fs.existsSync(whiteBloomSaintessMigrationPath)
+  ? fs.readFileSync(whiteBloomSaintessMigrationPath, 'utf8')
+  : ''
+const popularWave50Migration = fs.existsSync(popularWave50MigrationPath)
+  ? fs.readFileSync(popularWave50MigrationPath, 'utf8')
+  : ''
+const violetBeretMageMigration = fs.existsSync(violetBeretMageMigrationPath)
+  ? fs.readFileSync(violetBeretMageMigrationPath, 'utf8')
+  : ''
+const stonehammerBarbarianMigration = fs.existsSync(stonehammerBarbarianMigrationPath)
+  ? fs.readFileSync(stonehammerBarbarianMigrationPath, 'utf8')
+  : ''
+const ashbloomMercenaryMigration = fs.existsSync(ashbloomMercenaryMigrationPath)
+  ? fs.readFileSync(ashbloomMercenaryMigrationPath, 'utf8')
+  : ''
+const crimsonTipMaidMigration = fs.existsSync(crimsonTipMaidMigrationPath)
+  ? fs.readFileSync(crimsonTipMaidMigrationPath, 'utf8')
+  : ''
+const hollowGazeBoxerMigration = fs.existsSync(hollowGazeBoxerMigrationPath)
+  ? fs.readFileSync(hollowGazeBoxerMigrationPath, 'utf8')
+  : ''
+const silentPlumBladeMigration = fs.existsSync(silentPlumBladeMigrationPath)
+  ? fs.readFileSync(silentPlumBladeMigrationPath, 'utf8')
+  : ''
 const stageMigration = fs.existsSync(stageMigrationPath)
   ? fs.readFileSync(stageMigrationPath, 'utf8')
   : ''
-const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}\n${limitedTimeMigration}\n${skyMeadowLimitedTimeMigration}\n${explorerReplaceMigration}\n${freeClaimExplorersMigration}\n${emberCrownMigration}`
+const catalogSeedSql = `${wholeCharacterMigration}\n${wave1Migration}\n${limitedTimeMigration}\n${skyMeadowLimitedTimeMigration}\n${explorerReplaceMigration}\n${freeClaimExplorersMigration}\n${emberCrownMigration}\n${whiteCoatIncarnationMigration}\n${blackCoatIncarnationMigration}\n${scarletCapeHeirMigration}\n${pinkburstMageMigration}\n${shawlSpiritMediumMigration}\n${whiteBloomSaintessMigration}\n${popularWave50Migration}\n${stonehammerBarbarianMigration}\n${violetBeretMageMigration}\n${ashbloomMercenaryMigration}\n${crimsonTipMaidMigration}\n${hollowGazeBoxerMigration}\n${silentPlumBladeMigration}`
 
 describe('avatar shop migration contracts', () => {
   it('makes point sources idempotent and balances non-negative', () => {
@@ -118,6 +196,127 @@ describe.runIf(hasWholeCharacterMigration)('whole-character avatar shop migratio
     expect(emberCrownMigration).toContain('7000')
     expect(emberCrownMigration).toContain("'epic'")
     expect(emberCrownMigration).not.toContain('and id not in (')
+  })
+
+  it('adds White Coat Incarnation without re-running the old whitelist deactivation', () => {
+    expect(whiteCoatIncarnationMigration).toContain('avatar_white_coat_incarnation')
+    expect(whiteCoatIncarnationMigration).toContain('7000')
+    expect(whiteCoatIncarnationMigration).toContain("'epic'")
+    expect(whiteCoatIncarnationMigration).not.toContain('and id not in (')
+  })
+
+  it('adds Black Coat Incarnation without re-running the old whitelist deactivation', () => {
+    expect(blackCoatIncarnationMigration).toContain('avatar_black_coat_incarnation')
+    expect(blackCoatIncarnationMigration).toContain('7000')
+    expect(blackCoatIncarnationMigration).toContain("'epic'")
+    expect(blackCoatIncarnationMigration).not.toContain('and id not in (')
+  })
+
+  it('adds Scarlet Cape Heir without re-running the old whitelist deactivation', () => {
+    expect(scarletCapeHeirMigration).toContain('avatar_scarlet_cape_heir')
+    expect(scarletCapeHeirMigration).toContain('10000')
+    expect(scarletCapeHeirMigration).toContain("'legendary'")
+    expect(scarletCapeHeirMigration).not.toContain('and id not in (')
+  })
+
+  it('adds Pinkburst Mage without re-running the old whitelist deactivation', () => {
+    expect(pinkburstMageMigration).toContain('avatar_pinkburst_mage')
+    expect(pinkburstMageMigration).toContain('7000')
+    expect(pinkburstMageMigration).toContain("'epic'")
+    expect(pinkburstMageMigration).not.toContain('and id not in (')
+  })
+
+  it('adds Shawl Spirit Medium without re-running the old whitelist deactivation', () => {
+    expect(shawlSpiritMediumMigration).toContain('avatar_shawl_spirit_medium')
+    expect(shawlSpiritMediumMigration).toContain('10000')
+    expect(shawlSpiritMediumMigration).toContain("'legendary'")
+    expect(shawlSpiritMediumMigration).not.toContain('and id not in (')
+  })
+
+  it('adds White Bloom Saintess without re-running the old whitelist deactivation', () => {
+    expect(whiteBloomSaintessMigration).toContain('avatar_white_bloom_saintess')
+    expect(whiteBloomSaintessMigration).toContain('10000')
+    expect(whiteBloomSaintessMigration).toContain("'legendary'")
+    expect(whiteBloomSaintessMigration).not.toContain('and id not in (')
+  })
+
+  it('adds popular-wave characters without re-running the old whitelist deactivation', () => {
+    expect(popularWave50Migration).toContain('avatar_ice_huntress_knight')
+    expect(popularWave50Migration).toContain('avatar_monster_arm_survivor')
+    expect(popularWave50Migration).toContain('7000')
+    expect(popularWave50Migration).toContain("'epic'")
+    expect(popularWave50Migration).not.toContain('and id not in (')
+  })
+
+  it('leaves dropped shortlist plates out of the seeded catalog', () => {
+    for (const droppedId of [
+      'avatar_rose_veil_saintess',
+      'avatar_tan_shawl_spiritist',
+      'avatar_croc_spear_hunter',
+    ]) {
+      expect(catalogSeedSql).not.toContain(droppedId)
+      expect(AVATAR_CHARACTER_META.some((character) => character.id === droppedId)).toBe(false)
+    }
+  })
+
+  it('adds Violet Beret Mage without re-running the old whitelist deactivation', () => {
+    expect(violetBeretMageMigration).toContain('avatar_violet_beret_mage')
+    expect(violetBeretMageMigration).toContain('10000')
+    expect(violetBeretMageMigration).toContain("'legendary'")
+    expect(violetBeretMageMigration).toContain('770')
+    expect(violetBeretMageMigration).toContain('9770')
+    expect(violetBeretMageMigration).toContain('false')
+    expect(violetBeretMageMigration).not.toContain('and id not in (')
+  })
+
+  it('adds Stonehammer Barbarian without re-running the old whitelist deactivation', () => {
+    expect(stonehammerBarbarianMigration).toContain('avatar_stonehammer_barbarian')
+    expect(stonehammerBarbarianMigration).toContain('10000')
+    expect(stonehammerBarbarianMigration).toContain("'legendary'")
+    expect(stonehammerBarbarianMigration).toContain('760')
+    expect(stonehammerBarbarianMigration).toContain('9760')
+    expect(stonehammerBarbarianMigration).toContain('false')
+    expect(stonehammerBarbarianMigration).not.toContain('and id not in (')
+  })
+
+  it('adds Ashbloom Mercenary without re-running the old whitelist deactivation', () => {
+    expect(ashbloomMercenaryMigration).toContain('avatar_ashbloom_mercenary')
+    expect(ashbloomMercenaryMigration).toContain('10000')
+    expect(ashbloomMercenaryMigration).toContain("'legendary'")
+    expect(ashbloomMercenaryMigration).toContain('780')
+    expect(ashbloomMercenaryMigration).toContain('9780')
+    expect(ashbloomMercenaryMigration).toContain('false')
+    expect(ashbloomMercenaryMigration).not.toContain('and id not in (')
+  })
+
+  it('adds Crimson-Tip Maid without re-running the old whitelist deactivation', () => {
+    expect(crimsonTipMaidMigration).toContain('avatar_crimson_tip_maid')
+    expect(crimsonTipMaidMigration).toContain('10000')
+    expect(crimsonTipMaidMigration).toContain("'legendary'")
+    expect(crimsonTipMaidMigration).toContain('790')
+    expect(crimsonTipMaidMigration).toContain('9790')
+    expect(crimsonTipMaidMigration).toContain('false')
+    expect(crimsonTipMaidMigration).not.toContain('and id not in (')
+  })
+
+  it('adds Hollow Gaze Boxer without re-running the old whitelist deactivation', () => {
+    expect(hollowGazeBoxerMigration).toContain('avatar_hollow_gaze_boxer')
+    expect(hollowGazeBoxerMigration).toContain('10000')
+    expect(hollowGazeBoxerMigration).toContain("'legendary'")
+    expect(hollowGazeBoxerMigration).toContain('800')
+    expect(hollowGazeBoxerMigration).toContain('9800')
+    expect(hollowGazeBoxerMigration).toContain('false')
+    expect(hollowGazeBoxerMigration).not.toContain('and id not in (')
+  })
+
+  it('adds Silent Plum Blade without re-running the old whitelist deactivation', () => {
+    expect(silentPlumBladeMigration).toContain('avatar_silent_plum_blade')
+    expect(silentPlumBladeMigration).toContain('10000')
+    expect(silentPlumBladeMigration).toContain("'legendary'")
+    expect(silentPlumBladeMigration).toContain('810')
+    expect(silentPlumBladeMigration).toContain('9810')
+    expect(silentPlumBladeMigration).toContain('false')
+    expect(silentPlumBladeMigration).not.toContain('and id not in (')
   })
 
   it('adds limited-time free claims without auto-granting all price-0 avatars', () => {

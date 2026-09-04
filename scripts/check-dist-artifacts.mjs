@@ -23,8 +23,11 @@ const budgets = {
   largestJsBytes: 450_000,
   /** Compact catalog JSON chunk. */
   catalogJsonBytes: 2_800_000,
-  /** Sum of all JS excluding catalog JSON payloads. */
-  totalJsWithoutCatalogBytes: 1_500_000,
+  /**
+   * Sum of all JS excluding catalog JSON payloads.
+   * Raised to 1.6 MB for the banner shop (gacha components + 61 new avatar plates).
+   */
+  totalJsWithoutCatalogBytes: 1_600_000,
 }
 
 function walk(dir, out = []) {

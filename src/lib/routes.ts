@@ -5,11 +5,31 @@ export const HOME_PATH = '/'
 export const SETTINGS_PATH = '/settings'
 export const MILESTONES_PATH = '/milestones'
 export const SHOP_PATH = '/shop'
+export const SHOP_COLLECTION_PATH = '/shop/collection'
+
+export type LookTab = 'characters' | 'backgrounds'
+
+/** Shop or wardrobe URL, optionally opening the character or background tab. */
+export function shopLookPath(options: {
+  collection?: boolean
+  tab?: LookTab
+} = {}): string {
+  const base = options.collection ? SHOP_COLLECTION_PATH : SHOP_PATH
+  if (options.tab === 'backgrounds') return `${base}?tab=backgrounds`
+  if (options.tab === 'characters') return `${base}?tab=characters`
+  return base
+}
+
+export function parseLookTab(value: string | null | undefined): LookTab {
+  return value === 'backgrounds' ? 'backgrounds' : 'characters'
+}
 export const LEADERBOARD_PATH = '/leaderboard'
 export const DEV_ANIMATIONS_PATH = '/dev/animations'
 export const DEV_ACTION_STRIP_PREVIEW_PATH = '/dev/action-strip-preview'
 export const DEV_AVATAR_BUST_CROPS_PATH = '/dev/avatar-bust-crops'
 export const DEV_VERSUS_EFFECTS_PATH = '/dev/versus-effects'
+export const DEV_GACHA_SHOP_PATH = '/dev/gacha-shop'
+export const DEV_NEW_AVATARS_PATH = '/dev/new-avatars'
 export const PRIVACY_PATH = '/privacy'
 export const TERMS_PATH = '/terms'
 export const ATTRIBUTION_PATH = '/attribution'

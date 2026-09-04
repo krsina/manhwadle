@@ -1,0 +1,1008 @@
+{
+  "wave": "popular-50",
+  "style": "style-a",
+  "sortOrderStart": 260,
+  "notes": "Original shop tropes inspired by popular manhwa. inspirationSeries/Character are internal only.",
+  "characters": [
+    {
+      "slug": "ice-huntress-knight",
+      "id": "avatar_ice_huntress_knight",
+      "name": "Ice Huntress Knight",
+      "description": "Silver-blonde ponytail, hunter armor, and a crystalline ice greatsword.",
+      "price": 7000,
+      "rarity": "epic",
+      "sortOrder": 260,
+      "genderPresentation": "female",
+      "inspirationSeries": "Hunter guild ice knight",
+      "inspirationCharacter": "Silver-haired ice huntress",
+      "refs": ["elfbunny-study-a-classic.png", "ice-sovereign.png", "shadow-hunter.png"],
+      "traits": {
+        "hair": "Long silver-blonde high ponytail with a dark hairband and stepped bangs (NOT ice-blue crystalline gown hair)",
+        "eyes": "Pale glowing ice-cyan Style A irises, limited pupil/highlight pixels, calm focused brows, tiny closed mouth",
+        "outfit": "White-and-navy hunter plate: short white chestplate, dark navy undershirt, dark pants, silver knee guards, tall black boots; modest chibi armor, NO ballgown",
+        "props": "MUST hold ONE oversized crystalline ice greatsword clearly in both hands or one hand, blade taller than the torso",
+        "aura": "Compact pale-cyan ice crystal shards behind the figure (no magenta, no pink-purple)"
+      }
+    },
+    {
+      "slug": "obsidian-plume-knight",
+      "id": "avatar_obsidian_plume_knight",
+      "name": "Obsidian Plume Knight",
+      "description": "Black knight armor, crimson helmet plume, and a huge dark greatsword.",
+      "price": 7000,
+      "rarity": "epic",
+      "sortOrder": 270,
+      "genderPresentation": "male",
+      "inspirationSeries": "Shadow knight marshal",
+      "inspirationCharacter": "Crimson-plume obsidian knight",
+      "refs": ["elfbunny-study-a-classic.png", "shadow-hunter.png", "heavenly-demon.png"],
+      "traits": {
+        "hair": "Hidden under a closed black knight helm; bright crimson feather plume shooting up from the helm (MUST be readable at 30px)",
+        "eyes": "Glowing crimson slits through the helm visor",
+        "outfit": "Full black obsidian plate armor with red trim lining, black capelet, heavy sabatons; chibi proportions, NOT realistic plate",
+        "props": "MUST hold ONE oversized black greatsword with a red-gem pommel, blade clearly visible",
+        "aura": "Compact jagged crimson-red cel shards behind the figure (bright accent so dark armor reads; no magenta)"
+      }
+    },
+    {
+      "slug": "black-thorn-climber",
+      "id": "avatar_black_thorn_climber",
+      "name": "Black Thorn Climber",
+      "description": "Messy black hair, simple dark clothes, and a floating blue thorn orb.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 280,
+      "genderPresentation": "male",
+      "inspirationSeries": "Tower irregular",
+      "inspirationCharacter": "Black-thorn orb climber",
+      "refs": ["elfbunny-study-a-classic.png", "shadow-hunter.png", "tower-ranker.png"],
+      "traits": {
+        "hair": "Messy medium-length jet-black hair with thick bangs covering one eye",
+        "eyes": "Deep gold-yellow Style A irises, limited highlights, quiet serious brows, tiny closed mouth",
+        "outfit": "Simple dark charcoal tunic, black pants, wrapped black wrist bands, worn brown boots; NO long trench coat",
+        "props": "MUST include ONE floating blue-black thorn orb hovering beside the RIGHT hand, oversized for readability",
+        "aura": "Compact cyan-blue thorn-spark motes behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "azure-ice-prince",
+      "id": "avatar_azure_ice_prince",
+      "name": "Azure Ice Prince",
+      "description": "Ice-blue hair, white coat, and a slim ice spear.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 290,
+      "genderPresentation": "male",
+      "inspirationSeries": "Tower ice strategist",
+      "inspirationCharacter": "Azure-haired spear prince",
+      "refs": ["elfbunny-study-a-classic.png", "ice-sovereign.png", "tower-ranker.png"],
+      "traits": {
+        "hair": "Neat ice-blue / pale-cyan hair to the chin with a side part and a small forehead jewel",
+        "eyes": "Cool light-blue Style A irises, smug tiny closed mouth",
+        "outfit": "Long white coat with ice-blue inner lining, dark shirt, white pants, dark dress shoes",
+        "props": "MUST hold ONE slim ice spear with a crystalline tip clearly in the RIGHT hand",
+        "aura": "Compact pale-cyan ice cubes / shards behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "fishnet-princess",
+      "id": "avatar_fishnet_princess",
+      "name": "Fishnet Princess",
+      "description": "Rose-pink hair, fishnet tights, and an oversized whip.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 300,
+      "genderPresentation": "female",
+      "inspirationSeries": "Tower princess ranker",
+      "inspirationCharacter": "Whip-wielding fishnet princess",
+      "refs": ["elfbunny-study-a-classic.png", "villainess-rose.png", "ember-crown.png"],
+      "traits": {
+        "hair": "Long bright rose-pink hair (salmon-rose, NOT hot magenta) in a high side-ponytail with gold hair rings",
+        "eyes": "Gold-amber Style A irises, confident small smirk",
+        "outfit": "Short black crop jacket over a modest white tank, black shorts, black fishnet tights, gold belt, black boots; chibi-modest, NO adult proportions",
+        "props": "MUST hold ONE oversized coiled black-and-gold whip clearly in the RIGHT hand",
+        "aura": "Compact gold spark motes behind the figure (no magenta, no hot-pink particles)"
+      }
+    },
+    {
+      "slug": "soul-mask-ranker",
+      "id": "avatar_soul_mask_ranker",
+      "name": "Soul Mask Ranker",
+      "description": "Black hair, white half-mask, and twin cyan soul flames.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 310,
+      "genderPresentation": "male",
+      "inspirationSeries": "Second-life soul ranker",
+      "inspirationCharacter": "White-mask soul swordsman",
+      "refs": ["elfbunny-study-a-classic.png", "shadow-hunter.png", "absolute-regressor.png"],
+      "traits": {
+        "hair": "Short messy jet-black hair with a white streak at the bangs",
+        "eyes": "MUST wear a white half-mask covering the upper face with two glowing cyan eye-slits",
+        "outfit": "Black high-collar coat with silver trim, dark pants, black boots; bright cyan eyes as the dark-coat accent",
+        "props": "MUST include TWO small floating cyan-white soul-flame wisps, one at each shoulder",
+        "aura": "Compact icy-cyan soul flames behind the figure (no magenta, no purple)"
+      }
+    },
+    {
+      "slug": "copycat-hunter",
+      "id": "avatar_copycat_hunter",
+      "name": "Copycat Hunter",
+      "description": "Messy brown hair, cheap black coat, and a mimic black sword.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 320,
+      "genderPresentation": "male",
+      "inspirationSeries": "Copy-skill hunter",
+      "inspirationCharacter": "Mimic-blade copycat",
+      "refs": ["elfbunny-study-a-classic.png", "shadow-hunter.png", "absolute-regressor.png"],
+      "traits": {
+        "hair": "Messy medium brown hair with uneven bangs",
+        "eyes": "Tired dark-brown Style A irises that flash a tiny gold copy-spark in one pupil",
+        "outfit": "Cheap rumpled black coat over a plain grey shirt, dark jeans, worn sneakers",
+        "props": "MUST hold ONE plain black longsword that is mid-copy, with a gold afterimage duplicate of the blade floating 4px beside it",
+        "aura": "Compact gold copy-spark motes behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "ink-star-author",
+      "id": "avatar_ink_star_author",
+      "name": "Ink Star Author",
+      "description": "Short black hair, black hoodie, and an oversized ink pen.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 330,
+      "genderPresentation": "female",
+      "inspirationSeries": "Omniscient supporting author",
+      "inspirationCharacter": "Ink-pen star author",
+      "refs": ["elfbunny-study-a-classic.png", "white-coat-incarnation.png", "fourth-wall-reader.png"],
+      "traits": {
+        "hair": "Short choppy jet-black bob with a sharp side part",
+        "eyes": "Sharp dark Style A irises, smug tiny closed mouth, NO glasses",
+        "outfit": "Oversized black hoodie, black shorts, black socks, simple dark shoes; NO white coat, NO trench",
+        "props": "MUST hold ONE oversized black fountain pen as tall as the torso, clearly in the RIGHT hand, gold nib",
+        "aura": "Compact white/pale-gold star-spark particles behind the figure (no text, no UI, no magenta)"
+      }
+    },
+    {
+      "slug": "worldfall-spear",
+      "id": "avatar_worldfall_spear",
+      "name": "Worldfall Spear",
+      "description": "Ragged black coat, world-tree spear, and leaf-green shards.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 340,
+      "genderPresentation": "male",
+      "inspirationSeries": "World-after-fall survivor",
+      "inspirationCharacter": "World-tree spear wanderer",
+      "refs": ["elfbunny-study-a-classic.png", "shadow-hunter.png", "beast-pact-hunter.png"],
+      "traits": {
+        "hair": "Messy medium black hair, windblown, with a few green leaf specks caught in it",
+        "eyes": "Hollow gold Style A irises, exhausted focused brows",
+        "outfit": "Ragged black coat with torn hem, dark shirt, patched brown pants, wrapped boots",
+        "props": "MUST hold ONE wooden world-tree spear with a living green leaf cluster at the head, clearly in hand, oversized",
+        "aura": "Compact leafy-green shard motes behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "banner-commander",
+      "id": "avatar_banner_commander",
+      "name": "Banner Commander",
+      "description": "Navy officer coat, gold epaulets, and a battle banner pole.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 350,
+      "genderPresentation": "male",
+      "inspirationSeries": "Isekai pick-me commander",
+      "inspirationCharacter": "Banner-pole field commander",
+      "refs": ["elfbunny-study-a-classic.png", "tower-ranker.png", "undead-marshal.png"],
+      "traits": {
+        "hair": "Neat short black undercut with a sharp side part",
+        "eyes": "Steel-grey Style A irises, stern brows, tiny closed mouth",
+        "outfit": "Navy military officer coat with gold epaulets and gold buttons, white gloves, dark pants, black officer boots",
+        "props": "MUST hold ONE tall battle banner pole with a small orange-and-navy flag (NO letters, NO logos) clearly in the LEFT hand",
+        "aura": "Compact orange command-spark motes behind the figure (no magenta, no text)"
+      }
+    },
+    {
+      "slug": "tutorial-clockbreaker",
+      "id": "avatar_tutorial_clockbreaker",
+      "name": "Tutorial Clockbreaker",
+      "description": "Dark steel armor, floating golden clock, and a short sword.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 360,
+      "genderPresentation": "male",
+      "inspirationSeries": "Brutal tutorial survivor",
+      "inspirationCharacter": "Clock-aura sword breaker",
+      "refs": ["elfbunny-study-a-classic.png", "shadow-hunter.png", "absolute-regressor.png"],
+      "traits": {
+        "hair": "Short spiky dark-brown hair under a simple steel headband",
+        "eyes": "Glowing gold Style A irises, grim determined brows",
+        "outfit": "Dark steel chestplate over a black undershirt, dark pants, steel greaves, black boots",
+        "props": "MUST hold ONE short arming sword in the RIGHT hand AND include ONE floating golden analog clock (no numerals/text) beside the LEFT shoulder",
+        "aura": "Compact gold clock-gear shards behind the figure (no text, no UI, no magenta)"
+      }
+    },
+    {
+      "slug": "estate-shoveler",
+      "id": "avatar_estate_shoveler",
+      "name": "Estate Shoveler",
+      "description": "Messy brown hair, open brown trench coat, and a shouldered shovel.",
+      "price": 7000,
+      "rarity": "epic",
+      "sortOrder": 370,
+      "genderPresentation": "male",
+      "inspirationSeries": "Estate developer noble",
+      "inspirationCharacter": "Deadpan shovel estate lord",
+      "refs": ["elfbunny-study-a-classic.png", "explorer-a.png", "scarlet-cape-heir.png"],
+      "traits": {
+        "hair": "Medium messy light-brown / ash-brown hair swept back with loose forehead strands and longer side bangs",
+        "eyes": "Narrow tired hazel-brown Style A irises, deadpan weary tiny flat closed mouth (NOT cheerful, NOT bright green)",
+        "outfit": "Long open brown trench coat, darker brown buttoned waistcoat, white open-collar shirt with a small black hourglass mark on a white chest panel, dark charcoal pants, brown boots; modest chibi, NOT emerald-green noble coat",
+        "props": "MUST hold ONE oversized grey-metal shovel with a D-grip resting on the RIGHT shoulder, blade clearly readable and fully on canvas",
+        "aura": "Compact tan dirt-spark / pale gold-dust mote pixels behind the figure (no text, no magenta)"
+      }
+    },
+    {
+      "slug": "cheap-shield-lord",
+      "id": "avatar_cheap_shield_lord",
+      "name": "Cheap Shield Lord",
+      "description": "Reddish-brown hair, noble red coat, and an ancient round shield.",
+      "price": 7000,
+      "rarity": "epic",
+      "sortOrder": 380,
+      "genderPresentation": "male",
+      "inspirationSeries": "Cheapskate commander",
+      "inspirationCharacter": "Ancient-shield redhead lord",
+      "refs": ["elfbunny-study-a-classic.png", "villainess-rose.png", "scarlet-cape-heir.png"],
+      "traits": {
+        "hair": "Neat reddish-brown hair to the nape with a soft center part",
+        "eyes": "Reddish-brown Style A irises, lazy small smile",
+        "outfit": "Noble dark-red coat with gold buttons, white shirt, black pants, simple black shoes",
+        "props": "MUST hold ONE oversized ancient round shield with a gold tree emblem (no letters) on the LEFT arm, clearly readable",
+        "aura": "Compact warm-gold ancient-seal motes behind the figure (no magenta, no text)"
+      }
+    },
+    {
+      "slug": "mythril-smith",
+      "id": "avatar_mythril_smith",
+      "name": "Mythril Smith",
+      "description": "Messy black hair, smith apron, and a huge glowing hammer.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 390,
+      "genderPresentation": "male",
+      "inspirationSeries": "Legendary gear smith",
+      "inspirationCharacter": "Mythril hammer smith",
+      "refs": ["elfbunny-study-a-classic.png", "flame-returnee.png", "skybreaker-monk.png"],
+      "traits": {
+        "hair": "Messy short black hair with soot streaks and a red headband",
+        "eyes": "Determined dark-brown Style A irises, tiny grit smile",
+        "outfit": "Brown leather smith apron over a dark sleeveless shirt, dark pants, heavy work boots, brown gloves",
+        "props": "MUST hold ONE oversized smith hammer with a glowing orange-hot head, clearly in the RIGHT hand",
+        "aura": "Compact orange ember sparks behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "relic-raider",
+      "id": "avatar_relic_raider",
+      "name": "Relic Raider",
+      "description": "Brown explorer coat, gold relic gauntlet, and a short pick.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 400,
+      "genderPresentation": "male",
+      "inspirationSeries": "Tomb relic king",
+      "inspirationCharacter": "Gold-gauntlet relic raider",
+      "refs": ["elfbunny-study-a-classic.png", "tower-ranker.png", "beast-pact-hunter.png"],
+      "traits": {
+        "hair": "Windswept medium brown hair with a small gold relic clip",
+        "eyes": "Sharp gold Style A irises, greedy small smirk",
+        "outfit": "Tan explorer duster coat, dark shirt, brown belt with pouches, dark pants, brown boots",
+        "props": "MUST wear ONE oversized glowing gold relic gauntlet on the RIGHT hand AND hold a short pick in the LEFT",
+        "aura": "Compact gold relic-spark motes behind the figure (no magenta, no text)"
+      }
+    },
+    {
+      "slug": "judgment-blade",
+      "id": "avatar_judgment_blade",
+      "name": "Judgment Blade",
+      "description": "Brown ponytail, combat coat, and a gold flaming sword.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 410,
+      "genderPresentation": "female",
+      "inspirationSeries": "Omniscient supporting sword",
+      "inspirationCharacter": "Gold judgment swordswoman",
+      "refs": ["elfbunny-study-a-classic.png", "plum-blossom-blade.png", "flame-returnee.png"],
+      "traits": {
+        "hair": "Medium brown hair in a practical ponytail with blunt bangs",
+        "eyes": "Fierce gold Style A irises, stern brows, tiny closed mouth",
+        "outfit": "Dark combat coat over a white shirt, dark pants, brown belt, black boots; NO white trench, NO saintess gown",
+        "props": "MUST hold ONE oversized sword wreathed in compact gold flame, clearly in the RIGHT hand",
+        "aura": "Compact gold judgment-flame wisps behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "black-revolver-extra",
+      "id": "avatar_black_revolver_extra",
+      "name": "Black Revolver Extra",
+      "description": "Black hair, grey hunter jacket, and an oversized revolver.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 420,
+      "genderPresentation": "male",
+      "inspirationSeries": "Novel extra gunner",
+      "inspirationCharacter": "Black-revolver academy extra",
+      "refs": ["elfbunny-study-a-classic.png", "shadow-hunter.png", "scarlet-cape-heir.png"],
+      "traits": {
+        "hair": "Short neat jet-black hair with a straight fringe",
+        "eyes": "Calm dark-grey Style A irises, tired small closed mouth",
+        "outfit": "Grey hunter jacket over a black shirt, dark pants, simple black sneakers; NO academy cape, NO gold dagger",
+        "props": "MUST hold ONE oversized black revolver clearly in the RIGHT hand, silver cylinder readable",
+        "aura": "Compact orange muzzle-spark motes near the barrel and behind (no smoke bloom, no magenta, no UI)"
+      }
+    },
+    {
+      "slug": "circle-infinite-mage",
+      "id": "avatar_circle_infinite_mage",
+      "name": "Circle Infinite Mage",
+      "description": "Silver hair, simple mage robes, and floating cyan magic circles.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 430,
+      "genderPresentation": "male",
+      "inspirationSeries": "Infinite circle mage",
+      "inspirationCharacter": "Silver-haired circle caster",
+      "refs": ["elfbunny-study-a-classic.png", "academy-prodigy.png", "ice-sovereign.png"],
+      "traits": {
+        "hair": "Short silver-white hair with a cowlick",
+        "eyes": "Clear sky-blue Style A irises, gentle focused brows",
+        "outfit": "Simple white-and-slate mage robes with a cyan sash, dark boots; NO navy academy cloak, NO gold-trim blazer",
+        "props": "MUST include TWO floating cyan magic circles (geometric rings, no text) beside the hands",
+        "aura": "Compact cyan circle-spark motes behind the figure (no magenta, no violet tome glow)"
+      }
+    },
+    {
+      "slug": "nano-circuit-heir",
+      "id": "avatar_nano_circuit_heir",
+      "name": "Nano Circuit Heir",
+      "description": "Black martial robes, green circuit arms, and a dark saber.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 440,
+      "genderPresentation": "male",
+      "inspirationSeries": "Nano murim heir",
+      "inspirationCharacter": "Green-circuit saber heir",
+      "refs": ["elfbunny-study-a-classic.png", "heavenly-demon.png", "plum-blossom-blade.png"],
+      "traits": {
+        "hair": "Neat black hair with a high martial topknot and sharp bangs",
+        "eyes": "Glowing leaf-green Style A irises (bright accent on dark clothes)",
+        "outfit": "Black cross-collar murim robes with thin green circuit-line trim on the sleeves and chest, dark sash, black boots",
+        "props": "MUST hold ONE dark saber with a green-lit edge clearly in the RIGHT hand; MUST show green nano circuit lines on both forearms",
+        "aura": "Compact leaf-green circuit motes behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "youngest-sword-son",
+      "id": "avatar_youngest_sword_son",
+      "name": "Youngest Sword Son",
+      "description": "Light-brown hair, noble blue coat, and a family longsword.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 450,
+      "genderPresentation": "male",
+      "inspirationSeries": "Swordmaster youngest son",
+      "inspirationCharacter": "Blue-coat family swordsman",
+      "refs": ["elfbunny-study-a-classic.png", "plum-blossom-blade.png", "scarlet-cape-heir.png"],
+      "traits": {
+        "hair": "Light chestnut-brown hair, slightly messy noble cut",
+        "eyes": "Sky-blue Style A irises, youthful determined brows",
+        "outfit": "Noble sky-blue coat with silver trim, white shirt, dark pants, black boots",
+        "props": "MUST hold ONE ornate family longsword with a blue gem pommel, clearly in the RIGHT hand",
+        "aura": "Compact steel-blue sword-spark motes behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "northern-blade-wanderer",
+      "id": "avatar_northern_blade_wanderer",
+      "name": "Northern Blade Wanderer",
+      "description": "White hair, black wanderer robes, and a long northern sword.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 460,
+      "genderPresentation": "male",
+      "inspirationSeries": "Northern blade legend",
+      "inspirationCharacter": "White-haired northern wanderer",
+      "refs": ["elfbunny-study-a-classic.png", "plum-blossom-blade.png", "ice-sovereign.png"],
+      "traits": {
+        "hair": "Long straight white hair to the mid-back with a thin black forehead ribbon",
+        "eyes": "Pale steel-blue Style A irises, weary calm brows, tiny closed mouth",
+        "outfit": "Black wanderer murim robes with a grey sash, wrapped forearms, black boots; snow-dust pixels on the hem",
+        "props": "MUST hold ONE very long straight northern sword, oversized, clearly in the RIGHT hand",
+        "aura": "Compact steel-blue snow-shard motes behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "mad-demon-returnee",
+      "id": "avatar_mad_demon_returnee",
+      "name": "Mad Demon Returnee",
+      "description": "Wild black hair, ragged bandages, and dual short blades.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 470,
+      "genderPresentation": "male",
+      "inspirationSeries": "Mad demon regression",
+      "inspirationCharacter": "Bandaged dual-blade returnee",
+      "refs": ["elfbunny-study-a-classic.png", "heavenly-demon.png", "shadow-hunter.png"],
+      "traits": {
+        "hair": "Wild messy jet-black hair sticking in all directions, NOT a long sleek demonic mane",
+        "eyes": "Wild orange Style A irises, manic tiny grin",
+        "outfit": "Ragged dark grey martial wraps, lots of white bandages on arms and torso, torn black pants, wrapped feet; NO black-crimson formal demon robes",
+        "props": "MUST hold TWO short dark blades, one in each hand, oversized for readability",
+        "aura": "Compact orange bloodlust sparks behind the figure (no magenta, no purple qi)"
+      }
+    },
+    {
+      "slug": "login-fist-wanderer",
+      "id": "avatar_login_fist_wanderer",
+      "name": "Login Fist Wanderer",
+      "description": "Grey hoodie, martial pants, and glowing cyan ki fists.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 480,
+      "genderPresentation": "male",
+      "inspirationSeries": "Murim login brawler",
+      "inspirationCharacter": "Hoodie ki-fist wanderer",
+      "refs": ["elfbunny-study-a-classic.png", "skybreaker-monk.png", "shadow-hunter.png"],
+      "traits": {
+        "hair": "Short messy black hair peeking from a grey hoodie hood worn down",
+        "eyes": "Bright cyan Style A irises, casual small smile",
+        "outfit": "Modern grey hoodie over black martial pants with a white sash, simple sneakers; mixed modern/murim, NO tiger wrap, NO forehead circlet",
+        "props": "MUST show BOTH fists oversized and wreathed in cyan ki, clearly held forward in a slight A-pose",
+        "aura": "Compact cyan ki wisps behind the figure (no magenta, no UI windows)"
+      }
+    },
+    {
+      "slug": "peerless-spear-dad",
+      "id": "avatar_peerless_spear_dad",
+      "name": "Peerless Spear Dad",
+      "description": "Older brown hair, simple martial clothes, and a long spear.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 490,
+      "genderPresentation": "male",
+      "inspirationSeries": "Peerless dad murim",
+      "inspirationCharacter": "Gentle spear father",
+      "refs": ["elfbunny-study-a-classic.png", "plum-blossom-blade.png", "skybreaker-monk.png"],
+      "traits": {
+        "hair": "Short tidy brown hair with a few grey streaks at the temples, slightly receding but still chibi-cute",
+        "eyes": "Warm brown Style A irises, kind small smile",
+        "outfit": "Simple beige martial robe with a brown sash, dark pants, cloth shoes",
+        "props": "MUST hold ONE long wooden spear with a steel leaf blade, taller than the figure, clearly in the RIGHT hand",
+        "aura": "Compact warm-gold family-qi motes behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "ki-gauntlet-breaker",
+      "id": "avatar_ki_gauntlet_breaker",
+      "name": "Ki Gauntlet Breaker",
+      "description": "Black school uniform, oversized ki gauntlets, and cyan ki.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 500,
+      "genderPresentation": "male",
+      "inspirationSeries": "School ki breaker",
+      "inspirationCharacter": "Gauntlet ki school fighter",
+      "refs": ["elfbunny-study-a-classic.png", "skybreaker-monk.png", "scarlet-cape-heir.png"],
+      "traits": {
+        "hair": "Short spiky black hair with a white streak at the bangs",
+        "eyes": "Fierce cyan Style A irises, angry small closed mouth",
+        "outfit": "Black school blazer, white shirt, loosened dark tie, black pants, school shoes; NO tiger cloth, NO forehead circlet",
+        "props": "MUST wear TWO oversized glowing cyan ki gauntlets covering both hands and forearms",
+        "aura": "Compact cyan ki shock motes behind the figure (no magenta, no logos)"
+      }
+    },
+    {
+      "slug": "sword-sense-adept",
+      "id": "avatar_sword_sense_adept",
+      "name": "Sword Sense Adept",
+      "description": "Neat black hair, white inner robe, and a white-glow sensing sword.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 510,
+      "genderPresentation": "male",
+      "inspirationSeries": "Absolute sword sense",
+      "inspirationCharacter": "White-glow sensing swordsman",
+      "refs": ["elfbunny-study-a-classic.png", "plum-blossom-blade.png", "white-coat-incarnation.png"],
+      "traits": {
+        "hair": "Neat short black hair with a clean side part",
+        "eyes": "Closed or half-lidded pale-white sensing Style A eyes (blind-seer look), calm tiny closed mouth",
+        "outfit": "White inner cross-collar robe under a dark charcoal outer coat, grey sash, black boots",
+        "props": "MUST hold ONE straight sword with a bright white glowing edge, clearly in the RIGHT hand",
+        "aura": "Compact white sensing-ripple rings behind the figure (no magenta, no text)"
+      }
+    },
+    {
+      "slug": "myst-bead-warlock",
+      "id": "avatar_myst_bead_warlock",
+      "name": "Myst Bead Warlock",
+      "description": "Dark messy hair, prayer beads, and chaotic green-gold sparks.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 520,
+      "genderPresentation": "male",
+      "inspirationSeries": "Myst might mayhem",
+      "inspirationCharacter": "Prayer-bead chaos warlock",
+      "refs": ["elfbunny-study-a-classic.png", "heavenly-demon.png", "undead-marshal.png"],
+      "traits": {
+        "hair": "Long messy black hair with a few green-tinted tips",
+        "eyes": "One gold iris and one green iris (simple heterochromia), sly small smile",
+        "outfit": "Dark tattered warlock robes with a green sash, wrapped legs, dark boots",
+        "props": "MUST hold ONE oversized string of prayer beads with a gold skull-bead (tiny, not gory) in the RIGHT hand",
+        "aura": "Compact chaotic green-and-gold spark bursts behind the figure (no magenta, no pink-purple)"
+      }
+    },
+    {
+      "slug": "returning-constable",
+      "id": "avatar_returning_constable",
+      "name": "Returning Constable",
+      "description": "Black gat hat, navy official robe, and a wooden baton.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 530,
+      "genderPresentation": "male",
+      "inspirationSeries": "Returning joseon constable",
+      "inspirationCharacter": "Gat-hat baton officer",
+      "refs": ["elfbunny-study-a-classic.png", "plum-blossom-blade.png", "white-coat-incarnation.png"],
+      "traits": {
+        "hair": "Black hair in a traditional topknot under a black gat (wide-brim cylindrical hat)",
+        "eyes": "Sharp dark-brown Style A irises, stern brows",
+        "outfit": "Navy joseon official robe with a gold chest patch (geometric, no letters), white inner collar, black boots",
+        "props": "MUST hold ONE wooden constable baton clearly in the RIGHT hand; MUST wear the black gat hat",
+        "aura": "Compact gold badge-spark motes behind the figure (no magenta, no text)"
+      }
+    },
+    {
+      "slug": "golden-wish-princess",
+      "id": "avatar_golden_wish_princess",
+      "name": "Golden Wish Princess",
+      "description": "Long blonde hair, pink jewel dress, and a floating gold wish orb.",
+      "price": 7000,
+      "rarity": "epic",
+      "sortOrder": 540,
+      "genderPresentation": "female",
+      "inspirationSeries": "Wished princess",
+      "inspirationCharacter": "Gold-orb blonde princess",
+      "refs": ["elfbunny-study-a-classic.png", "villainess-rose.png", "ember-crown.png"],
+      "traits": {
+        "hair": "Long golden-blonde hair with big spiral side-locks and a small gold crownette",
+        "eyes": "Jewel-blue Style A irises, bright small smile",
+        "outfit": "Modest chibi pink jewel ballgown with gold trim and a short hem, white gloves, pink shoes; NOT a deep-red villainess gown, NO rose fan",
+        "props": "MUST include ONE oversized floating gold wish orb near the RIGHT hand",
+        "aura": "Compact gold star-spark motes behind the figure (no magenta, no hot-pink particles)"
+      }
+    },
+    {
+      "slug": "death-route-duchess",
+      "id": "avatar_death_route_duchess",
+      "name": "Death Route Duchess",
+      "description": "Ash-pink hair, navy gown, and a green poison vial.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 550,
+      "genderPresentation": "female",
+      "inspirationSeries": "Death-route villainess",
+      "inspirationCharacter": "Poison-vial ash-pink duchess",
+      "refs": ["elfbunny-study-a-classic.png", "villainess-rose.png", "ice-sovereign.png"],
+      "traits": {
+        "hair": "Long ash-pink / dusty-rose hair (muted, NOT hot magenta) with a dark navy hair ribbon",
+        "eyes": "Cool grey-violet Style A irises, wary small closed mouth",
+        "outfit": "Dark navy modest ballgown with silver trim, black gloves, dark shoes; NOT red, NO rose fan",
+        "props": "MUST hold ONE small green poison vial with a cork, oversized slightly, clearly in the RIGHT hand",
+        "aura": "Compact leaf-green poison-mist wisps behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "ivory-scepter-empress",
+      "id": "avatar_ivory_scepter_empress",
+      "name": "Ivory Scepter Empress",
+      "description": "Silver-blue updo, ivory-gold gown, and an empress scepter.",
+      "price": 7000,
+      "rarity": "epic",
+      "sortOrder": 560,
+      "genderPresentation": "female",
+      "inspirationSeries": "Remarried empress",
+      "inspirationCharacter": "Ivory scepter empress",
+      "refs": ["elfbunny-study-a-classic.png", "villainess-rose.png", "ice-sovereign.png"],
+      "traits": {
+        "hair": "Silver-blue hair in an elegant updo with a gold empress tiara",
+        "eyes": "Cool grey-blue Style A irises, composed tiny closed mouth",
+        "outfit": "Ivory and gold modest empress gown with a high collar, gold sash, cream shoes; chibi-modest, NO slits",
+        "props": "MUST hold ONE ivory-and-gold empress scepter with a blue gem, clearly in the RIGHT hand",
+        "aura": "Compact gold imperial sparkles behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "obsidian-throne-lady",
+      "id": "avatar_obsidian_throne_lady",
+      "name": "Obsidian Throne Lady",
+      "description": "Black hair, deep-purple gown, and a chess-piece dagger.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 570,
+      "genderPresentation": "female",
+      "inspirationSeries": "Throne schemer",
+      "inspirationCharacter": "Chess-dagger throne lady",
+      "refs": ["elfbunny-study-a-classic.png", "villainess-rose.png", "ember-crown.png"],
+      "traits": {
+        "hair": "Long straight jet-black hair with a sharp widow's-peak bang",
+        "eyes": "Gold Style A irises, cold small smirk",
+        "outfit": "Deep-purple modest gown with black trim and a gold waist chain, dark shoes",
+        "props": "MUST hold ONE dagger whose hilt is a black chess queen piece, gold blade, clearly in the RIGHT hand",
+        "aura": "Compact gold chess-spark motes behind the figure (no magenta, no pink-purple aura)"
+      }
+    },
+    {
+      "slug": "scarlet-crop-lady",
+      "id": "avatar_scarlet_crop_lady",
+      "name": "Scarlet Crop Lady",
+      "description": "Bright red hair, green riding dress, and a riding crop.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 580,
+      "genderPresentation": "female",
+      "inspirationSeries": "Beware villainess",
+      "inspirationCharacter": "Red-hair riding-crop lady",
+      "refs": ["elfbunny-study-a-classic.png", "villainess-rose.png", "ember-crown.png"],
+      "traits": {
+        "hair": "Bright scarlet-red hair in a high ponytail with a green ribbon",
+        "eyes": "Green Style A irises, mischievous small smirk",
+        "outfit": "Forest-green modest riding dress with gold buttons, cream cravat, dark riding boots; NOT a red ballgown",
+        "props": "MUST hold ONE brown-and-gold riding crop clearly in the RIGHT hand",
+        "aura": "Compact gold spark motes behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "oak-oath-bride",
+      "id": "avatar_oak_oath_bride",
+      "name": "Oak Oath Bride",
+      "description": "Silver hair, white dress with a knight pauldron, and an oak-leaf staff.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 590,
+      "genderPresentation": "female",
+      "inspirationSeries": "Oak-tree knight bride",
+      "inspirationCharacter": "Pauldroned oak-leaf bride",
+      "refs": ["elfbunny-study-a-classic.png", "ice-sovereign.png", "villainess-rose.png"],
+      "traits": {
+        "hair": "Long silver-white hair with a simple oak-leaf hairpin, NOT ice-blue crystalline",
+        "eyes": "Soft green Style A irises, shy small smile",
+        "outfit": "Modest white wedding-dress chibi gown PLUS one silver knight pauldron on the LEFT shoulder, brown belt, simple shoes; NO ice spear, NO holy veil",
+        "props": "MUST hold ONE wooden staff topped with a large green oak leaf cluster, clearly in the RIGHT hand",
+        "aura": "Compact leafy-green oak motes behind the figure (no magenta, no ice crystals)"
+      }
+    },
+    {
+      "slug": "broken-crown-empress",
+      "id": "avatar_broken_crown_empress",
+      "name": "Broken Crown Empress",
+      "description": "Dusty rose hair, faded gold gown, and a cracked crown in hand.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 600,
+      "genderPresentation": "female",
+      "inspirationSeries": "Abandoned empress",
+      "inspirationCharacter": "Cracked-crown rose empress",
+      "refs": ["elfbunny-study-a-classic.png", "villainess-rose.png", "ice-sovereign.png"],
+      "traits": {
+        "hair": "Long dusty rose-gold hair (muted peach-rose, NOT hot magenta) half-loose",
+        "eyes": "Amber Style A irises, sad-but-resolved small closed mouth",
+        "outfit": "Faded gold modest gown with worn trim, cream sash, simple shoes",
+        "props": "MUST hold ONE cracked gold crown clearly in both hands in front of the torso, oversized for readability",
+        "aura": "Compact warm-gold broken-spark motes behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "villain-mother-regent",
+      "id": "avatar_villain_mother_regent",
+      "name": "Villain Mother Regent",
+      "description": "Warm brown hair, modest teal gown, and a protective gold locket.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 610,
+      "genderPresentation": "female",
+      "inspirationSeries": "Villain's mother",
+      "inspirationCharacter": "Teal-gown locket regent",
+      "refs": ["elfbunny-study-a-classic.png", "villainess-rose.png", "white-coat-incarnation.png"],
+      "traits": {
+        "hair": "Warm chestnut-brown hair in a soft low bun with loose face strands",
+        "eyes": "Kind hazel Style A irises, gentle small smile",
+        "outfit": "Modest teal-green gown with a cream apron-panel, simple dark shoes; maternal chibi, NOT sexy",
+        "props": "MUST hold ONE large gold heart locket clearly in the RIGHT hand, chain dangling",
+        "aura": "Compact warm-gold protective sparkles behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "cat-eared-mage",
+      "id": "avatar_cat_eared_mage",
+      "name": "Cat-Eared Mage",
+      "description": "Blonde hair, cat ears, simple mage dress, and a crescent staff.",
+      "price": 7000,
+      "rarity": "epic",
+      "sortOrder": 620,
+      "genderPresentation": "female",
+      "inspirationSeries": "Academy cat-eared mage",
+      "inspirationCharacter": "Crescent-staff cat mage",
+      "refs": ["elfbunny-study-a-classic.png", "academy-prodigy.png", "ember-crown.png"],
+      "traits": {
+        "hair": "Long golden-blonde hair with TWO pointed cat ears on top of the head (MUST be readable), plus a small black ribbon",
+        "eyes": "Green catlike Style A irises with vertical pupils, playful small smile",
+        "outfit": "Simple cream mage dress with a brown belt, short chibi hem, dark boots; NO red academy blazer, NO witch hat, NO explosion orb",
+        "props": "MUST hold ONE wooden staff topped with a gold crescent moon, clearly in the RIGHT hand",
+        "aura": "Compact gold crescent sparkles behind the figure (no magenta, no hot-pink)"
+      }
+    },
+    {
+      "slug": "ledger-merchant",
+      "id": "avatar_ledger_merchant",
+      "name": "Ledger Merchant",
+      "description": "Mint hair, merchant coat, gold coin pouch, and a ledger book.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 630,
+      "genderPresentation": "female",
+      "inspirationSeries": "Academy merchant",
+      "inspirationCharacter": "Mint-hair ledger merchant",
+      "refs": ["elfbunny-study-a-classic.png", "academy-prodigy.png", "tower-ranker.png"],
+      "traits": {
+        "hair": "Long mint-teal hair in a low side braid with a gold coin hairpin",
+        "eyes": "Gold Style A irises, calculating small smile",
+        "outfit": "Brown merchant coat over a cream blouse, dark skirt, gold belt, brown boots; NO navy mage cloak",
+        "props": "MUST hold ONE thick ledger book under the LEFT arm AND a fat gold coin pouch in the RIGHT hand",
+        "aura": "Compact gold coin-spark motes behind the figure (no text, no magenta)"
+      }
+    },
+    {
+      "slug": "campus-mercenary",
+      "id": "avatar_campus_mercenary",
+      "name": "Campus Mercenary",
+      "description": "Black hair, school blazer, and a combat knife.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 640,
+      "genderPresentation": "male",
+      "inspirationSeries": "Teenage mercenary enrollment",
+      "inspirationCharacter": "School-blazer knife mercenary",
+      "refs": ["elfbunny-study-a-classic.png", "scarlet-cape-heir.png", "shadow-hunter.png"],
+      "traits": {
+        "hair": "Short neat jet-black hair, military-tidy",
+        "eyes": "Cold dark-grey Style A irises, blank tiny closed mouth",
+        "outfit": "Navy school blazer, white shirt, dark tie, grey pants, black school shoes; NO logos",
+        "props": "MUST hold ONE combat knife with a black hilt clearly in the RIGHT hand, oversized slightly",
+        "aura": "Compact steel-blue edge-spark motes behind the figure (no magenta, no logos)"
+      }
+    },
+    {
+      "slug": "ring-striker",
+      "id": "avatar_ring_striker",
+      "name": "Ring Striker",
+      "description": "Short black hair, tank and shorts, and oversized boxing gloves.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 650,
+      "genderPresentation": "male",
+      "inspirationSeries": "The boxer",
+      "inspirationCharacter": "Red-glove ring striker",
+      "refs": ["elfbunny-study-a-classic.png", "skybreaker-monk.png", "flame-returnee.png"],
+      "traits": {
+        "hair": "Very short black buzz with a small scar pixel on the left brow",
+        "eyes": "Intense dark-brown Style A irises, grim tiny closed mouth",
+        "outfit": "Plain white tank, black boxing shorts with a thin red waistband, white socks, black boxing shoes",
+        "props": "MUST wear TWO oversized bright-red boxing gloves, clearly on both hands",
+        "aura": "Compact orange impact-spark motes behind the figure (no magenta, no logos)"
+      }
+    },
+    {
+      "slug": "viral-street-fighter",
+      "id": "avatar_viral_street_fighter",
+      "name": "Viral Street Fighter",
+      "description": "Brown hair, yellow hoodie, and glowing orange fists.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 660,
+      "genderPresentation": "male",
+      "inspirationSeries": "Viral street fighting",
+      "inspirationCharacter": "Yellow-hoodie street fighter",
+      "refs": ["elfbunny-study-a-classic.png", "skybreaker-monk.png", "shadow-hunter.png"],
+      "traits": {
+        "hair": "Messy medium brown hair with a cowlick",
+        "eyes": "Nervous-but-ready brown Style A irises, tiny grit smile",
+        "outfit": "Bright yellow hoodie (original, no logos/text), black pants, white sneakers",
+        "props": "MUST show BOTH fists raised in a street-fight guard, fists slightly oversized",
+        "aura": "Compact orange fight-spark motes behind the figure (no magenta, no phone UI, no logos)"
+      }
+    },
+    {
+      "slug": "dual-look-brawler",
+      "id": "avatar_dual_look_brawler",
+      "name": "Dual Look Brawler",
+      "description": "Two-tone black hair, stylish jacket, and white impact fists.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 670,
+      "genderPresentation": "male",
+      "inspirationSeries": "Looksmax campus brawler",
+      "inspirationCharacter": "Stylish two-tone brawler",
+      "refs": ["elfbunny-study-a-classic.png", "scarlet-cape-heir.png", "skybreaker-monk.png"],
+      "traits": {
+        "hair": "Stylish two-tone hair: jet-black with a white under-streak at the nape, swept up",
+        "eyes": "Sharp dark Style A irises, cool small closed mouth",
+        "outfit": "Original cream bomber jacket with a teal inner lining, black shirt, black pants, white sneakers; NO brand logos, NO text",
+        "props": "MUST show BOTH fists clenched at the sides, slightly oversized, with a white impact burst on the RIGHT fist",
+        "aura": "Compact white impact motes behind the figure (no magenta, no logos)"
+      }
+    },
+    {
+      "slug": "quiet-campus-striker",
+      "id": "avatar_quiet_campus_striker",
+      "name": "Quiet Campus Striker",
+      "description": "Black hair, glasses, school uniform, and a metal pipe.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 680,
+      "genderPresentation": "male",
+      "inspirationSeries": "Weak hero campus",
+      "inspirationCharacter": "Glasses pipe striker",
+      "refs": ["elfbunny-study-a-classic.png", "fourth-wall-reader.png", "scarlet-cape-heir.png"],
+      "traits": {
+        "hair": "Neat short black hair with a straight fringe",
+        "eyes": "Dark Style A irises behind thin rectangular glasses, blank tiny closed mouth",
+        "outfit": "Grey school uniform jacket, white shirt, dark pants, school shoes; NO logos",
+        "props": "MUST hold ONE metal pipe (steel-grey, slightly oversized) clearly in the RIGHT hand",
+        "aura": "Compact steel-blue spark motes behind the figure (no magenta, no text)"
+      }
+    },
+    {
+      "slug": "wind-jersey-rider",
+      "id": "avatar_wind_jersey_rider",
+      "name": "Wind Jersey Rider",
+      "description": "Windblown hair, teal cycling jersey, and a bike helmet in hand.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 690,
+      "genderPresentation": "male",
+      "inspirationSeries": "Wind breaker cycling",
+      "inspirationCharacter": "Teal-jersey helmet rider",
+      "refs": ["elfbunny-study-a-classic.png", "skybreaker-monk.png", "beast-pact-hunter.png"],
+      "traits": {
+        "hair": "Windblown black hair swept back with a few flying strands",
+        "eyes": "Bright teal Style A irises, confident small smile",
+        "outfit": "Teal-and-white cycling jersey (original geometric pattern, no logos/text), black cycling shorts, white shoes",
+        "props": "MUST hold ONE teal bike helmet clearly in the LEFT hand, oversized slightly",
+        "aura": "Compact cyan wind-slash shards behind the figure (no magenta, no logos)"
+      }
+    },
+    {
+      "slug": "lightning-cat-contractor",
+      "id": "avatar_lightning_cat_contractor",
+      "name": "Lightning Cat Contractor",
+      "description": "Black hair, casual hoodie, tiny white cat, and yellow lightning.",
+      "price": 7000,
+      "rarity": "epic",
+      "sortOrder": 700,
+      "genderPresentation": "male",
+      "inspirationSeries": "Lightning cat contractor",
+      "inspirationCharacter": "Hoodie contractor with white cat",
+      "refs": ["elfbunny-study-a-classic.png", "skybreaker-monk.png", "shadow-hunter.png"],
+      "traits": {
+        "hair": "Short messy jet-black hair with a cowlick",
+        "eyes": "Warm brown Style A irises that flash yellow when lightning hits, kind small smile",
+        "outfit": "Dark navy hoodie, grey pants, simple white sneakers; casual modern, NO logos, NO trench coat",
+        "props": "MUST include ONE tiny white chibi cat sitting on the LEFT shoulder AND yellow lightning bolts around the RIGHT fist",
+        "aura": "Compact yellow-gold lightning bolts behind the figure (NOT magenta, NOT pink-purple, NOT hot pink)"
+      }
+    },
+    {
+      "slug": "borrowed-power-brawler",
+      "id": "avatar_borrowed_power_brawler",
+      "name": "Borrowed Power Brawler",
+      "description": "Black hair, school martial clothes, and oversized gold fists.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 710,
+      "genderPresentation": "male",
+      "inspirationSeries": "Borrowed power school brawler",
+      "inspirationCharacter": "Gold-fist school borrowed-power",
+      "refs": ["elfbunny-study-a-classic.png", "skybreaker-monk.png", "scarlet-cape-heir.png"],
+      "traits": {
+        "hair": "Short neat black hair with a side part",
+        "eyes": "Glowing gold Style A irises, calm serious brows",
+        "outfit": "White school shirt with rolled sleeves, dark pants, brown belt, school shoes; NO tiger wrap, NO forehead circlet, NO baggy blue monk pants",
+        "props": "MUST show TWO oversized gold borrowed-power fists, clearly larger than normal chibi hands",
+        "aura": "Compact gold borrowed-power wisps behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "chitin-marshal",
+      "id": "avatar_chitin_marshal",
+      "name": "Chitin Marshal",
+      "description": "Green ant chitin armor, mandibles, and oversized claws.",
+      "price": 7000,
+      "rarity": "epic",
+      "sortOrder": 720,
+      "genderPresentation": "male",
+      "inspirationSeries": "Ant marshal familiar",
+      "inspirationCharacter": "Green chitin claw marshal",
+      "refs": ["elfbunny-study-a-classic.png", "undead-marshal.png", "beast-pact-hunter.png"],
+      "traits": {
+        "hair": "No human hair; a green chitin insectoid head with two short antennae and small mandibles (still cute chibi, not horror gore)",
+        "eyes": "Glowing yellow compound-style simple Style A eyes",
+        "outfit": "Green ant-chitin armor plates over a dark undersuit, segmented legs, clawed feet; cute pixel-chibi insect knight, NOT realistic insect horror",
+        "props": "MUST show TWO oversized green chitin claws as hands, clearly readable; optional tiny torn banner scrap on one shoulder",
+        "aura": "Compact leaf-green chitin spark motes behind the figure (no magenta, no gore)"
+      }
+    },
+    {
+      "slug": "croc-spear-hunter",
+      "id": "avatar_croc_spear_hunter",
+      "name": "Croc Spear Hunter",
+      "description": "Yellow-green crocodile head, tribal wraps, and a huge spear.",
+      "price": 7000,
+      "rarity": "epic",
+      "sortOrder": 730,
+      "genderPresentation": "male",
+      "inspirationSeries": "Crocodile spear hunter",
+      "inspirationCharacter": "Yellow croc spear chibi",
+      "refs": ["elfbunny-study-a-classic.png", "beast-pact-hunter.png", "skybreaker-monk.png"],
+      "traits": {
+        "hair": "No human hair; a cute yellow-green crocodile head with a toothy snout and orange eyes (chibi, not horror)",
+        "eyes": "Orange Style A irises on a crocodile face, eager small toothy grin",
+        "outfit": "Brown tribal wraps, a small bone necklace, dark shorts, clawed croc feet",
+        "props": "MUST hold ONE huge spear taller than the body, clearly in both hands, stone spearhead",
+        "aura": "Compact orange hunter-spark motes behind the figure (no magenta)"
+      }
+    },
+    {
+      "slug": "noble-blood-lord",
+      "id": "avatar_noble_blood_lord",
+      "name": "Noble Blood Lord",
+      "description": "Long blonde hair, aristocratic black coat, and a crimson wine goblet.",
+      "price": 7000,
+      "rarity": "epic",
+      "sortOrder": 740,
+      "genderPresentation": "male",
+      "inspirationSeries": "Noble blood aristocrat",
+      "inspirationCharacter": "Blonde goblet blood lord",
+      "refs": ["elfbunny-study-a-classic.png", "blood-contract.png", "villainess-rose.png"],
+      "traits": {
+        "hair": "Long straight pale-blonde hair to the waist with a center part",
+        "eyes": "Glowing crimson-red Style A irises (bright accent on the dark coat), calm tiny closed mouth",
+        "outfit": "Aristocratic long black coat with crimson inner lining, white cravat, black pants, dress shoes; NOT a high-collar blood-orb caster cape",
+        "props": "MUST hold ONE ornate gold wine goblet with crimson liquid, clearly in the RIGHT hand; NO floating blood orbs",
+        "aura": "Compact crimson mist wisps behind the figure (no magenta, no pink-purple)"
+      }
+    },
+    {
+      "slug": "monster-arm-survivor",
+      "id": "avatar_monster_arm_survivor",
+      "name": "Monster Arm Survivor",
+      "description": "Messy black hair, grey hoodie, and one monstrous green claw arm.",
+      "price": 4000,
+      "rarity": "rare",
+      "sortOrder": 750,
+      "genderPresentation": "male",
+      "inspirationSeries": "Monster survivor",
+      "inspirationCharacter": "Hoodie monster-arm survivor",
+      "refs": ["elfbunny-study-a-classic.png", "shadow-hunter.png", "undead-marshal.png"],
+      "traits": {
+        "hair": "Messy overgrown jet-black hair covering one eye",
+        "eyes": "One visible tired brown Style A iris; the other hidden by hair, tiny closed mouth",
+        "outfit": "Grey hoodie with the RIGHT sleeve torn away, dark jeans, dirty sneakers; modest, not gory, game-avatar appropriate",
+        "props": "MUST show the RIGHT arm as an oversized green-grey monstrous claw (cute chibi monster, not horror gore), LEFT human hand empty",
+        "aura": "Compact sickly-green survivor wisps behind the figure (no magenta, no gore, no text)"
+      }
+    }
+  ]
+}
