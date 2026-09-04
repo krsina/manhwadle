@@ -8,11 +8,11 @@ import {
 export type GachaRarity = 'common' | 'rare' | 'epic' | 'legendary'
 export type GachaRng = () => number
 
-/** Weighted toward catalog mix (most skins are rare). Legendary is local 1%. */
+/** Common-weighted banner. Legendary stays 1%. */
 export const GACHA_RATES: Record<GachaRarity, number> = {
-  common: 0.05,
-  rare: 0.7,
-  epic: 0.24,
+  common: 0.45,
+  rare: 0.34,
+  epic: 0.2,
   legendary: 0.01,
 }
 
