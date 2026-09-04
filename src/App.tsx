@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-
 import { AuthProvider } from './components/AuthProvider'
 import { AppLayout } from './components/AppLayout'
 import { ErrorBoundary } from './components/ErrorBoundary'
-import { OwnerDevRoute } from './components/OwnerDevRoute'
 import { LocalDevOrOwnerRoute } from './components/LocalDevOrOwnerRoute'
 import { StaffRoute } from './components/StaffRoute'
 import { GachaLocalProvider } from './components/gacha/GachaLocalProvider'
@@ -39,12 +38,6 @@ const ShopCollectionPage = lazyWithStaleReload(() =>
 )
 const LeaderboardPage = lazyWithStaleReload(() =>
   import('./pages/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })),
-)
-const AnimationCreatorPage = lazyWithStaleReload(() =>
-  import('./pages/AnimationCreatorPage').then((m) => ({ default: m.AnimationCreatorPage })),
-)
-const ActionStripPreviewPage = lazyWithStaleReload(() =>
-  import('./pages/ActionStripPreviewPage').then((m) => ({ default: m.ActionStripPreviewPage })),
 )
 const AvatarBustCropPage = lazyWithStaleReload(() =>
   import('./pages/AvatarBustCropPage').then((m) => ({ default: m.AvatarBustCropPage })),
@@ -203,26 +196,6 @@ function App() {
                   <Suspense fallback={<RouteFallback />}>
                     <LeaderboardPage />
                   </Suspense>
-                }
-              />
-              <Route
-                path="dev/animations"
-                element={
-                  <OwnerDevRoute>
-                    <Suspense fallback={<RouteFallback />}>
-                      <AnimationCreatorPage />
-                    </Suspense>
-                  </OwnerDevRoute>
-                }
-              />
-              <Route
-                path="dev/action-strip-preview"
-                element={
-                  <OwnerDevRoute>
-                    <Suspense fallback={<RouteFallback />}>
-                      <ActionStripPreviewPage />
-                    </Suspense>
-                  </OwnerDevRoute>
                 }
               />
               <Route

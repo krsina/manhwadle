@@ -1,11 +1,4 @@
 import {
-  AWAKENING_CATALOG_FALLBACK,
-  AVATAR_AWAKENINGS_ENABLED,
-  normalizeAwakeningLevel,
-  type AwakeningLevel,
-  type AvatarAwakeningMeta,
-} from './avatarAwakening'
-import {
   AVATAR_CHARACTER_META,
   DEFAULT_AVATAR_ID,
   compareShopItemsByPrice,
@@ -34,12 +27,6 @@ export interface AvatarShopItem {
   equipped?: boolean
   /** Free limited-time claim — show Limited-time badge; not a permanent starter. */
   limitedTime?: boolean
-  /** Owned awakening tier for this avatar (0 = none). Stages omit this. */
-  awakeningLevel?: AwakeningLevel
-}
-
-export interface AvatarAwakeningShopItem extends AvatarAwakeningMeta {
-  owned: boolean
 }
 
 export interface AvatarShopSnapshot {
@@ -47,10 +34,8 @@ export interface AvatarShopSnapshot {
   balance: number
   equippedAvatarId: string
   equippedStageId: string
-  equippedAwakeningLevel: AwakeningLevel
   items: AvatarShopItem[]
   stages: AvatarShopItem[]
-  awakenings: AvatarAwakeningShopItem[]
 }
 
 /** Offline guest catalog: Style A whole-character defaults + shop characters. */
@@ -64,7 +49,6 @@ export const AVATAR_CATALOG_FALLBACK: readonly AvatarShopItem[] = AVATAR_CHARACT
   owned: meta.starter,
   equipped: meta.id === DEFAULT_AVATAR_ID,
   limitedTime: meta.limitedTime === true,
-  awakeningLevel: 0 as AwakeningLevel,
 }))
   .slice()
   .sort(compareShopItemsByPrice)
@@ -83,9 +67,6 @@ export const STAGE_CATALOG_FALLBACK: readonly AvatarShopItem[] = AVATAR_STAGE_ME
   .slice()
   .sort(compareShopItemsByPrice)
 
-export const AWAKENING_SHOP_FALLBACK: readonly AvatarAwakeningShopItem[] =
-  AWAKENING_CATALOG_FALLBACK.map((row) => ({ ...row, owned: false }))
-
 function fallbackShop(): AvatarShopSnapshot {
   const starters = new Set(starterAvatarIds())
   const stageStarters = new Set(starterStageIds())
@@ -94,21 +75,16 @@ function fallbackShop(): AvatarShopSnapshot {
     balance: 0,
     equippedAvatarId: DEFAULT_AVATAR_ID,
     equippedStageId: DEFAULT_STAGE_ID,
-    equippedAwakeningLevel: 0,
     items: AVATAR_CATALOG_FALLBACK.map((item) => ({
       ...item,
       owned: starters.has(item.id),
       equipped: item.id === DEFAULT_AVATAR_ID,
-      awakeningLevel: 0 as AwakeningLevel,
     })).sort(compareShopItemsByPrice),
     stages: STAGE_CATALOG_FALLBACK.map((item) => ({
       ...item,
       owned: stageStarters.has(item.id),
       equipped: item.id === DEFAULT_STAGE_ID,
     })).sort(compareShopItemsByPrice),
-    awakenings: AVATAR_AWAKENINGS_ENABLED
-      ? AWAKENING_SHOP_FALLBACK.map((row) => ({ ...row }))
-      : [],
   }
 }
 
@@ -119,8 +95,6 @@ export type AvatarShopMutationResult =
       balance?: number
       equippedAvatarId?: string
       equippedStageId?: string
-      awakeningLevel?: AwakeningLevel
-      parentItemId?: string
     }
   | { ok: false; error: string }
 
@@ -178,47 +152,7 @@ function parseShopItem(
       item.limitedTime === true ||
       (meta != null && 'limitedTime' in meta && meta.limitedTime === true),
   }
-  if (kind === 'avatar') {
-    parsed.awakeningLevel = normalizeAwakeningLevel(item.awakening_level)
-  }
   return parsed
-}
-
-function parseAwakeningShopItem(raw: unknown): AvatarAwakeningShopItem | null {
-  if (!raw || typeof raw !== 'object') return null
-  const item = raw as Record<string, unknown>
-  const id = asString(item.id)
-  const parentItemId = asString(item.parent_item_id)
-  const tierRaw = item.awakening_tier
-  // Single Awakening only — ignore legacy tier-2 rows if they still arrive.
-  if (tierRaw !== 1 && tierRaw !== '1') return null
-  if (!id || !parentItemId || !getAvatarCharacterMeta(parentItemId)) return null
-  if (!isAvatarRarity(item.rarity) || (item.rarity !== 'rare' && item.rarity !== 'epic')) return null
-  const fallback = AWAKENING_CATALOG_FALLBACK.find((row) => row.id === id)
-  return {
-    id,
-    parentItemId,
-    awakeningTier: 1,
-    name: asString(item.name) ?? fallback?.name ?? 'Awakening',
-    description: asString(item.description) ?? fallback?.description ?? '',
-    price: asNonNegativeInteger(item.price),
-    rarity: item.rarity,
-    assetKey: asString(item.asset_key) ?? fallback?.assetKey ?? id,
-    owned: item.owned === true,
-  }
-}
-
-function mergeAwakeningCatalog(
-  parsed: AvatarAwakeningShopItem[],
-): AvatarAwakeningShopItem[] {
-  const seen = new Set(parsed.map((item) => item.id))
-  const items = [...parsed]
-  for (const row of AWAKENING_SHOP_FALLBACK) {
-    if (seen.has(row.id)) continue
-    items.push({ ...row })
-    seen.add(row.id)
-  }
-  return items
 }
 
 function mergeCatalog(
@@ -258,14 +192,6 @@ export function parseAvatarShopSnapshot(raw: unknown): AvatarShopSnapshot | null
     }
   }
 
-  const awakenings: AvatarAwakeningShopItem[] = []
-  if (AVATAR_AWAKENINGS_ENABLED && Array.isArray(row.awakenings)) {
-    for (const rawItem of row.awakenings) {
-      const parsed = parseAwakeningShopItem(rawItem)
-      if (parsed) awakenings.push(parsed)
-    }
-  }
-
   const authenticated = row.authenticated === true
   // Signed-in responses must not inject client-only catalog rows — those cannot be
   // claimed/purchased until the matching shop_items migration is live.
@@ -276,29 +202,13 @@ export function parseAvatarShopSnapshot(raw: unknown): AvatarShopSnapshot | null
     ? stages.slice().sort(compareShopItemsByPrice)
     : mergeCatalog(stages, STAGE_CATALOG_FALLBACK, equippedStageId)
 
-  const mergedItems = catalogItems.map((item) => ({
-    ...item,
-    awakeningLevel: AVATAR_AWAKENINGS_ENABLED ? (item.awakeningLevel ?? 0) : 0,
-  }))
-
-  const equippedFromItems = mergedItems.find((item) => item.id === equippedAvatarId)?.awakeningLevel
-  const equippedAwakeningLevel = AVATAR_AWAKENINGS_ENABLED
-    ? normalizeAwakeningLevel(row.equipped_awakening_level ?? equippedFromItems ?? 0)
-    : 0
-
   return {
     authenticated,
     balance: asNonNegativeInteger(row.balance),
     equippedAvatarId,
     equippedStageId,
-    equippedAwakeningLevel,
-    items: mergedItems,
+    items: catalogItems,
     stages: catalogStages,
-    awakenings: AVATAR_AWAKENINGS_ENABLED
-      ? authenticated
-        ? awakenings
-        : mergeAwakeningCatalog(awakenings)
-      : [],
   }
 }
 
@@ -317,12 +227,6 @@ function shopErrorMessage(code: string): string {
       return 'You do not have enough points yet.'
     case 'not_owned':
       return 'Purchase this item before equipping it.'
-    case 'parent_not_owned':
-      return 'Unlock this character before buying its awakening.'
-    case 'requires_awakening_i':
-      return 'You already need the character Awakening unlock.'
-    case 'disabled':
-      return 'Avatar Awakenings are not available yet.'
     case 'purchase_conflict':
       return 'This purchase could not be reconciled. Your points were not changed.'
     case 'profile_unavailable':
@@ -359,18 +263,11 @@ export async function purchaseShopItem(itemId: string): Promise<AvatarShopMutati
     return { ok: false, error: shopErrorMessage(asString(row.error) ?? 'unexpected') }
   }
   const resolvedId = asString(row.item_id) ?? itemId
-  const parentItemId = asString(row.parent_item_id) ?? undefined
-  const awakeningLevel =
-    row.awakening_level === 1 || row.awakening_level === 2
-      ? (row.awakening_level as AwakeningLevel)
-      : undefined
   return {
     ok: true,
     itemId: resolvedId,
     balance:
       typeof row.balance === 'number' ? asNonNegativeInteger(row.balance) : undefined,
-    awakeningLevel,
-    parentItemId,
   }
 }
 

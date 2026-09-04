@@ -72,7 +72,6 @@ describe('parseAvatarShopSnapshot', () => {
     expect(shop?.balance).toBe(125)
     expect(shop?.equippedAvatarId).toBe('avatar_shadow_hunter')
     expect(shop?.equippedStageId).toBe('stage_sky_meadow')
-    expect(shop?.equippedAwakeningLevel).toBe(0)
     const shadowHunter = shop?.items.find((item) => item.id === 'avatar_shadow_hunter')
     expect(shadowHunter).toMatchObject({
       name: 'Shadow Hunter',
@@ -81,15 +80,16 @@ describe('parseAvatarShopSnapshot', () => {
       assetKey: 'avatar_shadow_hunter',
       owned: true,
       equipped: true,
-      awakeningLevel: 0,
     })
     expect(shop?.stages.find((item) => item.id === 'stage_sky_meadow')?.equipped).toBe(true)
     // Signed-in snapshots stay server-authoritative — no client catalog merge.
     expect(shop?.items).toHaveLength(1)
     expect(shop?.stages).toHaveLength(1)
     expect(shop?.stages.some((item) => item.id === DEFAULT_STAGE_ID)).toBe(false)
-    // Awakenings stripped from shop snapshot while production flag is off.
-    expect(shop?.awakenings).toEqual([])
+    // Legacy awakening keys on an older server payload are ignored, not surfaced.
+    expect(shop).not.toHaveProperty('awakenings')
+    expect(shop).not.toHaveProperty('equippedAwakeningLevel')
+    expect(shadowHunter).not.toHaveProperty('awakeningLevel')
   })
 
   it('merges the offline catalog for guest snapshots only', () => {

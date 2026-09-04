@@ -33,7 +33,7 @@ Apply these migrations before deploying the export update (in order):
 5. `20260718190000_play_xp_leveling.sql` — initial play XP + bonus-name awards.
 6. `20260718240000_rebalance_play_xp.sql` — rebalanced ~2-year curve, all-modes bonus, daily play-XP cap (see [play-xp-leveling.md](./play-xp-leveling.md)).
 7. `20260719100000_avatar_wave1_shop.sql` / `20260719110000_avatar_stage_shop.sql` — wave-1 characters + stage backgrounds.
-8. `20260719213957_avatar_awakenings.sql` — Awakening I/II upgrades (`user_avatar_awakenings`, `avatar_awakening` shop items, `equipped_awakening_level`). See [avatar-awakening-style-guide.md](./avatar-awakening-style-guide.md).
+8. `20260719213957_avatar_awakenings.sql` — historical Awakening I/II upgrades (`user_avatar_awakenings`, `avatar_awakening` shop items). Retired from the live product; catalog rows stay inactive.
 
 ## Play XP & leveling
 
@@ -48,8 +48,8 @@ Achievement point rewards still increment `lifetime_earned` (not limited by the 
 The Edge Function reads private shop data through the service-role-only `export_shop_account` RPC after verifying the caller JWT. That RPC returns:
 
 - `wallet` — point balance / lifetime totals
-- `entitlements` — owned shop items (including whole-character avatars and awakenings)
-- `avatar_awakenings` — per-avatar awakening tiers (`level` 1 or 2)
+- `entitlements` — owned shop items (whole-character avatars and stages)
+- `avatar_awakenings` — historical per-avatar tiers if any were granted before retirement; unused by the live client
 - `avatar_profile` — raw profile row. Live product equips via `equipped_avatar_id` (whole characters). The row may still contain optional historical loadout columns (`body_id`, `skin_id`, `face_id`, etc.) from the layered experiment; those are not used by the current shop UI or client parsers.
 - `point_transactions` — private ledger rows
 

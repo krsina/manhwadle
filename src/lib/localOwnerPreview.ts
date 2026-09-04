@@ -37,7 +37,6 @@ export function getLocalOwnerAccount(): AccountSnapshot {
     lifetimeEarned: 4800,
     equippedAvatarId: DEFAULT_AVATAR_ID,
     equippedStageId: DEFAULT_STAGE_ID,
-    equippedAwakeningLevel: 0,
   }
 }
 

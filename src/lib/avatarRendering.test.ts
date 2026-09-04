@@ -34,11 +34,11 @@ describe('Style A avatar rendering styles', () => {
     )
   })
 
-  it('defines Awakening sprite-sheet playback and has no CSS bob/FX layer', () => {
+  it('has no leftover awakening sprite-sheet or idle FX styles', () => {
     const styles = fs.readFileSync(path.resolve('src/styles.css'), 'utf8')
-    expect(styles).toContain('.pixel-avatar-sheet-window')
-    expect(styles).toContain('.pixel-avatar-sheet-strip')
-    expect(styles).toContain('/* Awakening idle: clipped horizontal strip; frame advanced via JS translateX */')
+    expect(styles).not.toContain('.pixel-avatar-sheet-window')
+    expect(styles).not.toContain('.pixel-avatar-sheet-strip')
+    expect(styles).not.toContain('.avatar-awakenings')
     expect(styles).not.toContain('animation-name: avatar-sheet-steps')
     expect(styles).not.toContain('@keyframes avatar-sheet-steps')
     expect(styles).not.toContain('@keyframes avatar-idle-bob')

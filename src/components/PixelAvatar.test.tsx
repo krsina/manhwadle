@@ -4,7 +4,6 @@ import {
   avatarAssetUrl,
   DEFAULT_AVATAR_ID,
 } from '../lib/avatarComposition'
-import { AVATAR_AWAKENINGS_ENABLED } from '../lib/avatarAwakening'
 import { PixelAvatar } from './PixelAvatar'
 
 describe('PixelAvatar', () => {
@@ -49,37 +48,15 @@ describe('PixelAvatar', () => {
     expect(unknown).toContain(`src="${fallback}"`)
   })
 
-  it('keeps avatars on the static plate while awakenings are disabled in production', () => {
-    expect(AVATAR_AWAKENINGS_ENABLED).toBe(false)
-    const awakened = renderToStaticMarkup(
-      <PixelAvatar characterId="avatar_plum_blossom_blade" size="xl" awakeningLevel={1} />,
-    )
-    expect(awakened).toContain('data-awakening="0"')
-    expect(awakened).not.toContain('is-sprite-sheet')
-    expect(awakened).toContain('plum-blossom-blade.png')
-    expect(awakened).not.toContain('/awakened/')
-    expect(awakened).not.toContain('data-fx=')
-    expect(awakened).not.toContain('pixel-avatar-aura')
-
-    const bust = renderToStaticMarkup(
-      <PixelAvatar
-        characterId="avatar_plum_blossom_blade"
-        size="sm"
-        awakeningLevel={1}
-        decorative
-      />,
-    )
-    expect(bust).toContain('data-awakening="0"')
-    expect(bust).not.toContain('is-sprite-sheet')
-  })
-
-  it('keeps unregistered awakenings on the static PNG', () => {
+  it('renders the static plate with no leftover awakening or sprite-sheet markup', () => {
     const html = renderToStaticMarkup(
-      <PixelAvatar characterId="avatar_shadow_hunter" size="xl" awakeningLevel={2} />,
+      <PixelAvatar characterId="avatar_plum_blossom_blade" size="xl" />,
     )
-    expect(html).toContain('data-awakening="0"')
+    expect(html).toContain('plum-blossom-blade.png')
+    expect(html).not.toContain('/awakened/')
     expect(html).not.toContain('is-sprite-sheet')
-    expect(html).toContain(`src="${avatarAssetUrl('avatar_shadow_hunter')}"`)
+    expect(html).not.toContain('data-awakening')
+    expect(html).not.toContain('data-sheet-frame')
     expect(html).not.toContain('pixel-avatar-aura')
   })
 })

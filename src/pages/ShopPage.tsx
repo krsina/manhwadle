@@ -3,20 +3,12 @@ import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../components/AuthProvider'
 import { Dialog } from '../components/Dialog'
 import { PixelAvatar } from '../components/PixelAvatar'
-import {
-  AVATAR_AWAKENINGS_ENABLED,
-  canPurchaseAwakening,
-  isAwakenableAvatar,
-  normalizeAwakeningLevel,
-  type AwakeningLevel,
-} from '../lib/avatarAwakening'
 import { DEFAULT_AVATAR_ID, describeAvatar } from '../lib/avatarComposition'
 import {
   equipAvatar,
   equipStage,
   fetchAvatarShop,
   purchaseShopItem,
-  type AvatarAwakeningShopItem,
   type AvatarShopItem,
   type AvatarShopSnapshot,
 } from '../lib/avatarShop'
@@ -28,7 +20,7 @@ import { reportSecretEvent } from '../lib/secretEvents'
 import { LocalBannerShop } from './LocalBannerShop'
 
 type ShopTab = LookTab
-type PurchaseKind = 'avatar' | 'stage' | 'awakening'
+type PurchaseKind = 'avatar' | 'stage'
 
 export function ShopPage() {
   if (isLocalGachaShop()) return <LocalBannerShop />
@@ -42,16 +34,10 @@ function CatalogShopPage() {
   const [shop, setShop] = useState<AvatarShopSnapshot | null>(null)
   const [selectedAvatarId, setSelectedAvatarId] = useState<string>(DEFAULT_AVATAR_ID)
   const [selectedStageId, setSelectedStageId] = useState<string>(DEFAULT_STAGE_ID)
-  const [previewAwakeningOverride, setPreviewAwakeningOverride] = useState<AwakeningLevel | null>(
-    null,
-  )
-  /** Click-pinned awakening preview (survives mouse leave / moving to Buy). */
-  const [pinnedAwakeningPreview, setPinnedAwakeningPreview] = useState<AwakeningLevel | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [purchaseTarget, setPurchaseTarget] = useState<AvatarShopItem | null>(null)
-  const [purchaseAwakening, setPurchaseAwakening] = useState<AvatarAwakeningShopItem | null>(null)
   const [purchaseKind, setPurchaseKind] = useState<PurchaseKind>('avatar')
   const [notice, setNotice] = useState<string | null>(null)
 
@@ -84,15 +70,9 @@ function CatalogShopPage() {
     void reportSecretEvent('shop_visit')
   }, [user])
 
-  useEffect(() => {
-    setPreviewAwakeningOverride(null)
-    setPinnedAwakeningPreview(null)
-  }, [selectedAvatarId])
-
   const balance = shop?.balance ?? account?.pointsBalance ?? 0
   const items = shop?.items ?? []
   const stages = shop?.stages ?? []
-  const awakenings = shop?.awakenings ?? []
   const equippedAvatarId = shop?.equippedAvatarId ?? account?.equippedAvatarId ?? DEFAULT_AVATAR_ID
   const equippedStageId = shop?.equippedStageId ?? account?.equippedStageId ?? DEFAULT_STAGE_ID
 
@@ -104,22 +84,6 @@ function CatalogShopPage() {
     () => stages.find((item) => item.id === selectedStageId) ?? stages[0] ?? null,
     [stages, selectedStageId],
   )
-
-  const selectedAvatarAwakenings = useMemo(
-    () =>
-      awakenings
-        .filter((row) => row.parentItemId === selectedAvatarId)
-        .sort((a, b) => a.awakeningTier - b.awakeningTier),
-    [awakenings, selectedAvatarId],
-  )
-
-  const ownedAwakeningLevel = normalizeAwakeningLevel(selectedAvatar?.awakeningLevel)
-  const previewAwakeningLevel: AwakeningLevel =
-    previewAwakeningOverride ??
-    pinnedAwakeningPreview ??
-    (tab === 'backgrounds'
-      ? shop?.equippedAwakeningLevel ?? account?.equippedAwakeningLevel ?? 0
-      : ownedAwakeningLevel)
 
   const previewAvatarId = tab === 'backgrounds' ? equippedAvatarId : selectedAvatarId
   const previewStageId = tab === 'backgrounds' ? selectedStageId : equippedStageId
@@ -201,37 +165,15 @@ function CatalogShopPage() {
       return
     }
     setPurchaseTarget(null)
-    setPurchaseAwakening(null)
     if (kind === 'stage') {
       const equipResult = await equipStage(item.id)
       setSelectedStageId(item.id)
       setNotice(equipResult.ok ? `${item.name} unlocked and equipped.` : `${item.name} unlocked.`)
-    } else if (kind === 'awakening') {
-      setNotice(`${item.name} unlocked.`)
-      setPreviewAwakeningOverride(null)
     } else {
       const equipResult = await equipAvatar(item.id)
       setSelectedAvatarId(item.id)
       setNotice(equipResult.ok ? `${item.name} unlocked and equipped.` : `${item.name} unlocked.`)
     }
-    await Promise.all([loadShop(), refreshAccount()])
-    setBusy(false)
-  }
-
-  async function completeAwakeningPurchase(item: AvatarAwakeningShopItem) {
-    setBusy(true)
-    setError(null)
-    const result = await purchaseShopItem(item.id)
-    if (!result.ok) {
-      setError(result.error)
-      setBusy(false)
-      return
-    }
-    setPurchaseAwakening(null)
-    setPurchaseTarget(null)
-    setNotice(`${item.name} unlocked.`)
-    setPinnedAwakeningPreview(item.awakeningTier)
-    setPreviewAwakeningOverride(null)
     await Promise.all([loadShop(), refreshAccount()])
     setBusy(false)
   }
@@ -250,30 +192,7 @@ function CatalogShopPage() {
       return
     }
     setPurchaseKind(tab === 'backgrounds' ? 'stage' : 'avatar')
-    setPurchaseAwakening(null)
     setPurchaseTarget(selected)
-  }
-
-  function handleAwakeningBuy(row: AvatarAwakeningShopItem) {
-    if (!user) {
-      openSignIn()
-      return
-    }
-    const gate = canPurchaseAwakening({
-      parentOwned: Boolean(selectedAvatar?.owned),
-      currentLevel: ownedAwakeningLevel,
-    })
-    if (!gate.ok) {
-      setError(
-        gate.error === 'parent_not_owned'
-          ? 'Unlock this character before buying its awakening.'
-          : 'You already own that awakening.',
-      )
-      return
-    }
-    setPurchaseKind('awakening')
-    setPurchaseTarget(null)
-    setPurchaseAwakening(row)
   }
 
   return (
@@ -335,12 +254,7 @@ function CatalogShopPage() {
                 role="img"
                 aria-label={`Preview of ${previewCharacterName} on ${previewStageName}`}
               >
-                <PixelAvatar
-                  characterId={previewAvatarId}
-                  size="xl"
-                  decorative
-                  awakeningLevel={previewAwakeningLevel}
-                />
+                <PixelAvatar characterId={previewAvatarId} size="xl" decorative />
               </div>
 
               {selected && (
@@ -371,27 +285,6 @@ function CatalogShopPage() {
               </div>
             </div>
 
-            {AVATAR_AWAKENINGS_ENABLED &&
-              tab === 'characters' &&
-              selectedAvatar &&
-              isAwakenableAvatar(selectedAvatar.id) && (
-                <AwakeningsPanel
-                  rows={selectedAvatarAwakenings}
-                  parentOwned={selectedAvatar.owned}
-                  currentLevel={ownedAwakeningLevel}
-                  balance={balance}
-                  signedIn={Boolean(user)}
-                  busy={busy}
-                  previewTier={previewAwakeningLevel}
-                  pinnedTier={pinnedAwakeningPreview}
-                  onHoverPreview={setPreviewAwakeningOverride}
-                  onPinPreview={(tier) => {
-                    setPinnedAwakeningPreview(tier)
-                    setPreviewAwakeningOverride(null)
-                  }}
-                  onBuy={handleAwakeningBuy}
-                />
-              )}
           </aside>
 
           <section className="avatar-shop-catalog" aria-label="Shop catalog">
@@ -480,115 +373,15 @@ function CatalogShopPage() {
 
       <PurchaseDialog
         item={purchaseTarget}
-        awakening={purchaseAwakening}
         kind={purchaseKind}
         balance={balance}
         busy={busy}
         onClose={() => {
-          if (!busy) {
-            setPurchaseTarget(null)
-            setPurchaseAwakening(null)
-          }
+          if (!busy) setPurchaseTarget(null)
         }}
-        onConfirmAvatar={(item) => void completePurchase(item, purchaseKind)}
-        onConfirmAwakening={(item) => void completeAwakeningPurchase(item)}
+        onConfirm={(item) => void completePurchase(item, purchaseKind)}
       />
     </main>
-  )
-}
-
-function AwakeningsPanel({
-  rows,
-  parentOwned,
-  currentLevel,
-  balance,
-  signedIn,
-  busy,
-  previewTier,
-  pinnedTier,
-  onHoverPreview,
-  onPinPreview,
-  onBuy,
-}: {
-  rows: AvatarAwakeningShopItem[]
-  parentOwned: boolean
-  currentLevel: AwakeningLevel
-  balance: number
-  signedIn: boolean
-  busy: boolean
-  previewTier: AwakeningLevel
-  pinnedTier: AwakeningLevel | null
-  onHoverPreview: (tier: AwakeningLevel | null) => void
-  onPinPreview: (tier: AwakeningLevel | null) => void
-  onBuy: (row: AvatarAwakeningShopItem) => void
-}) {
-  if (rows.length === 0) return null
-
-  return (
-    <section className="avatar-awakenings" aria-label="Awakening">
-      <h3 className="avatar-awakenings-title">Awakening</h3>
-      <p className="avatar-awakenings-copy">
-        Click to preview the idle-into-action loop in the portrait above.
-      </p>
-      {previewTier > 0 && (
-        <p className="avatar-awakenings-status" role="status">
-          Previewing Awakening
-          {pinnedTier === previewTier ? '' : ' (hover)'}
-        </p>
-      )}
-      <ul className="avatar-awakenings-list">
-        {rows.map((row) => {
-          const owned = row.owned || currentLevel >= 1
-          const gate = canPurchaseAwakening({
-            parentOwned,
-            currentLevel,
-          })
-          const canAfford = balance >= row.price
-          const previewing = previewTier >= 1
-          const pinned = pinnedTier != null && pinnedTier >= 1
-          let actionLabel = 'Buy'
-          if (owned) actionLabel = 'Owned'
-          else if (!parentOwned) actionLabel = 'Locked'
-          else if (!signedIn) actionLabel = 'Sign in'
-          else if (!canAfford) actionLabel = 'Not enough'
-          else actionLabel = `◆ ${row.price}`
-
-          return (
-            <li key={row.id}>
-              <div
-                className={`avatar-awakening-card is-${row.rarity}${owned ? ' is-owned' : ''}${
-                  previewing ? ' is-preview' : ''
-                }${pinned ? ' is-pinned' : ''}`}
-              >
-                <button
-                  type="button"
-                  className="avatar-awakening-preview-btn"
-                  aria-pressed={pinned}
-                  onMouseEnter={() => onHoverPreview(1)}
-                  onFocus={() => onHoverPreview(1)}
-                  onMouseLeave={() => onHoverPreview(null)}
-                  onBlur={() => onHoverPreview(null)}
-                  onClick={() => onPinPreview(pinned ? null : 1)}
-                >
-                  <span className="avatar-awakening-name">{row.name}</span>
-                  <span className="avatar-awakening-desc">
-                    {pinned ? 'Previewing — click again to stop' : row.description}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost avatar-awakening-buy"
-                  disabled={busy || owned || !gate.ok || (signedIn && !canAfford)}
-                  onClick={() => onBuy(row)}
-                >
-                  {actionLabel}
-                </button>
-              </div>
-            </li>
-          )
-        })}
-      </ul>
-    </section>
   )
 }
 
@@ -606,7 +399,6 @@ function CharacterCard({
   onSelect: () => void
 }) {
   const canAfford = balance >= item.price
-  const level = normalizeAwakeningLevel(item.awakeningLevel)
   const actionLabel = item.owned
     ? item.equipped
       ? 'Equipped'
@@ -628,22 +420,12 @@ function CharacterCard({
       onClick={onSelect}
     >
       <div className="avatar-card-art">
-        <PixelAvatar
-          characterId={item.id}
-          size="md"
-          decorative
-          awakeningLevel={item.owned ? level : 0}
-        />
+        <PixelAvatar characterId={item.id} size="md" decorative />
         <span className="avatar-rarity">
           {item.limitedTime ? 'Limited-time' : item.rarity}
         </span>
         {item.equipped ? <span className="avatar-equipped-badge">Equipped</span> : null}
         {!item.owned && <span className="avatar-unowned-tag">Locked</span>}
-        {AVATAR_AWAKENINGS_ENABLED && item.owned && level > 0 && (
-          <span className="avatar-awakening-badge" aria-label="Awakened">
-            Awakened
-          </span>
-        )}
       </div>
       <div className="avatar-card-copy">
         <span className="avatar-card-name">{item.name}</span>
@@ -740,29 +522,24 @@ function shopPurchaseConfirmCopy(item: AvatarShopItem): string {
 
 function PurchaseDialog({
   item,
-  awakening,
   kind,
   balance,
   busy,
   onClose,
-  onConfirmAvatar,
-  onConfirmAwakening,
+  onConfirm,
 }: {
   item: AvatarShopItem | null
-  awakening: AvatarAwakeningShopItem | null
   kind: PurchaseKind
   balance: number
   busy: boolean
   onClose: () => void
-  onConfirmAvatar: (item: AvatarShopItem) => void
-  onConfirmAwakening: (item: AvatarAwakeningShopItem) => void
+  onConfirm: (item: AvatarShopItem) => void
 }) {
   const titleId = useId()
-  const target = kind === 'awakening' ? awakening : item
-  if (!target) return null
+  if (!item) return null
 
-  const price = target.price
-  const name = target.name
+  const { name, price } = item
+  const free = price === 0
 
   return (
     <Dialog
@@ -775,33 +552,22 @@ function PurchaseDialog({
       <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
         <span aria-hidden="true">×</span>
       </button>
-      {kind === 'avatar' && item ? (
+      {kind === 'avatar' ? (
         <PixelAvatar characterId={item.id} size="xl" decorative />
-      ) : kind === 'awakening' && awakening ? (
-        <PixelAvatar
-          characterId={awakening.parentItemId}
-          size="xl"
-          decorative
-          awakeningLevel={awakening.awakeningTier}
-        />
-      ) : item ? (
+      ) : (
         <div
           className="shop-purchase-stage-thumb"
           style={{ backgroundImage: `url('${avatarStageUrl(item.id)}')` }}
           role="img"
           aria-label={item.name}
         />
-      ) : null}
-      <p className="modal-kicker">
-        {kind !== 'awakening' && item?.price === 0 ? 'Confirm claim' : 'Confirm purchase'}
-      </p>
+      )}
+      <p className="modal-kicker">{free ? 'Confirm claim' : 'Confirm purchase'}</p>
       <h2 id={titleId} className="modal-title">
-        {kind !== 'awakening' && item?.price === 0
-          ? `Claim ${name}?`
-          : `Unlock ${name}?`}
+        {free ? `Claim ${name}?` : `Unlock ${name}?`}
       </h2>
       <p id="shop-purchase-desc" className="shop-purchase-desc">
-        {kind !== 'awakening' && item?.price === 0
+        {free
           ? shopPurchaseConfirmCopy(item)
           : `Spend ${price} points. You will have ${Math.max(0, balance - price)} left.`}
       </p>
@@ -813,18 +579,9 @@ function PurchaseDialog({
           type="button"
           className="btn btn-primary"
           disabled={busy}
-          onClick={() => {
-            if (kind === 'awakening' && awakening) onConfirmAwakening(awakening)
-            else if (item) onConfirmAvatar(item)
-          }}
+          onClick={() => onConfirm(item)}
         >
-          {busy
-            ? kind !== 'awakening' && item?.price === 0
-              ? 'Claiming…'
-              : 'Purchasing…'
-            : kind !== 'awakening' && item?.price === 0
-              ? 'Claim free'
-              : `Spend ${price} points`}
+          {busy ? (free ? 'Claiming…' : 'Purchasing…') : free ? 'Claim free' : `Spend ${price} points`}
         </button>
       </div>
     </Dialog>

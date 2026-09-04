@@ -462,6 +462,21 @@ describe.runIf(Boolean(singleAwakeningMigration))('single awakening collapse mig
   })
 })
 
+const retireAwakeningsMigrationPath = path.resolve(
+  'supabase/migrations/20260904070000_retire_avatar_awakenings.sql',
+)
+const retireAwakeningsMigration = fs.existsSync(retireAwakeningsMigrationPath)
+  ? fs.readFileSync(retireAwakeningsMigrationPath, 'utf8')
+  : ''
+
+describe.runIf(Boolean(retireAwakeningsMigration))('avatar awakening retirement', () => {
+  it('keeps leftover awakening catalog rows inactive', () => {
+    expect(retireAwakeningsMigration).toContain("item_type = 'avatar_awakening'")
+    expect(retireAwakeningsMigration).toContain('active = false')
+    expect(retireAwakeningsMigration).toContain('and active = true')
+  })
+})
+
 describe('client catalog readiness for the migration handoff', () => {
   it('has a non-empty whole-character catalog for the migration to seed', () => {
     expect(AVATAR_CHARACTER_META.length).toBeGreaterThan(0)

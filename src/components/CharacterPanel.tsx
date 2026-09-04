@@ -158,12 +158,7 @@ export function CharacterPanel() {
           style={stageStyle}
           aria-label="Change character"
         >
-          <PixelAvatar
-            characterId={avatarId}
-            size="lg"
-            decorative
-            awakeningLevel={account?.equippedAwakeningLevel ?? 0}
-          />
+          <PixelAvatar characterId={avatarId} size="lg" decorative />
         </Link>
 
         <div className="character-panel-edit-actions">
