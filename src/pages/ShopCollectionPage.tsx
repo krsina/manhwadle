@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { Link, Navigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { GachaCollectionCard } from '../components/gacha/GachaCollectionCard'
 import { GachaExchangeModal } from '../components/gacha/GachaExchangeModal'
 import { GachaLab } from '../components/gacha/GachaLab'
@@ -12,7 +12,6 @@ import {
   getAvatarCharacterMeta,
 } from '../lib/avatarComposition'
 import { type GachaRollResult } from '../lib/gacha'
-import { isLocalGachaShop } from '../lib/gachaLocalStore'
 import { handleTabListKeyDown } from '../lib/focusTabs'
 import { HOME_PATH, parseLookTab, SHOP_PATH, type LookTab } from '../lib/routes'
 import { warmGachaAudio } from '../lib/gachaSounds'
@@ -31,7 +30,6 @@ import {
 } from '../lib/avatarStages'
 
 export function ShopCollectionPage() {
-  if (!isLocalGachaShop()) return <Navigate to={SHOP_PATH} replace />
   return <ShopCollectionView />
 }
 
@@ -137,15 +135,18 @@ function ShopCollectionView() {
     'Background'
 
   const onExchange = useCallback(
-    (characterId: string) => {
+    async (characterId: string) => {
       const row = inventory.find((item) => item.character.id === characterId)
       if (!row || busy || exchangeResult) return
-      const rolled = exchange(row.character)
-      if (!rolled) return
+      const result = await exchange(row.character)
+      if (!result.ok) {
+        setNotice(result.error)
+        return
+      }
       void warmGachaAudio()
       setBusy(true)
       setExchangeSourceName(row.character.name)
-      setExchangeResult(rolled)
+      setExchangeResult(result.rolled)
       setExchangePlayId((value) => value + 1)
       setNotice(null)
     },
@@ -162,8 +163,8 @@ function ShopCollectionView() {
     setBusy(false)
   }, [exchangeResult, exchangeSourceName])
 
-  function handleEquipCharacter(characterId: string) {
-    if (!equip(characterId)) return
+  async function handleEquipCharacter(characterId: string) {
+    if (!(await equip(characterId))) return
     setSelectedCharacterId(characterId)
   }
 
@@ -272,7 +273,7 @@ function ShopCollectionView() {
                 type="button"
                 className="btn btn-primary"
                 disabled={busy || characterEquipped}
-                onClick={() => handleEquipCharacter(previewCharacterId)}
+                onClick={() => void handleEquipCharacter(previewCharacterId)}
               >
                 {characterEquipped ? 'Character equipped' : 'Equip character'}
               </button>
@@ -358,8 +359,8 @@ function ShopCollectionView() {
                       selected={character.id === previewCharacterId}
                       equipped={character.id === equippedCharacterId}
                       onSelect={() => setSelectedCharacterId(character.id)}
-                      onEquip={() => handleEquipCharacter(character.id)}
-                      onExchange={() => onExchange(character.id)}
+                      onEquip={() => void handleEquipCharacter(character.id)}
+                      onExchange={() => void onExchange(character.id)}
                     />
                   </li>
                 ))}

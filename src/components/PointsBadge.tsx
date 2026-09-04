@@ -13,8 +13,8 @@ export function PointsBadge() {
     <Link
       to={SHOP_PATH}
       className="points-badge"
-      aria-label={user ? `${label} shop points. Open avatar shop.` : 'Open avatar shop'}
-      title={user ? `${label} shop points` : 'Avatar shop'}
+      aria-label={user ? `${label} shop points. Open shop.` : 'Open shop'}
+      title={user ? `${label} shop points` : 'Shop'}
     >
       <span className="points-gem" aria-hidden="true">
         ◆

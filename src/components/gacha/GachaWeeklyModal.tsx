@@ -10,6 +10,8 @@ export function GachaWeeklyModal({
   copies,
   points,
   busy,
+  buyDisabled,
+  buyLabel,
   onClose,
   onBuy,
 }: {
@@ -18,6 +20,8 @@ export function GachaWeeklyModal({
   copies: number
   points: number
   busy: boolean
+  buyDisabled?: boolean
+  buyLabel?: string
   onClose: () => void
   onBuy: () => void
 }) {
@@ -27,7 +31,7 @@ export function GachaWeeklyModal({
   const rarity = toGachaRarity(character.rarity)
   const canAfford = points >= price
   const owned = copies > 0
-  const buyDisabled = busy || !canAfford
+  const disabled = buyDisabled ?? (busy || !canAfford)
 
   return (
     <Dialog
@@ -69,15 +73,12 @@ export function GachaWeeklyModal({
         <button
           type="button"
           className="btn btn-primary"
-          disabled={buyDisabled}
+          disabled={disabled}
           data-dialog-initial-focus
           onClick={onBuy}
         >
-          {busy
-            ? 'Buying…'
-            : !canAfford
-              ? `Need ◆ ${price}`
-              : `Buy ◆ ${price}`}
+          {buyLabel ??
+            (busy ? 'Buying…' : !canAfford ? `Need ◆ ${price}` : `Buy ◆ ${price}`)}
         </button>
       </div>
       {!canAfford && !busy ? (

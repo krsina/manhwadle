@@ -13,7 +13,6 @@ import {
   isDevLeaderboardOverrideEnabled,
 } from '../lib/leaderboardDevFake'
 import { playerLevelFromXp } from '../lib/playerLevel'
-import { isLocalGachaShop } from '../lib/gachaLocalStore'
 import { shopLookPath } from '../lib/routes'
 import { useAuth } from './AuthProvider'
 import { useOptionalGachaLocal } from './gacha/GachaLocalProvider'
@@ -117,9 +116,8 @@ export function CharacterPanel() {
     return String(value)
   }
 
-  const lookBase = { collection: isLocalGachaShop() } as const
-  const characterLookPath = shopLookPath({ ...lookBase, tab: 'characters' })
-  const backgroundLookPath = shopLookPath({ ...lookBase, tab: 'backgrounds' })
+  const characterLookPath = shopLookPath({ collection: true, tab: 'characters' })
+  const backgroundLookPath = shopLookPath({ collection: true, tab: 'backgrounds' })
 
   return (
     <section className="character-panel" aria-labelledby="character-panel-heading">

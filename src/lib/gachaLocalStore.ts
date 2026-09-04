@@ -12,6 +12,12 @@ import {
 import { GACHA_PULL_COST } from './gachaWeekly'
 
 export const GACHA_LOCAL_STORAGE_KEY = 'manhwadle:gacha-shop-local'
+export const GACHA_PREFS_STORAGE_KEY = 'manhwadle:gacha-prefs'
+
+export interface GachaPrefs {
+  skip: boolean
+  muted: boolean
+}
 
 export interface GachaLocalLastResult {
   characterId: string
@@ -30,8 +36,36 @@ export interface GachaLocalSnapshot {
   lastResult: GachaLocalLastResult | null
 }
 
+/** Local RNG, pity, and lab. Production uses server RPCs instead. */
 export function isLocalGachaShop(): boolean {
   return import.meta.env.DEV
+}
+
+export function isGachaLabEnabled(): boolean {
+  return import.meta.env.DEV
+}
+
+export function readGachaPrefs(): GachaPrefs {
+  if (typeof localStorage === 'undefined') return { skip: false, muted: false }
+  try {
+    const raw = localStorage.getItem(GACHA_PREFS_STORAGE_KEY)
+    if (!raw) return { skip: false, muted: false }
+    const row = JSON.parse(raw) as unknown
+    if (!row || typeof row !== 'object') return { skip: false, muted: false }
+    const prefs = row as Record<string, unknown>
+    return { skip: prefs.skip === true, muted: prefs.muted === true }
+  } catch {
+    return { skip: false, muted: false }
+  }
+}
+
+export function writeGachaPrefs(prefs: GachaPrefs): void {
+  if (typeof localStorage === 'undefined') return
+  try {
+    localStorage.setItem(GACHA_PREFS_STORAGE_KEY, JSON.stringify(prefs))
+  } catch {
+    /* storage full: skip/mute stay in-memory */
+  }
 }
 
 export function gachaAvailablePoints(serverBalance: number, pointsSpent: number): number {

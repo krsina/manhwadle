@@ -341,4 +341,16 @@ describe('avatar shop mutations', () => {
       error: 'Purchase this item before equipping it.',
     })
   })
+
+  it('surfaces gacha-only when a paid catalog avatar is blocked', async () => {
+    rpc.mockResolvedValue({
+      data: { ok: false, error: 'gacha_only' },
+      error: null,
+    })
+
+    await expect(purchaseShopItem('avatar_shadow_hunter')).resolves.toEqual({
+      ok: false,
+      error: 'Characters are unlocked on the banner, not bought from the catalog.',
+    })
+  })
 })

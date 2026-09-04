@@ -82,54 +82,27 @@ test.describe('critical paths', () => {
     ).toBeVisible()
   })
 
-  test('avatar shop exposes the guest catalog and preview flow', async ({ page }) => {
+  test('character banner shop exposes pull, weekly featured, and collection', async ({ page }) => {
     await page.goto('/shop')
-    await expect(page.getByRole('heading', { name: 'Avatar Shop' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Sign in to unlock and equip' })).toBeVisible()
-    await expect(
-      page.getByText(/Guest rounds cannot earn server-verified points/i),
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Character banner' })).toBeVisible()
+    await expect(page.getByText(/One pull costs/i)).toBeVisible()
     await expect(page.getByLabel(/shop points/i)).toBeVisible()
-    await expect(page.locator('.avatar-shop-preview .pixel-avatar')).toBeVisible()
+    await expect(page.getByRole('button', { name: /Pull x1|Sign in to pull|Unavailable/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'This week' })).toBeVisible()
+    await expect(page.locator('.gacha-weekly-card')).toHaveCount(4)
 
-    await expect(page.getByRole('tab', { name: 'Characters' })).toBeVisible()
-    await expect(page.getByRole('tab', { name: 'Backgrounds' })).toBeVisible()
-
-    // Limited-time free claims sort first in the guest catalog.
-    const explorerA = page.getByRole('button').filter({ hasText: 'Explorer A' })
-    await expect(explorerA).toBeVisible()
-    await explorerA.click()
-    await expect(explorerA).toHaveAttribute('aria-pressed', 'true')
-    await expect(
-      page.locator('.avatar-shop-meta').getByRole('heading', { name: 'Explorer A' }),
-    ).toBeVisible()
-    await expect(page.locator('.avatar-shop-meta').getByText('Limited-time', { exact: true })).toBeVisible()
-    // Without Supabase env in CI the CTA is Unavailable; with auth configured it prompts sign-in.
-    await expect(
-      page
-        .locator('.avatar-shop-actions .btn-primary')
-        .filter({ hasText: /Sign in to unlock|Unavailable/ }),
-    ).toBeVisible()
-
-    await expect(page.getByRole('button').filter({ hasText: 'Explorer B' })).toBeVisible()
-
-    const shadowHunter = page.getByRole('button').filter({ hasText: 'Shadow Hunter' })
-    await expect(shadowHunter).toBeVisible()
-    await shadowHunter.click()
-    await expect(shadowHunter).toHaveAttribute('aria-pressed', 'true')
-    await expect(
-      page.locator('.avatar-shop-meta').getByRole('heading', { name: 'Shadow Hunter' }),
-    ).toBeVisible()
-
-    const defaultMale = page.getByRole('button').filter({ hasText: 'Default (Male)' })
-    await expect(defaultMale).toBeVisible()
-
-    const signIn = page.getByRole('button', { name: 'Sign in to unlock' })
+    const signIn = page.getByRole('button', { name: 'Sign in to pull' })
     if (await signIn.isVisible().catch(() => false)) {
       await signIn.click()
       await expect(page.getByRole('heading', { name: 'Sign in', exact: true })).toBeVisible()
       await page.keyboard.press('Escape')
     }
+
+    await page.getByRole('link', { name: 'Edit avatar & background' }).click()
+    await expect(page.getByRole('heading', { name: 'Character & background' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Characters' })).toBeVisible()
+    await expect(page.getByRole('button').filter({ hasText: 'Default (Female)' })).toBeVisible()
+    await expect(page.getByRole('button').filter({ hasText: 'Default (Male)' })).toBeVisible()
 
     await page.getByRole('tab', { name: 'Backgrounds' }).click()
     await expect(page.getByRole('tab', { name: 'Backgrounds' })).toHaveAttribute(
@@ -140,13 +113,12 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('button').filter({ hasText: 'Sky Meadow' })).toBeVisible()
   })
 
-  test('avatar shop remains usable on mobile', async ({ page }) => {
+  test('character banner remains usable on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/shop')
-    await expect(page.getByRole('heading', { name: 'Avatar Shop' })).toBeVisible()
-    await expect(page.locator('.avatar-shop-preview .pixel-avatar')).toBeVisible()
-    await expect(page.getByRole('button').filter({ hasText: 'Explorer A' })).toBeVisible()
-    await expect(page.getByRole('button').filter({ hasText: 'Skybreaker Monk' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Character banner' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Pull x1|Sign in to pull|Unavailable/ })).toBeVisible()
+    await expect(page.locator('.gacha-weekly-card')).toHaveCount(4)
   })
 
   test('site header stays compact on mobile without Ko-fi', async ({ page }) => {
@@ -154,7 +126,7 @@ test.describe('critical paths', () => {
     await page.goto('/')
     const header = page.locator('.site-header')
     await expect(header.getByRole('link', { name: /Manhwadle/i })).toBeVisible()
-    await expect(header.getByRole('link', { name: /Open avatar shop/i })).toBeVisible()
+    await expect(header.getByRole('link', { name: /Open shop/i })).toBeVisible()
     await expect(header.getByRole('link', { name: /Support on Ko-fi/i })).toBeHidden()
     await expect(header.getByRole('button', { name: /Preferences/i })).toBeVisible()
     await expect(header.getByRole('button', { name: /Switch to (light|dark) mode/i })).toBeVisible()
