@@ -1,21 +1,20 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import {
-  resolveAvatarPresentation,
-  type AwakeningLevel,
-} from '../lib/avatarAwakening'
-import {
   AVATAR_BUST_CROPS_EVENT,
   avatarBustCropStyle,
 } from '../lib/avatarBustCrop'
-import { describeAvatar, normalizeEquippedAvatarId } from '../lib/avatarComposition'
+import {
+  avatarAssetUrl,
+  describeAvatar,
+  normalizeEquippedAvatarId,
+} from '../lib/avatarComposition'
 import { snapPixelArtScale } from '../lib/pixelArtScale'
 
 type PixelAvatarSize = 'sm' | 'md' | 'lg' | 'xl'
 
 /**
- * Whole-character Style A avatar: static PNG, or a registered Awakening idle sprite sheet.
- * Sheets advance in-place via JS frame index + translateX (reliable, not CSS keyframes).
- * `sm` uses a zoomed bust crop toward the head and stays static for perf.
+ * Whole-character Style A avatar plate.
+ * `sm` uses a zoomed bust crop toward the head.
  *
  * Optional `snapCrisp` measures the laid-out box and locks width/height to an exact
  * integer scale from the 256 plate (avoids muddy in-between CSS sizes).
@@ -25,7 +24,6 @@ export function PixelAvatar({
   size = 'md',
   className = '',
   decorative = false,
-  awakeningLevel = 0,
   style,
   snapCrisp = false,
 }: {
@@ -33,8 +31,6 @@ export function PixelAvatar({
   size?: PixelAvatarSize
   className?: string
   decorative?: boolean
-  /** Owned awakening tier for this character. Ignored for `sm` busts. */
-  awakeningLevel?: AwakeningLevel | number | null
   /** Optional box size override (e.g. showcase stage fill). */
   style?: CSSProperties
   /** Lock display size to an exact NN scale from the 256 plate. */
@@ -42,17 +38,9 @@ export function PixelAvatar({
 }) {
   const safeId = normalizeEquippedAvatarId(characterId)
   const bust = size === 'sm'
-  const presentation = resolveAvatarPresentation(
-    safeId,
-    bust ? 0 : awakeningLevel,
-  )
   const label = describeAvatar(safeId)
-  const level = presentation.awakeningLevel
-  const frames = presentation.frameCount
-  const useSheet = presentation.useSpriteSheet && frames > 1
 
   const rootRef = useRef<HTMLDivElement>(null)
-  const [frame, setFrame] = useState(0)
   const [snapStyle, setSnapStyle] = useState<CSSProperties | undefined>(undefined)
   const [bustTick, setBustTick] = useState(0)
 
@@ -64,22 +52,6 @@ export function PixelAvatar({
     window.addEventListener(AVATAR_BUST_CROPS_EVENT, onChange)
     return () => window.removeEventListener(AVATAR_BUST_CROPS_EVENT, onChange)
   }, [bust])
-
-  useEffect(() => {
-    setFrame(0)
-    if (!useSheet) return
-
-    const reduced =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduced) return
-
-    const ms = 220
-    const id = window.setInterval(() => {
-      setFrame((n) => (n + 1) % frames)
-    }, ms)
-    return () => window.clearInterval(id)
-  }, [useSheet, frames, presentation.src])
 
   useEffect(() => {
     if (!snapCrisp) {
@@ -128,13 +100,6 @@ export function PixelAvatar({
     }
   }, [snapCrisp])
 
-  const stripStyle = useSheet
-    ? ({
-        width: `${frames * 100}%`,
-        transform: `translateX(-${(frame / frames) * 100}%)`,
-      } as CSSProperties)
-    : undefined
-
   const bustStyle = bust
     ? (avatarBustCropStyle(safeId) as CSSProperties)
     : undefined
@@ -151,39 +116,22 @@ export function PixelAvatar({
         'pixel-avatar',
         `pixel-avatar-${size}`,
         bust ? 'is-bust' : '',
-        level > 0 ? `is-awakened is-awakening-${level}` : '',
-        useSheet ? 'is-sprite-sheet' : '',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
-      data-awakening={level}
-      data-sheet-frames={useSheet ? frames : undefined}
-      data-sheet-frame={useSheet ? frame : undefined}
       style={mergedStyle}
       role={decorative ? undefined : 'img'}
       aria-hidden={decorative || undefined}
       aria-label={decorative ? undefined : label}
     >
-      {useSheet ? (
-        <span className="pixel-avatar-sheet-window" aria-hidden="true">
-          <img
-            className="pixel-avatar-sheet-strip"
-            src={presentation.src}
-            alt=""
-            draggable={false}
-            style={stripStyle}
-          />
-        </span>
-      ) : (
-        <img
-          className="pixel-avatar-img"
-          src={presentation.src}
-          alt=""
-          aria-hidden="true"
-          draggable={false}
-        />
-      )}
+      <img
+        className="pixel-avatar-img"
+        src={avatarAssetUrl(safeId)}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+      />
     </div>
   )
 }

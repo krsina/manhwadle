@@ -1,8 +1,3 @@
-import {
-  AVATAR_AWAKENINGS_ENABLED,
-  normalizeAwakeningLevel,
-  type AwakeningLevel,
-} from './avatarAwakening'
 import { DEFAULT_AVATAR_ID, normalizeEquippedAvatarId } from './avatarComposition'
 import { DEFAULT_STAGE_ID, normalizeEquippedStageId } from './avatarStages'
 import type { ReaderTaste } from './readerTaste'
@@ -32,8 +27,6 @@ export interface AccountSnapshot {
   lifetimeEarned: number
   equippedAvatarId: string
   equippedStageId: string
-  /** Awakening tier for the currently equipped avatar (0 = static). */
-  equippedAwakeningLevel: AwakeningLevel
 }
 
 export type AccountMutationResult =
@@ -83,9 +76,6 @@ export function parseAccountSnapshot(raw: unknown): AccountSnapshot | null {
         : 0,
     equippedAvatarId: normalizeEquippedAvatarId(row.equipped_avatar_id ?? DEFAULT_AVATAR_ID),
     equippedStageId: normalizeEquippedStageId(row.equipped_stage_id ?? DEFAULT_STAGE_ID),
-    equippedAwakeningLevel: AVATAR_AWAKENINGS_ENABLED
-      ? normalizeAwakeningLevel(row.equipped_awakening_level)
-      : 0,
   }
 }
 

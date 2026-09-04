@@ -24,8 +24,6 @@ export function parseLookTab(value: string | null | undefined): LookTab {
   return value === 'backgrounds' ? 'backgrounds' : 'characters'
 }
 export const LEADERBOARD_PATH = '/leaderboard'
-export const DEV_ANIMATIONS_PATH = '/dev/animations'
-export const DEV_ACTION_STRIP_PREVIEW_PATH = '/dev/action-strip-preview'
 export const DEV_AVATAR_BUST_CROPS_PATH = '/dev/avatar-bust-crops'
 export const DEV_VERSUS_EFFECTS_PATH = '/dev/versus-effects'
 export const DEV_GACHA_SHOP_PATH = '/dev/gacha-shop'

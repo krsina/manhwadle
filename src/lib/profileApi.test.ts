@@ -33,8 +33,8 @@ describe('parseAccountSnapshot', () => {
       lifetimeEarned: 200,
       equippedAvatarId: 'avatar_shadow_hunter',
       equippedStageId: 'stage_sky_meadow',
-      equippedAwakeningLevel: 0,
     })
+    expect(snap).not.toHaveProperty('equippedAwakeningLevel')
   })
 
   it('maps staff role and ban flags from server with the default avatar', () => {
@@ -58,8 +58,8 @@ describe('parseAccountSnapshot', () => {
       lifetimeEarned: 0,
       equippedAvatarId: DEFAULT_AVATAR_ID,
       equippedStageId: DEFAULT_STAGE_ID,
-      equippedAwakeningLevel: 0,
     })
+    expect(snap).not.toHaveProperty('equippedAwakeningLevel')
   })
 
   it('normalizes an unknown equipped avatar id to the default', () => {

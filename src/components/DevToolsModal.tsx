@@ -14,8 +14,6 @@ import {
   type DevStandingDraft,
 } from '../lib/leaderboardDevFake'
 import {
-  DEV_ACTION_STRIP_PREVIEW_PATH,
-  DEV_ANIMATIONS_PATH,
   DEV_AVATAR_BUST_CROPS_PATH,
   DEV_NEW_AVATARS_PATH,
   DEV_VERSUS_EFFECTS_PATH,
@@ -109,31 +107,14 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
         behind this panel.
       </p>
 
-      <section className="settings-section settings-section-first" aria-labelledby="dev-anim-heading">
-        <h3 id="dev-anim-heading" className="settings-section-title">
-          Animation Creator
+      <section className="settings-section settings-section-first" aria-labelledby="dev-preview-heading">
+        <h3 id="dev-preview-heading" className="settings-section-title">
+          Previews
         </h3>
         <p className="settings-muted">
-          Spec idle → action → return loops and export Cursor job packages for sequential frame
-          generation.
+          Owner-only pages for tuning avatar framing, Versus effects, and the banner shop.
         </p>
-        <Link className="btn btn-primary" to={DEV_ANIMATIONS_PATH} onClick={onClose}>
-          Open Animation Creator
-        </Link>
-        <Link
-          className="btn btn-ghost"
-          to={DEV_ACTION_STRIP_PREVIEW_PATH}
-          onClick={onClose}
-          style={{ marginLeft: '0.5rem' }}
-        >
-          Action strip preview
-        </Link>
-        <Link
-          className="btn btn-ghost"
-          to={DEV_AVATAR_BUST_CROPS_PATH}
-          onClick={onClose}
-          style={{ marginLeft: '0.5rem' }}
-        >
+        <Link className="btn btn-primary" to={DEV_AVATAR_BUST_CROPS_PATH} onClick={onClose}>
           Avatar bust crops
         </Link>
         <Link

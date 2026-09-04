@@ -19,7 +19,7 @@ export interface AvatarCharacterMeta {
   price: number
   rarity: AvatarRarity
   /**
-   * Internal manhwa/trope series label for Animation Creator defaults.
+   * Internal manhwa/trope series label for art-direction notes.
    * Never surface in public shop copy.
    */
   inspirationSeries: string
