@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
 import { ACHIEVEMENTS_CHANGED_EVENT } from '../lib/achievementUnlocks'
 import { DEFAULT_AVATAR_ID } from '../lib/avatarComposition'
 import { avatarStageCssUrl, DEFAULT_STAGE_ID } from '../lib/avatarStages'
@@ -12,7 +13,10 @@ import {
   isDevLeaderboardOverrideEnabled,
 } from '../lib/leaderboardDevFake'
 import { playerLevelFromXp } from '../lib/playerLevel'
+import { isLocalGachaShop } from '../lib/gachaLocalStore'
+import { shopLookPath } from '../lib/routes'
 import { useAuth } from './AuthProvider'
+import { useOptionalGachaLocal } from './gacha/GachaLocalProvider'
 import { PixelAvatar } from './PixelAvatar'
 
 /**
@@ -21,9 +25,10 @@ import { PixelAvatar } from './PixelAvatar'
  */
 export function CharacterPanel() {
   const { user, account, accountLoading, configured } = useAuth()
+  const gacha = useOptionalGachaLocal()
   const signedIn = Boolean(user)
   const username = account?.username?.trim() || null
-  const avatarId = account?.equippedAvatarId ?? DEFAULT_AVATAR_ID
+  const avatarId = gacha?.snapshot.equippedAvatarId ?? account?.equippedAvatarId ?? DEFAULT_AVATAR_ID
   const stageId = account?.equippedStageId ?? DEFAULT_STAGE_ID
   const stageStyle = {
     ['--avatar-stage-url' as string]: avatarStageCssUrl(stageId),
@@ -112,6 +117,10 @@ export function CharacterPanel() {
     return String(value)
   }
 
+  const lookBase = { collection: isLocalGachaShop() } as const
+  const characterLookPath = shopLookPath({ ...lookBase, tab: 'characters' })
+  const backgroundLookPath = shopLookPath({ ...lookBase, tab: 'backgrounds' })
+
   return (
     <section className="character-panel" aria-labelledby="character-panel-heading">
       <div className="character-panel-head">
@@ -143,12 +152,27 @@ export function CharacterPanel() {
           </p>
         </div>
 
-        <div className="character-panel-avatar avatar-stage-well" style={stageStyle}>
+        <Link
+          className="character-panel-avatar avatar-stage-well"
+          to={characterLookPath}
+          style={stageStyle}
+          aria-label="Change character"
+        >
           <PixelAvatar
             characterId={avatarId}
             size="lg"
+            decorative
             awakeningLevel={account?.equippedAwakeningLevel ?? 0}
           />
+        </Link>
+
+        <div className="character-panel-edit-actions">
+          <Link className="btn btn-primary" to={characterLookPath}>
+            Change character
+          </Link>
+          <Link className="btn btn-ghost" to={backgroundLookPath}>
+            Change background
+          </Link>
         </div>
 
         <div

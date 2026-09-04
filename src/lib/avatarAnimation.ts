@@ -6,11 +6,11 @@
 import {
   AVATAR_CHARACTER_META,
   avatarAssetUrl,
-  avatarIdentityPromptLines,
   getAvatarCharacterMeta,
   normalizeEquippedAvatarId,
   type AvatarCharacterMeta,
 } from './avatarComposition'
+import { avatarIdentityPromptLines, avatarTraits } from './avatarTraits'
 
 export type AnimationStatus = 'draft' | 'spec_ready' | 'sheet_ready'
 
@@ -116,8 +116,9 @@ export function segmentForFrame(
 
 export function buildDefaultSteps(avatarId: string): AnimationSteps {
   const meta = getAvatarCharacterMeta(avatarId) ?? AVATAR_CHARACTER_META[0]
-  const prop = meta.traits.props.replace(/^MUST\s+/i, '')
-  const aura = meta.traits.aura
+  const traits = avatarTraits(meta.id)
+  const prop = traits.props.replace(/^MUST\s+/i, '')
+  const aura = traits.aura
   return {
     idle: `Ready idle: planted feet (same plant as plate), light breath, subtle hair/outfit sway, ${aura} drift gently. Keep ${prop} at rest angle. Do not change belt, garments, or shoes.`,
     action: `Cool signature beat inspired by ${meta.inspirationSeries} (${meta.inspirationCharacter}): readable flourish with ${prop}, denser ${aura}, still front-facing — no foreshortening, no slash afterimages. Feet glued; wardrobe unchanged.`,
@@ -161,7 +162,8 @@ function frameDeltaHint(frame: number, plan: AnimationFramePlan, steps: Animatio
 
 /** Prefer green chroma when aura/outfit FX are pink/plum (magenta keys eat pink glow). */
 export function prefersGreenChroma(meta: AvatarCharacterMeta): boolean {
-  const blob = [meta.description, meta.traits.aura, meta.traits.outfit, meta.traits.props]
+  const traits = avatarTraits(meta.id)
+  const blob = [meta.description, traits.aura, traits.outfit, traits.props]
     .join(' ')
     .toLowerCase()
   return /pink|plum blossom|rose petal|magenta/.test(blob)
@@ -321,13 +323,14 @@ export function buildFramePrompt(
   const segment = segmentForFrame(frame, plan)
   const prev = Math.max(1, frame - 1)
   const chromaLabel = chroma === '#00FF00' ? '#00FF00 green' : '#FF00FF magenta'
+  const traits = avatarTraits(meta.id)
   const identity = [
     `${meta.name}`,
-    meta.traits.hair,
-    meta.traits.eyes,
-    meta.traits.outfit,
-    meta.traits.props,
-    meta.traits.aura,
+    traits.hair,
+    traits.eyes,
+    traits.outfit,
+    traits.props,
+    traits.aura,
   ].join('; ')
 
   return [

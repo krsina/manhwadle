@@ -220,6 +220,10 @@ test.describe('critical paths', () => {
     await expect(page).toHaveURL('/')
     await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()
 
+    await page.goto('/dev/gacha-shop')
+    await expect(page).toHaveURL('/')
+    await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()
+
     await page.goto('/staff/analytics')
     await expect(page).toHaveURL('/')
     await expect(page.getByRole('heading', { name: /Today'?s modes/i })).toBeVisible()

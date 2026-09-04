@@ -17,7 +17,9 @@ import {
   DEV_ACTION_STRIP_PREVIEW_PATH,
   DEV_ANIMATIONS_PATH,
   DEV_AVATAR_BUST_CROPS_PATH,
+  DEV_NEW_AVATARS_PATH,
   DEV_VERSUS_EFFECTS_PATH,
+  SHOP_PATH,
 } from '../lib/routes'
 import { STREAK_PRESETS, streakTier } from '../lib/streakIntensity'
 /** Floating owner+DEV tools for Top Rankings + streak badge previews. */
@@ -141,6 +143,22 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
           style={{ marginLeft: '0.5rem' }}
         >
           Versus effects
+        </Link>
+        <Link
+          className="btn btn-ghost"
+          to={SHOP_PATH}
+          onClick={onClose}
+          style={{ marginLeft: '0.5rem' }}
+        >
+          Gacha shop
+        </Link>
+        <Link
+          className="btn btn-ghost"
+          to={DEV_NEW_AVATARS_PATH}
+          onClick={onClose}
+          style={{ marginLeft: '0.5rem' }}
+        >
+          New avatars
         </Link>
       </section>
 

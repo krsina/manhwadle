@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useState, type CSSProperties } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../components/AuthProvider'
 import { Dialog } from '../components/Dialog'
 import { PixelAvatar } from '../components/PixelAvatar'
@@ -9,7 +10,7 @@ import {
   normalizeAwakeningLevel,
   type AwakeningLevel,
 } from '../lib/avatarAwakening'
-import { DEFAULT_AVATAR_ID } from '../lib/avatarComposition'
+import { DEFAULT_AVATAR_ID, describeAvatar } from '../lib/avatarComposition'
 import {
   equipAvatar,
   equipStage,
@@ -21,15 +22,24 @@ import {
 } from '../lib/avatarShop'
 import { avatarStageCssUrl, avatarStageUrl, DEFAULT_STAGE_ID } from '../lib/avatarStages'
 import { handleTabListKeyDown } from '../lib/focusTabs'
+import { isLocalGachaShop } from '../lib/gachaLocalStore'
+import { parseLookTab, type LookTab } from '../lib/routes'
 import { reportSecretEvent } from '../lib/secretEvents'
+import { LocalBannerShop } from './LocalBannerShop'
 
-type ShopTab = 'characters' | 'backgrounds'
+type ShopTab = LookTab
 type PurchaseKind = 'avatar' | 'stage' | 'awakening'
 
 export function ShopPage() {
+  if (isLocalGachaShop()) return <LocalBannerShop />
+  return <CatalogShopPage />
+}
+
+function CatalogShopPage() {
   const { user, account, configured, refreshAccount } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab = parseLookTab(searchParams.get('tab'))
   const [shop, setShop] = useState<AvatarShopSnapshot | null>(null)
-  const [tab, setTab] = useState<ShopTab>('characters')
   const [selectedAvatarId, setSelectedAvatarId] = useState<string>(DEFAULT_AVATAR_ID)
   const [selectedStageId, setSelectedStageId] = useState<string>(DEFAULT_STAGE_ID)
   const [previewAwakeningOverride, setPreviewAwakeningOverride] = useState<AwakeningLevel | null>(
@@ -44,6 +54,12 @@ export function ShopPage() {
   const [purchaseAwakening, setPurchaseAwakening] = useState<AvatarAwakeningShopItem | null>(null)
   const [purchaseKind, setPurchaseKind] = useState<PurchaseKind>('avatar')
   const [notice, setNotice] = useState<string | null>(null)
+
+  function setTab(next: ShopTab) {
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('tab', next)
+    setSearchParams(nextParams, { replace: true })
+  }
 
   async function loadShop() {
     setLoading(true)
@@ -112,6 +128,28 @@ export function ShopPage() {
   const previewStyle = {
     ['--avatar-stage-url' as string]: avatarStageCssUrl(previewStageId),
   } as CSSProperties
+  const previewCharacterName =
+    items.find((item) => item.id === previewAvatarId)?.name ?? describeAvatar(previewAvatarId)
+  const previewStageName =
+    stages.find((item) => item.id === previewStageId)?.name ?? 'Background'
+  const previewPairLabel =
+    tab === 'backgrounds'
+      ? `Shown with ${previewCharacterName}`
+      : `Shown on ${previewStageName}`
+  const primaryActionLabel = (() => {
+    if (!selected) return 'Unavailable'
+    if (selected.equipped) {
+      return tab === 'backgrounds' ? 'Background equipped' : 'Character equipped'
+    }
+    if (selected.owned) {
+      if (!user) return configured ? 'Sign in to equip' : 'Unavailable'
+      if (busy) return 'Equipping…'
+      return tab === 'backgrounds' ? 'Equip background' : 'Equip character'
+    }
+    if (!user) return configured ? 'Sign in to unlock' : 'Unavailable'
+    if (selected.price === 0) return busy ? 'Claiming…' : 'Claim free'
+    return `Buy ◆ ${selected.price}`
+  })()
 
   function openSignIn() {
     document.getElementById('site-auth-button')?.click()
@@ -289,56 +327,48 @@ export function ShopPage() {
         </div>
       ) : (
         <div className="avatar-shop">
-          <aside className="avatar-shop-stage" aria-label="Avatar preview">
-            <div className="avatar-shop-preview avatar-stage-well" style={previewStyle}>
-              <PixelAvatar
-                characterId={previewAvatarId}
-                size="xl"
-                awakeningLevel={previewAwakeningLevel}
-              />
-            </div>
-
-            {selected && (
-              <div className="avatar-shop-meta">
-                <span
-                  className={`avatar-shop-rarity is-${selected.limitedTime ? 'limited-time' : selected.rarity}`}
-                >
-                  {selected.limitedTime ? 'Limited-time' : selected.rarity}
-                </span>
-                <h2>{selected.name}</h2>
-                <p>{selected.description}</p>
-              </div>
-            )}
-
-            <div className="avatar-shop-actions">
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={busy || !selected || selected.equipped}
-                onClick={handleStageAction}
+          <aside className="avatar-shop-stage" aria-label="Look preview">
+            <div className="avatar-shop-look">
+              <div
+                className="avatar-shop-preview avatar-stage-well"
+                style={previewStyle}
+                role="img"
+                aria-label={`Preview of ${previewCharacterName} on ${previewStageName}`}
               >
-                {!selected
-                  ? 'Unavailable'
-                  : selected.equipped
-                    ? 'Equipped'
-                    : selected.owned
-                      ? !user
-                        ? configured
-                          ? 'Sign in to equip'
-                          : 'Unavailable'
-                        : busy
-                          ? 'Equipping…'
-                          : 'Equip'
-                      : !user
-                        ? configured
-                          ? 'Sign in to unlock'
-                          : 'Unavailable'
-                        : selected.price === 0
-                          ? busy
-                            ? 'Claiming…'
-                            : 'Claim free'
-                          : `Buy ◆ ${selected.price}`}
-              </button>
+                <PixelAvatar
+                  characterId={previewAvatarId}
+                  size="xl"
+                  decorative
+                  awakeningLevel={previewAwakeningLevel}
+                />
+              </div>
+
+              {selected && (
+                <div className="avatar-shop-meta">
+                  <span
+                    className={`avatar-shop-rarity is-${selected.limitedTime ? 'limited-time' : selected.rarity}`}
+                  >
+                    {selected.limitedTime ? 'Limited-time' : selected.rarity}
+                  </span>
+                  <h2>{selected.name}</h2>
+                  <p className="visually-hidden" aria-live="polite">
+                    {`Previewing ${selected.name}. ${previewPairLabel}.`}
+                  </p>
+                  <p className="avatar-shop-desc">{selected.description}</p>
+                  <p className="avatar-shop-pair">{previewPairLabel}</p>
+                </div>
+              )}
+
+              <div className="avatar-shop-actions">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={busy || !selected || selected.equipped}
+                  onClick={handleStageAction}
+                >
+                  {primaryActionLabel}
+                </button>
+              </div>
             </div>
 
             {AVATAR_AWAKENINGS_ENABLED &&
@@ -368,13 +398,14 @@ export function ShopPage() {
             <div
               className="avatar-shop-tabs"
               role="tablist"
-              aria-label="Shop sections"
+              aria-label="Change character or background"
               onKeyDown={(event) => handleTabListKeyDown(event, event.currentTarget)}
             >
               <button
                 type="button"
                 role="tab"
                 id="shop-tab-characters"
+                aria-controls="shop-panel-characters"
                 aria-selected={tab === 'characters'}
                 tabIndex={tab === 'characters' ? 0 : -1}
                 className={`avatar-shop-tab${tab === 'characters' ? ' is-active' : ''}`}
@@ -386,6 +417,7 @@ export function ShopPage() {
                 type="button"
                 role="tab"
                 id="shop-tab-backgrounds"
+                aria-controls="shop-panel-backgrounds"
                 aria-selected={tab === 'backgrounds'}
                 tabIndex={tab === 'backgrounds' ? 0 : -1}
                 className={`avatar-shop-tab${tab === 'backgrounds' ? ' is-active' : ''}`}
@@ -395,8 +427,16 @@ export function ShopPage() {
               </button>
             </div>
 
-            {tab === 'characters' ? (
-              <ul className="avatar-shop-grid" role="tabpanel" aria-labelledby="shop-tab-characters">
+            <div
+              role="tabpanel"
+              id="shop-panel-characters"
+              aria-labelledby="shop-tab-characters"
+              hidden={tab !== 'characters'}
+            >
+              <p className="avatar-shop-hint">
+                Select a character to preview it on your current background, then equip or unlock it.
+              </p>
+              <ul className="avatar-shop-grid">
                 {items.map((item) => (
                   <li key={item.id}>
                     <CharacterCard
@@ -409,8 +449,18 @@ export function ShopPage() {
                   </li>
                 ))}
               </ul>
-            ) : (
-              <ul className="avatar-shop-grid" role="tabpanel" aria-labelledby="shop-tab-backgrounds">
+            </div>
+
+            <div
+              role="tabpanel"
+              id="shop-panel-backgrounds"
+              aria-labelledby="shop-tab-backgrounds"
+              hidden={tab !== 'backgrounds'}
+            >
+              <p className="avatar-shop-hint">
+                Select a background to preview it behind your character, then equip or unlock it.
+              </p>
+              <ul className="avatar-shop-grid">
                 {stages.map((item) => (
                   <li key={item.id}>
                     <StageCard
@@ -423,7 +473,7 @@ export function ShopPage() {
                   </li>
                 ))}
               </ul>
-            )}
+            </div>
           </section>
         </div>
       )}
@@ -566,12 +616,15 @@ function CharacterCard({
     : !signedIn || canAfford
       ? 'Preview'
       : 'Not enough'
+  const stateLabel = item.equipped ? 'equipped' : item.owned ? 'owned' : 'locked'
 
   return (
     <button
       type="button"
-      className={`avatar-card is-${item.limitedTime ? 'limited-time' : item.rarity}${selected ? ' is-selected' : ''}${!item.owned ? ' is-unowned' : ''}`}
+      className={`avatar-card is-${item.limitedTime ? 'limited-time' : item.rarity}${selected ? ' is-selected' : ''}${item.equipped ? ' is-equipped' : ''}${!item.owned ? ' is-unowned' : ''}`}
       aria-pressed={selected}
+      aria-current={item.equipped ? 'true' : undefined}
+      aria-label={`${item.name}, ${stateLabel}. Preview this character.`}
       onClick={onSelect}
     >
       <div className="avatar-card-art">
@@ -584,6 +637,7 @@ function CharacterCard({
         <span className="avatar-rarity">
           {item.limitedTime ? 'Limited-time' : item.rarity}
         </span>
+        {item.equipped ? <span className="avatar-equipped-badge">Equipped</span> : null}
         {!item.owned && <span className="avatar-unowned-tag">Locked</span>}
         {AVATAR_AWAKENINGS_ENABLED && item.owned && level > 0 && (
           <span className="avatar-awakening-badge" aria-label="Awakened">
@@ -634,12 +688,15 @@ function StageCard({
     : !signedIn || canAfford
       ? 'Preview'
       : 'Not enough'
+  const stateLabel = item.equipped ? 'equipped' : item.owned ? 'owned' : 'locked'
 
   return (
     <button
       type="button"
-      className={`avatar-card is-${item.limitedTime ? 'limited-time' : item.rarity}${selected ? ' is-selected' : ''}${!item.owned ? ' is-unowned' : ''}`}
+      className={`avatar-card is-${item.limitedTime ? 'limited-time' : item.rarity}${selected ? ' is-selected' : ''}${item.equipped ? ' is-equipped' : ''}${!item.owned ? ' is-unowned' : ''}`}
       aria-pressed={selected}
+      aria-current={item.equipped ? 'true' : undefined}
+      aria-label={`${item.name}, ${stateLabel}. Preview this background.`}
       onClick={onSelect}
     >
       <div
@@ -649,6 +706,7 @@ function StageCard({
         aria-hidden="true"
       >
         <span className="avatar-rarity">{item.limitedTime ? 'Limited-time' : item.rarity}</span>
+        {item.equipped ? <span className="avatar-equipped-badge">Equipped</span> : null}
         {!item.owned && <span className="avatar-unowned-tag">Locked</span>}
       </div>
       <div className="avatar-card-copy">

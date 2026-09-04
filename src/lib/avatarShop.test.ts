@@ -161,7 +161,7 @@ describe('parseAvatarShopSnapshot', () => {
   })
 
   it('ships the full Style A catalog offline, with both defaults owned', () => {
-    expect(AVATAR_CATALOG_FALLBACK).toHaveLength(19)
+    expect(AVATAR_CATALOG_FALLBACK).toHaveLength(80)
     expect(AVATAR_CATALOG_FALLBACK.filter((item) => item.owned)).toHaveLength(2)
     expect(AVATAR_CATALOG_FALLBACK.filter((item) => item.limitedTime)).toHaveLength(2)
     expect(AVATAR_CATALOG_FALLBACK.slice(0, 2).map((item) => item.id)).toEqual([
@@ -175,6 +175,90 @@ describe('parseAvatarShopSnapshot', () => {
       name: 'Ember Crown',
       price: 7000,
       rarity: 'epic',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_white_coat_incarnation')).toMatchObject({
+      name: 'White Coat Incarnation',
+      price: 7000,
+      rarity: 'epic',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_black_coat_incarnation')).toMatchObject({
+      name: 'Black Coat Incarnation',
+      price: 7000,
+      rarity: 'epic',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_scarlet_cape_heir')).toMatchObject({
+      name: 'Scarlet Cape Heir',
+      price: 10000,
+      rarity: 'legendary',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_pinkburst_mage')).toMatchObject({
+      name: 'Pinkburst Mage',
+      price: 7000,
+      rarity: 'epic',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_shawl_spirit_medium')).toMatchObject({
+      name: 'Shawl Spirit Medium',
+      price: 10000,
+      rarity: 'legendary',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_white_bloom_saintess')).toMatchObject({
+      name: 'White Bloom Saintess',
+      price: 10000,
+      rarity: 'legendary',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_ice_huntress_knight')).toMatchObject({
+      name: 'Ice Huntress Knight',
+      price: 4000,
+      rarity: 'rare',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_monster_arm_survivor')).toMatchObject({
+      name: 'Monster Arm Survivor',
+      price: 7000,
+      rarity: 'epic',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_violet_beret_mage')).toMatchObject({
+      name: 'Violet Beret Mage',
+      price: 10000,
+      rarity: 'legendary',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_stonehammer_barbarian')).toMatchObject({
+      name: 'Stonehammer Barbarian',
+      price: 10000,
+      rarity: 'legendary',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_ashbloom_mercenary')).toMatchObject({
+      name: 'Ashbloom Mercenary',
+      price: 10000,
+      rarity: 'legendary',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_crimson_tip_maid')).toMatchObject({
+      name: 'Crimson-Tip Maid',
+      price: 10000,
+      rarity: 'legendary',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_hollow_gaze_boxer')).toMatchObject({
+      name: 'Hollow Gaze Boxer',
+      price: 10000,
+      rarity: 'legendary',
+      owned: false,
+    })
+    expect(AVATAR_CATALOG_FALLBACK.find((item) => item.id === 'avatar_silent_plum_blade')).toMatchObject({
+      name: 'Silent Plum Blade',
+      price: 10000,
+      rarity: 'legendary',
       owned: false,
     })
     expect(STAGE_CATALOG_FALLBACK).toHaveLength(3)

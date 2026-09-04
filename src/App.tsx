@@ -6,6 +6,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { OwnerDevRoute } from './components/OwnerDevRoute'
 import { LocalDevOrOwnerRoute } from './components/LocalDevOrOwnerRoute'
 import { StaffRoute } from './components/StaffRoute'
+import { GachaLocalProvider } from './components/gacha/GachaLocalProvider'
 import { lazyWithStaleReload } from './lib/lazyWithStaleReload'
 import {
   loadReaderTaste,
@@ -33,6 +34,9 @@ const SettingsPage = lazyWithStaleReload(() =>
 const ShopPage = lazyWithStaleReload(() =>
   import('./pages/ShopPage').then((m) => ({ default: m.ShopPage })),
 )
+const ShopCollectionPage = lazyWithStaleReload(() =>
+  import('./pages/ShopCollectionPage').then((m) => ({ default: m.ShopCollectionPage })),
+)
 const LeaderboardPage = lazyWithStaleReload(() =>
   import('./pages/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })),
 )
@@ -47,6 +51,12 @@ const AvatarBustCropPage = lazyWithStaleReload(() =>
 )
 const VersusEffectsDemoPage = lazyWithStaleReload(() =>
   import('./pages/VersusEffectsDemoPage').then((m) => ({ default: m.VersusEffectsDemoPage })),
+)
+const GachaShopDemoPage = lazyWithStaleReload(() =>
+  import('./pages/GachaShopDemoPage').then((m) => ({ default: m.GachaShopDemoPage })),
+)
+const NewAvatarsPreviewPage = lazyWithStaleReload(() =>
+  import('./pages/NewAvatarsPreviewPage').then((m) => ({ default: m.NewAvatarsPreviewPage })),
 )
 const PrivacyPage = lazyWithStaleReload(() =>
   import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
@@ -126,7 +136,8 @@ function App() {
   return (
     <ErrorBoundary label="app-root">
       <AuthProvider onSyncedTaste={handleSyncedTaste}>
-        <BrowserRouter>
+        <GachaLocalProvider>
+          <BrowserRouter>
           <Routes>
             <Route element={<AppLayout taste={taste} onTasteChange={handleTasteChange} />}>
               <Route
@@ -179,6 +190,14 @@ function App() {
                 }
               />
               <Route
+                path="shop/collection"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <ShopCollectionPage />
+                  </Suspense>
+                }
+              />
+              <Route
                 path="leaderboard"
                 element={
                   <Suspense fallback={<RouteFallback />}>
@@ -222,6 +241,26 @@ function App() {
                   <LocalDevOrOwnerRoute>
                     <Suspense fallback={<RouteFallback />}>
                       <VersusEffectsDemoPage />
+                    </Suspense>
+                  </LocalDevOrOwnerRoute>
+                }
+              />
+              <Route
+                path="dev/gacha-shop"
+                element={
+                  <LocalDevOrOwnerRoute>
+                    <Suspense fallback={<RouteFallback />}>
+                      <GachaShopDemoPage />
+                    </Suspense>
+                  </LocalDevOrOwnerRoute>
+                }
+              />
+              <Route
+                path="dev/new-avatars"
+                element={
+                  <LocalDevOrOwnerRoute>
+                    <Suspense fallback={<RouteFallback />}>
+                      <NewAvatarsPreviewPage />
                     </Suspense>
                   </LocalDevOrOwnerRoute>
                 }
@@ -349,7 +388,8 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
-        </BrowserRouter>
+          </BrowserRouter>
+        </GachaLocalProvider>
       </AuthProvider>
     </ErrorBoundary>
   )

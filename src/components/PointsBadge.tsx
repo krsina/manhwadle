@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom'
 import { SHOP_PATH } from '../lib/routes'
 import { useAuth } from './AuthProvider'
+import { useOptionalGachaLocal } from './gacha/GachaLocalProvider'
 
 export function PointsBadge() {
   const { user, account, accountLoading } = useAuth()
-  const label = user ? (accountLoading && !account ? '…' : String(account?.pointsBalance ?? 0)) : 'Shop'
+  const gacha = useOptionalGachaLocal()
+  const points = gacha?.points ?? account?.pointsBalance ?? 0
+  const label = user ? (accountLoading && !account ? '…' : String(points)) : 'Shop'
 
   return (
     <Link
