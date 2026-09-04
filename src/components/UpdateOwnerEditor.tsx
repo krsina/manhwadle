@@ -20,6 +20,7 @@ export function UpdateOwnerEditor({ update, onCancel, onSaved }: UpdateOwnerEdit
   const [version, setVersion] = useState(update.version ?? '')
   const [kind, setKind] = useState<SiteUpdateKind>(update.kind)
   const [published, setPublished] = useState(update.published)
+  const [sticky, setSticky] = useState(update.sticky)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -34,6 +35,7 @@ export function UpdateOwnerEditor({ update, onCancel, onSaved }: UpdateOwnerEdit
       version: version.trim() || null,
       kind,
       published,
+      sticky,
     })
     setBusy(false)
     if (!result.ok) {
@@ -111,6 +113,15 @@ export function UpdateOwnerEditor({ update, onCancel, onSaved }: UpdateOwnerEdit
           onChange={(e) => setPublished(e.target.checked)}
         />
         Published
+      </label>
+      <label className="moderation-check">
+        <input
+          type="checkbox"
+          checked={sticky}
+          disabled={busy}
+          onChange={(e) => setSticky(e.target.checked)}
+        />
+        Pin to top of News
       </label>
       {error && (
         <p className="auth-modal-error" role="alert">

@@ -34,6 +34,7 @@ export function ModerationUpdatesPanel({
   const [version, setVersion] = useState('')
   const [kind, setKind] = useState<SiteUpdateKind>('update')
   const [published, setPublished] = useState(true)
+  const [sticky, setSticky] = useState(false)
 
   async function reload() {
     setBusy(true)
@@ -67,6 +68,7 @@ export function ModerationUpdatesPanel({
     setVersion('')
     setKind('update')
     setPublished(true)
+    setSticky(false)
   }
 
   function startEdit(update: SiteUpdate) {
@@ -77,6 +79,7 @@ export function ModerationUpdatesPanel({
     setVersion(update.version ?? '')
     setKind(update.kind)
     setPublished(update.published)
+    setSticky(update.sticky)
     setNotice(null)
     setError(null)
   }
@@ -94,6 +97,7 @@ export function ModerationUpdatesPanel({
       version: version.trim() || null,
       kind,
       published,
+      sticky,
     })
     setBusy(false)
     if (!result.ok) {
@@ -132,6 +136,7 @@ export function ModerationUpdatesPanel({
       version: update.version,
       kind: update.kind,
       published: !update.published,
+      sticky: update.sticky,
     })
     setBusy(false)
     if (!result.ok) {
@@ -231,6 +236,15 @@ export function ModerationUpdatesPanel({
           />
           Published (visible on /news)
         </label>
+        <label className="moderation-check">
+          <input
+            type="checkbox"
+            checked={sticky}
+            disabled={busy}
+            onChange={(e) => setSticky(e.target.checked)}
+          />
+          Pin to top of News
+        </label>
         <div className="moderation-actions">
           <button type="submit" className="btn btn-primary" disabled={busy}>
             {editingId ? 'Save changes' : 'Create news item'}
@@ -259,6 +273,7 @@ export function ModerationUpdatesPanel({
               <span className="moderation-queue-meta">
                 {update.kind === 'announcement' ? 'Announcement' : 'Release update'}
                 {' · '}
+                {update.sticky ? 'Pinned · ' : ''}
                 {update.version ? `v${update.version} · ` : ''}
                 {update.published ? 'Published' : 'Draft'}
                 {update.publishedAt

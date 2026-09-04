@@ -66,6 +66,7 @@ export function HomeNewsPanel() {
               <li key={item.id} className="home-news-item">
                 <article>
                   <div className="home-news-item-meta">
+                    {item.sticky && <span className="home-news-pinned">Pinned</span>}
                     <span className={`home-news-kind is-${item.kind}`}>
                       {item.kind === 'announcement' ? 'Announcement' : 'Release update'}
                     </span>

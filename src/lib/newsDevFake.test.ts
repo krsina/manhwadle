@@ -27,6 +27,8 @@ describe('newsDevFake', () => {
   it('seeds published news posts and visible comments', () => {
     const updates = listDevSiteUpdates()
     expect(updates.length).toBeGreaterThanOrEqual(2)
+    expect(updates[0]?.slug).toBe('weekend-maintenance')
+    expect(updates[0]?.sticky).toBe(true)
     const primary = getDevSiteUpdate('comments-launch')
     expect(primary?.title).toMatch(/comments/i)
     const comments = listDevNewsComments('comments-launch')

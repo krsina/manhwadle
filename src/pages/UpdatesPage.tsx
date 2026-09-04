@@ -5,6 +5,7 @@ import {
 } from '../components/UpdateArticle'
 import {
   fetchPublicSiteUpdates,
+  sortSiteUpdates,
   type SiteUpdate,
 } from '../lib/siteUpdatesApi'
 import { useLegalSecretPing } from '../lib/useSecretPagePings'
@@ -24,7 +25,7 @@ export function UpdatesPage() {
         setUpdates([])
         return
       }
-      setUpdates(result.updates)
+      setUpdates(sortSiteUpdates(result.updates))
     })()
     return () => {
       cancelled = true
@@ -63,7 +64,9 @@ export function UpdatesPage() {
                 setUpdates((prev) => {
                   if (!prev) return prev
                   if (!next.published) return prev.filter((row) => row.id !== next.id)
-                  return prev.map((row) => (row.id === next.id ? next : row))
+                  return sortSiteUpdates(
+                    prev.map((row) => (row.id === next.id ? next : row)),
+                  )
                 })
               }}
             />

@@ -225,17 +225,17 @@ Matches **Latest published version** in `docs/updates-style-guide.md`:
 
 ```
 Kind: update
-Version: 1.1.0
-Title: Multiplayer mode and News comments
-Slug: multiplayer-mode-and-news-comments
+Version: 1.2.0
+Title: Character banner shop
+Slug: character-banner-shop
 
 Body:
-Friends can duel in Versus, and News is the home for release notes with signed-in comments.
+The shop is now a character banner. Spend points to pull skins, or buy this week's featured set.
 
-• Versus: create or join a room, pick modes and seats, then ready up for timed rounds
-• Collaborative rooms only need one shared saved list, built from the manhwa catalog
-• News hosts release updates and announcements, and signed-in readers can leave comments
-• Homepage podium avatars, milestones, and the archive control sit cleaner on phones and desktop
+• One pull costs 400 points. Clearing all four modes in a day earns one pull.
+• Sign in to pull, buy a weekly featured skin, or keep copies in your collection.
+• Edit avatar and background from collection for characters and stages you own.
+• Catalog avatar buys are retired. Stages still use the collection shop.
 ```
 
 ## Anti-patterns

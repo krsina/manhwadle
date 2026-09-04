@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   formatUpdateDate,
   parseSiteUpdate,
+  sortSiteUpdates,
   splitUpdateBody,
+  type SiteUpdate,
 } from './siteUpdatesApi'
 import { newsPath, updatesPath } from './routes'
 
@@ -28,6 +30,7 @@ describe('parseSiteUpdate', () => {
       kind: 'update',
       version: '0.2.0',
       published: true,
+      sticky: false,
       publishedAt: '2026-07-29T12:00:00Z',
       createdAt: '2026-07-29T11:00:00Z',
       updatedAt: '2026-07-29T12:00:00Z',
@@ -53,6 +56,45 @@ describe('parseSiteUpdate', () => {
     expect(parseSiteUpdate({ ...row, kind: 'announcement' })?.kind).toBe('announcement')
     expect(parseSiteUpdate({ ...row, kind: 'other' })).toBeNull()
     expect(parseSiteUpdate(row)?.kind).toBe('update')
+    expect(parseSiteUpdate({ ...row, kind: 'announcement' })?.sticky).toBe(false)
+    expect(parseSiteUpdate({ ...row, kind: 'announcement', sticky: true })?.sticky).toBe(true)
+  })
+})
+
+describe('sortSiteUpdates', () => {
+  const base: Omit<SiteUpdate, 'id' | 'slug' | 'title' | 'sticky' | 'publishedAt' | 'createdAt'> = {
+    body: 'Body',
+    kind: 'update',
+    version: '1.0.0',
+    published: true,
+    updatedAt: '2026-09-01T00:00:00Z',
+  }
+
+  it('pins sticky posts above newer unpinned posts', () => {
+    const newer: SiteUpdate = {
+      ...base,
+      id: 'newer',
+      slug: 'newer',
+      title: 'Newer',
+      sticky: false,
+      publishedAt: '2026-09-04T00:00:00Z',
+      createdAt: '2026-09-04T00:00:00Z',
+    }
+    const pinned: SiteUpdate = {
+      ...base,
+      id: 'pinned',
+      slug: 'pinned',
+      title: 'Pinned',
+      kind: 'announcement',
+      version: null,
+      sticky: true,
+      publishedAt: '2026-08-11T00:00:00Z',
+      createdAt: '2026-08-11T00:00:00Z',
+    }
+    expect(sortSiteUpdates([newer, pinned]).map((row) => row.slug)).toEqual([
+      'pinned',
+      'newer',
+    ])
   })
 })
 

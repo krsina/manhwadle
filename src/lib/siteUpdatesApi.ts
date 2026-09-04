@@ -11,6 +11,7 @@ export interface SiteUpdate {
   kind: SiteUpdateKind
   version: string | null
   published: boolean
+  sticky: boolean
   publishedAt: string | null
   createdAt: string
   updatedAt: string
@@ -33,6 +34,7 @@ export function parseSiteUpdate(raw: unknown): SiteUpdate | null {
     kind: row.kind === 'announcement' ? 'announcement' : 'update',
     version: typeof row.version === 'string' ? row.version : null,
     published: row.published === true,
+    sticky: row.sticky === true,
     publishedAt: typeof row.published_at === 'string' ? row.published_at : null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -52,6 +54,18 @@ export function formatUpdateDate(iso: string | null | undefined): string {
     timeZone: 'UTC',
     timeZoneName: 'short',
   }).format(date)
+}
+
+/** Pinned posts first, then newest published (or created) date. */
+export function sortSiteUpdates(updates: SiteUpdate[]): SiteUpdate[] {
+  return [...updates].sort((a, b) => {
+    if (a.sticky !== b.sticky) return a.sticky ? -1 : 1
+    const aDate = a.publishedAt ?? a.createdAt
+    const bDate = b.publishedAt ?? b.createdAt
+    const byDate = bDate.localeCompare(aDate)
+    if (byDate !== 0) return byDate
+    return b.createdAt.localeCompare(a.createdAt)
+  })
 }
 
 /** Split changelog body into paragraphs (blank-line separated). */
@@ -83,7 +97,9 @@ export async function fetchPublicSiteUpdates(limit = 50): Promise<
   }
   const rows = (data as { updates?: unknown }).updates
   if (!Array.isArray(rows)) return { ok: false, error: 'unexpected_response' }
-  const updates = rows.map(parseSiteUpdate).filter((row): row is SiteUpdate => row !== null)
+  const updates = sortSiteUpdates(
+    rows.map(parseSiteUpdate).filter((row): row is SiteUpdate => row !== null),
+  )
   return { ok: true, updates }
 }
 

@@ -454,6 +454,7 @@ export async function moderationUpsertSiteUpdate(input: {
   published?: boolean
   version?: string | null
   kind?: SiteUpdateKind
+  sticky?: boolean
 }) {
   return invokeModeration('upsert_site_update', {
     id: input.id ?? null,
@@ -463,6 +464,7 @@ export async function moderationUpsertSiteUpdate(input: {
     published: typeof input.published === 'boolean' ? input.published : null,
     version: input.version ?? null,
     kind: input.kind ?? null,
+    sticky: typeof input.sticky === 'boolean' ? input.sticky : null,
   })
 }
 

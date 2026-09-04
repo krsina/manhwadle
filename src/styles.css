@@ -4069,6 +4069,13 @@ a.site-icon-btn {
   font-variant-numeric: tabular-nums;
 }
 
+.update-entry-pinned {
+  color: var(--accent-deep);
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+}
+
 .update-entry-date {
   color: inherit;
 }
@@ -7591,6 +7598,13 @@ button.mode-row-versus:focus-visible {
 }
 
 .home-news-kind {
+  color: var(--accent-deep);
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+}
+
+.home-news-pinned {
   color: var(--accent-deep);
   font-weight: 750;
   text-transform: uppercase;

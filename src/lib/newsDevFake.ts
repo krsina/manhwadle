@@ -3,7 +3,7 @@
  * Mutations stay in-memory for the current session (reset on reload).
  */
 
-import type { SiteUpdate } from './siteUpdatesApi'
+import { sortSiteUpdates, type SiteUpdate } from './siteUpdatesApi'
 import type { NewsComment } from './newsCommentsApi'
 import { LOCAL_OWNER_USER_ID, LOCAL_OWNER_USERNAME } from './localOwnerPreview'
 import { DEFAULT_AVATAR_ID } from './avatarComposition'
@@ -76,6 +76,7 @@ function seedUpdates(): SiteUpdate[] {
       kind: 'update',
       version: '0.9.0',
       published: true,
+      sticky: false,
       publishedAt: hoursAgo(6),
       createdAt: hoursAgo(8),
       updatedAt: hoursAgo(6),
@@ -89,6 +90,7 @@ function seedUpdates(): SiteUpdate[] {
       kind: 'announcement',
       version: null,
       published: true,
+      sticky: true,
       publishedAt: hoursAgo(30),
       createdAt: hoursAgo(32),
       updatedAt: hoursAgo(30),
@@ -102,6 +104,7 @@ function seedUpdates(): SiteUpdate[] {
       kind: 'update',
       version: '0.8.4',
       published: true,
+      sticky: false,
       publishedAt: hoursAgo(72),
       createdAt: hoursAgo(74),
       updatedAt: hoursAgo(72),
@@ -261,7 +264,7 @@ export function resetNewsDevFakeForTests(): void {
 }
 
 export function listDevSiteUpdates(limit = 50): SiteUpdate[] {
-  return ensureState().updates.slice(0, Math.max(1, limit))
+  return sortSiteUpdates(ensureState().updates).slice(0, Math.max(1, limit))
 }
 
 export function getDevSiteUpdate(slug: string): SiteUpdate | null {
