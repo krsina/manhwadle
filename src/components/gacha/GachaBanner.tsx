@@ -22,6 +22,8 @@ export function GachaBanner({
   skip,
   muted,
   notice,
+  pullDisabled,
+  pullLabel,
   onPull,
   onComplete,
 }: {
@@ -33,10 +35,14 @@ export function GachaBanner({
   skip: boolean
   muted: boolean
   notice?: string | null
+  pullDisabled?: boolean
+  pullLabel?: string
   onPull: () => void
   onComplete: () => void
 }) {
   const { untilRarePlus, untilEpic } = gachaPityCountdown(pity)
+  const disabled = pullDisabled ?? (points < GACHA_PULL_COST || busy)
+  const label = pullLabel ?? (result ? GACHA_STUDIO_COPY.againCta : GACHA_STUDIO_COPY.cta)
 
   return (
     <section className="gacha-banner" aria-label="Featured banner">
@@ -93,10 +99,10 @@ export function GachaBanner({
         <button
           type="button"
           className="btn btn-primary gacha-pull-btn"
-          disabled={points < GACHA_PULL_COST || busy}
+          disabled={disabled}
           onClick={onPull}
         >
-          {result ? GACHA_STUDIO_COPY.againCta : GACHA_STUDIO_COPY.cta}
+          {label}
         </button>
         <div className="gacha-banner-rates">
           <ul className="gacha-rate-chips" aria-label="Drop rates">

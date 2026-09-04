@@ -6,29 +6,51 @@ import { useGachaLocal } from '../components/gacha/GachaLocalProvider'
 import { GachaWeeklyModal } from '../components/gacha/GachaWeeklyModal'
 import { GACHA_STUDIO_COPY } from '../components/gacha/gachaSkins'
 import { PixelAvatar } from '../components/PixelAvatar'
+import { useAuth } from '../components/AuthProvider'
+import { getAvatarCharacterMeta } from '../lib/avatarComposition'
 import { formatCountdown } from '../lib/daily'
-import {
-  msUntilNextMondayUtc,
-  weeklyFeaturedCharacters,
-  weeklyFeaturedPrice,
-} from '../lib/gachaWeekly'
 import { toGachaRarity, type GachaRarity } from '../lib/gacha'
+import { GACHA_PULL_COST, msUntilNextMondayUtc } from '../lib/gachaWeekly'
 import { HOME_PATH, shopLookPath } from '../lib/routes'
 import { warmGachaAudio } from '../lib/gachaSounds'
 
+function openSignIn() {
+  document.getElementById('site-auth-button')?.click()
+}
+
 export function LocalBannerShop() {
   const gacha = useGachaLocal()
-  const { snapshot, lastResult, points, pull, preview, buyWeekly } = gacha
+  const { snapshot, lastResult, points, featured, pull, preview, buyWeekly } = gacha
+  const { user, configured } = useAuth()
   const [busy, setBusy] = useState(false)
   const [playId, setPlayId] = useState(0)
   const [notice, setNotice] = useState<string | null>(null)
   const [now, setNow] = useState(() => new Date())
   const [previewId, setPreviewId] = useState<string | null>(null)
-  const featured = useMemo(() => weeklyFeaturedCharacters(now), [now])
   const resetLabel = formatCountdown(msUntilNextMondayUtc(now))
-  const previewCharacter = featured.find((row) => row.id === previewId) ?? null
-  const previewPrice = previewCharacter ? weeklyFeaturedPrice(previewCharacter) : 0
+  const featuredRows = useMemo(
+    () =>
+      featured.flatMap((row) => {
+        const character = getAvatarCharacterMeta(row.id)
+        return character ? [{ character, price: row.price }] : []
+      }),
+    [featured],
+  )
+  const previewRow = featuredRows.find((row) => row.character.id === previewId) ?? null
+  const previewCharacter = previewRow?.character ?? null
+  const previewPrice = previewRow?.price ?? 0
   const previewCopies = previewCharacter ? (snapshot.owned[previewCharacter.id] ?? 0) : 0
+  const guest = !user
+  const signInToPull = guest && configured
+  const pullUnavailable = guest && !configured
+  const pullDisabled = busy || pullUnavailable || (!guest && points < GACHA_PULL_COST)
+  const pullLabel = pullUnavailable
+    ? 'Unavailable'
+    : signInToPull
+      ? 'Sign in to pull'
+      : undefined
+  const weeklySignIn = guest && configured
+  const weeklyUnavailable = guest && !configured
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000)
@@ -39,11 +61,18 @@ export function LocalBannerShop() {
     setBusy(false)
   }, [])
 
-  function handlePull() {
+  async function handlePull() {
     if (busy) return
+    if (guest) {
+      if (configured) openSignIn()
+      return
+    }
     void warmGachaAudio()
-    const rolled = pull()
-    if (!rolled) return
+    const result = await pull()
+    if (!result.ok) {
+      setNotice(result.error)
+      return
+    }
     setNotice(null)
     setPlayId((value) => value + 1)
     setBusy(true)
@@ -58,16 +87,21 @@ export function LocalBannerShop() {
     setBusy(true)
   }
 
-  function handleWeeklyBuy(characterId: string) {
+  async function handleWeeklyBuy(characterId: string) {
     if (busy) return
-    const character = featured.find((row) => row.id === characterId)
-    if (!character) return
-    const rolled = buyWeekly(characterId, now)
-    if (!rolled) return
+    if (guest) {
+      if (configured) openSignIn()
+      return
+    }
+    const row = featuredRows.find((entry) => entry.character.id === characterId)
+    if (!row) return
+    const result = await buyWeekly(characterId, now)
+    if (!result.ok) {
+      setNotice(result.error)
+      return
+    }
     setPreviewId(null)
-    setNotice(
-      `Bought ${character.name} for ◆ ${weeklyFeaturedPrice(character)}. Pity was unchanged.`,
-    )
+    setNotice(`Bought ${row.character.name} for ◆ ${row.price}. Pity was unchanged.`)
     setPlayId((value) => value + 1)
     setBusy(true)
     void warmGachaAudio()
@@ -77,9 +111,17 @@ export function LocalBannerShop() {
     <main className="shop-page gacha-shop-demo">
       <GachaWeeklyModal
         busy={busy}
+        buyDisabled={busy || weeklyUnavailable || (!weeklySignIn && points < previewPrice)}
+        buyLabel={
+          weeklyUnavailable
+            ? 'Unavailable'
+            : weeklySignIn
+              ? 'Sign in to buy'
+              : undefined
+        }
         character={previewCharacter}
         copies={previewCopies}
-        onBuy={() => previewCharacter && handleWeeklyBuy(previewCharacter.id)}
+        onBuy={() => previewCharacter && void handleWeeklyBuy(previewCharacter.id)}
         onClose={() => {
           if (!busy) setPreviewId(null)
         }}
@@ -115,9 +157,11 @@ export function LocalBannerShop() {
         muted={snapshot.muted}
         notice={notice}
         onComplete={onOpeningComplete}
-        onPull={handlePull}
+        onPull={() => void handlePull()}
         pity={snapshot.pity}
         playId={playId}
+        pullDisabled={pullDisabled}
+        pullLabel={pullLabel}
         result={lastResult}
         skip={snapshot.skip}
         points={points}
@@ -133,9 +177,8 @@ export function LocalBannerShop() {
           <p className="gacha-weekly-reset">Resets in {resetLabel}</p>
         </header>
         <ul className="gacha-weekly-grid">
-          {featured.map((character) => {
+          {featuredRows.map(({ character, price }) => {
             const rarity = toGachaRarity(character.rarity)
-            const price = weeklyFeaturedPrice(character)
             const copies = snapshot.owned[character.id] ?? 0
             const selected = character.id === previewId
             return (

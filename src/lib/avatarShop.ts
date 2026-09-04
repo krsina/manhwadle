@@ -223,6 +223,8 @@ function shopErrorMessage(code: string): string {
       return 'That item is no longer available.'
     case 'already_owned':
       return 'You already own that item.'
+    case 'gacha_only':
+      return 'Characters are unlocked on the banner, not bought from the catalog.'
     case 'insufficient_points':
       return 'You do not have enough points yet.'
     case 'not_owned':

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { GACHA_UPGRADE_DUPLICATES, type GachaRarity } from '../../lib/gacha'
+import { isGachaLabEnabled } from '../../lib/gachaLocalStore'
 import { gachaSoundSupported } from '../../lib/gachaSounds'
 import { useGachaLocal } from './GachaLocalProvider'
 
@@ -27,6 +28,8 @@ export function GachaLab({
   const { snapshot, lastResult, grantLatest, reset, setForceRarity, setSkip, setMuted } =
     useGachaLocal()
   const [open, setOpen] = useState(defaultOpen)
+
+  if (!isGachaLabEnabled()) return null
 
   return (
     <details
