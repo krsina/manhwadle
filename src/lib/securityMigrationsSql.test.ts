@@ -37,6 +37,9 @@ const newsCommentSelfDeleteMigration = readSql(
 const newsCommentEditMigration = readSql(
   'supabase/migrations/20260811232720_news_comment_edit_own.sql',
 )
+const newsStickyMigration = readSql(
+  'supabase/migrations/20260904090000_news_sticky.sql',
+)
 
 describe('private ledger hardening migration contracts', () => {
   it('enables RLS on point_transactions and keeps client DML revoked', () => {
@@ -114,6 +117,27 @@ describe('news item kinds migration contracts', () => {
       ') from public, anon, authenticated;\ngrant execute on function public.moderation_upsert_site_update',
     )
     expect(newsKindsMigration).toContain(') to service_role;')
+  })
+})
+
+describe('news sticky migration contracts', () => {
+  it('pins published posts first and keeps authoring service-role only', () => {
+    expect(newsStickyMigration).toContain(
+      'add column if not exists sticky boolean not null default false',
+    )
+    expect(newsStickyMigration).toContain("'sticky', p_row.sticky")
+    expect(newsStickyMigration).toContain(
+      'order by s.sticky desc, s.published_at desc nulls last, s.created_at desc',
+    )
+    expect(newsStickyMigration).toContain("where slug = 'welcome-newcomers'")
+    expect(newsStickyMigration).toContain(
+      'drop function if exists public.moderation_upsert_site_update',
+    )
+    expect(newsStickyMigration).toContain('p_sticky boolean default null')
+    expect(newsStickyMigration).toContain(
+      ') from public, anon, authenticated;\ngrant execute on function public.moderation_upsert_site_update',
+    )
+    expect(newsStickyMigration).toContain(') to service_role;')
   })
 })
 

@@ -73,13 +73,14 @@ export function UpdateArticle({
             </button>
           )}
         </div>
-        {(update.version || dateLabel) && (
+        {(update.sticky || update.version || dateLabel) && (
           <p className="update-entry-meta">
+            {update.sticky && <span className="update-entry-pinned">Pinned</span>}
             <span className="update-entry-kind">
               {update.kind === 'announcement' ? 'Announcement' : 'Release update'}
             </span>
             {update.version && <span className="update-entry-version">v{update.version}</span>}
-            {(update.version || update.kind) && dateLabel ? (
+            {(update.sticky || update.version || update.kind) && dateLabel ? (
               <span className="update-entry-meta-sep" aria-hidden="true">
                 ·
               </span>

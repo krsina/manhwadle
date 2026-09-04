@@ -446,6 +446,7 @@ Deno.serve(async (req: Request) => {
             typeof body.published === "boolean" ? body.published : null,
           p_version: asString(body.version),
           p_kind: asString(body.kind),
+          p_sticky: typeof body.sticky === "boolean" ? body.sticky : null,
         });
         if (error) return jsonResponse(req, { error: error.message }, 400);
         return jsonResponse(req, { ok: true, result: data });

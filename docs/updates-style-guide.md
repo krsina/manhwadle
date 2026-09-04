@@ -13,7 +13,7 @@ Release updates still use the **Brief** body shape below. Announcements may drop
 
 ## Latest published version
 
-**`1.1.0`** (Multiplayer mode and News comments)
+**`1.2.0`** (Character banner shop)
 
 Keep this line in sync with the newest **published `update`** row in `site_updates` that carries a version. Whenever a new release update ships (via `/write-site-update`, Moderation → News, or a manual edit), update:
 
@@ -42,18 +42,18 @@ Do not use em dashes (`—`). Prefer commas, periods, colons, or parentheses.
 
 **Kind:** `update`
 
-**Version:** `1.1.0`
+**Version:** `1.2.0`
 
-**Title:** Multiplayer mode and News comments
+**Title:** Character banner shop
 
 **Body:**
 ```
-Friends can duel in Versus, and News is the home for release notes with signed-in comments.
+The shop is now a character banner. Spend points to pull skins, or buy this week's featured set.
 
-• Versus: create or join a room, pick modes and seats, then ready up for timed rounds
-• Collaborative rooms only need one shared saved list, built from the manhwa catalog
-• News hosts release updates and announcements, and signed-in readers can leave comments
-• Homepage podium avatars, milestones, and the archive control sit cleaner on phones and desktop
+• One pull costs 400 points. Clearing all four modes in a day earns one pull.
+• Sign in to pull, buy a weekly featured skin, or keep copies in your collection.
+• Edit avatar and background from collection for characters and stages you own.
+• Catalog avatar buys are retired. Stages still use the collection shop.
 ```
 
 ### Announcement shape
