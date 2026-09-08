@@ -125,7 +125,7 @@ export interface GuessFeedback {
   isCorrect: boolean
   /** Title form the player selected (alias or primary); falls back to displayTitle in UI */
   displayLabel?: string
-  /** Normalized words shared by the displayed guess title and any known answer title. */
+  /** Guess-title words consumed 1-to-1 against the answer (duplicates allowed). */
   titleKeywordMatches: string[]
   genres: GenreFeedback
   year: YearFeedback

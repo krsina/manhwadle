@@ -44,9 +44,14 @@ const SCENARIOS: readonly {
     displayLabel: 'Warrior Regression Chronicle',
   },
   {
+    title: 'One-to-one repeats',
+    description: 'A second copy of a word stays plain when the answer only has one.',
+    guess: makeTitle(8, 'The Return of the Mage'),
+  },
+  {
     title: 'No keyword match',
     description: 'Unrelated titles remain unchanged.',
-    guess: makeTitle(8, 'Solo Leveling'),
+    guess: makeTitle(9, 'Solo Leveling'),
   },
   {
     title: 'Correct title',

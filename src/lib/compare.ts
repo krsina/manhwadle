@@ -24,6 +24,15 @@ function titleWords(value: string): string[] {
   return value.match(TITLE_WORD_PATTERN) ?? []
 }
 
+function wordCounts(value: string): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const word of titleWords(value)) {
+    const key = normalizeTitleKeyword(word)
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+  return counts
+}
+
 function knownTitles(manhwa: Manhwa): string[] {
   return [
     manhwa.title.english,
@@ -33,16 +42,25 @@ function knownTitles(manhwa: Manhwa): string[] {
   ].flatMap((title) => (title?.trim() ? [title] : []))
 }
 
-/** Words in a displayed guess title that occur in any known title for the answer. */
+/** Per-word budget: max count of that word in any single known answer title. */
+function answerWordBudget(answer: Manhwa): Map<string, number> {
+  const budget = new Map<string, number>()
+  for (const title of knownTitles(answer)) {
+    for (const [word, count] of wordCounts(title)) {
+      budget.set(word, Math.max(budget.get(word) ?? 0, count))
+    }
+  }
+  return budget
+}
+
+/** Guess-title words consumed 1-to-1 against the answer's word budget. */
 export function compareTitleKeywords(guessLabel: string, answer: Manhwa): string[] {
-  const answerWords = new Set(
-    knownTitles(answer).flatMap((title) => titleWords(title).map(normalizeTitleKeyword)),
-  )
-  const seen = new Set<string>()
+  const remaining = answerWordBudget(answer)
   return titleWords(guessLabel).flatMap((word) => {
     const normalized = normalizeTitleKeyword(word)
-    if (!answerWords.has(normalized) || seen.has(normalized)) return []
-    seen.add(normalized)
+    const left = remaining.get(normalized) ?? 0
+    if (left <= 0) return []
+    remaining.set(normalized, left - 1)
     return [normalized]
   })
 }

@@ -23,4 +23,24 @@ describe('FeedbackGrid title keywords', () => {
     expect(html).toContain('class="feedback-title-keyword">Regression</mark>')
     expect(html).not.toContain('class="feedback-title-keyword">Protocol</mark>')
   })
+
+  it('highlights only as many copies of a word as the answer used', () => {
+    const answer = makeManhwa({
+      id: 1,
+      title: { english: 'The Warrior Returns', romaji: null, native: null },
+    })
+    const guess = makeManhwa({
+      id: 2,
+      title: { english: 'The Return of the Frozen Warrior', romaji: null, native: null },
+    })
+
+    const html = renderToStaticMarkup(
+      <FeedbackGrid rows={[compareGuess(guess, answer)]} />,
+    )
+    const marks = [...html.matchAll(/class="feedback-title-keyword">([^<]*)<\/mark>/g)].map(
+      (match) => match[1],
+    )
+
+    expect(marks).toEqual(['The', 'Warrior'])
+  })
 })

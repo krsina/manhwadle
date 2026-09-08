@@ -90,17 +90,22 @@ function TagValue({ row, compact }: { row: GuessFeedback; compact: boolean }) {
 
 function HighlightedTitle({ row }: { row: GuessFeedback }) {
   const label = row.displayLabel?.trim() || displayTitle(row.manhwa)
-  const matches = new Set(row.titleKeywordMatches)
+  const remaining = new Map<string, number>()
+  for (const word of row.titleKeywordMatches) {
+    remaining.set(word, (remaining.get(word) ?? 0) + 1)
+  }
 
-  return label.split(/([\p{L}\p{N}]+)/gu).map((part, index) =>
-    matches.has(normalizeTitleKeyword(part)) ? (
+  return label.split(/([\p{L}\p{N}]+)/gu).map((part, index) => {
+    const normalized = normalizeTitleKeyword(part)
+    const left = remaining.get(normalized) ?? 0
+    if (left <= 0) return part
+    remaining.set(normalized, left - 1)
+    return (
       <mark className="feedback-title-keyword" key={`${part}-${index}`}>
         {part}
       </mark>
-    ) : (
-      part
-    ),
-  )
+    )
+  })
 }
 
 function FlipCell({
