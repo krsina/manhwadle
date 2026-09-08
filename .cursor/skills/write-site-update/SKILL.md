@@ -225,17 +225,16 @@ Matches **Latest published version** in `docs/updates-style-guide.md`:
 
 ```
 Kind: update
-Version: 1.2.0
-Title: Character banner shop
-Slug: character-banner-shop
+Version: 1.2.1
+Title: Matching title words
+Slug: matching-title-words
 
 Body:
-The shop is now a character banner. Spend points to pull skins, or buy this week's featured set.
+Guesses now highlight title words you already got right, so close titles are easier to read.
 
-• One pull costs 400 points. Clearing all four modes in a day earns one pull.
-• Sign in to pull, buy a weekly featured skin, or keep copies in your collection.
-• Edit avatar and background from collection for characters and stages you own.
-• Catalog avatar buys are retired. Stages still use the collection shop.
+• Matching words from the answer title light up in green on the guess row.
+• Extra copies of a word stay plain if the title only used it once.
+• Signed-in dailies follow your saved progress, so an out-of-date device will not block guesses.
 ```
 
 ## Anti-patterns
