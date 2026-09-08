@@ -75,6 +75,7 @@ export function buildMultiplayerFeedbackRows(
       manhwa: guess,
       isCorrect: row.is_correct === true,
       displayLabel: resolveMultiplayerDisplayLabel(row.display_label, rawGuessId),
+      titleKeywordMatches: strings(row.title_keyword_matches),
       genres: {
         tone: tone(genres.tone),
         shared: strings(genres.shared),

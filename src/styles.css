@@ -45,6 +45,58 @@
   -webkit-font-smoothing: antialiased;
 }
 
+.keyword-feedback-demo {
+  width: min(100%, 76rem);
+  margin: 0 auto;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.keyword-feedback-demo-hero {
+  max-width: 48rem;
+  margin-bottom: 2rem;
+}
+
+.keyword-feedback-demo-hero h1 {
+  margin: 0.2rem 0 0.65rem;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.4rem);
+}
+
+.keyword-feedback-demo-hero p:last-child,
+.keyword-feedback-demo-copy p {
+  color: var(--ink-soft);
+}
+
+.keyword-feedback-demo-list {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.keyword-feedback-demo-scenario {
+  padding: clamp(0.85rem, 2vw, 1.2rem);
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) + 4px);
+  background: var(--panel);
+}
+
+.keyword-feedback-demo-copy {
+  margin-bottom: 0.8rem;
+}
+
+.keyword-feedback-demo-copy h2,
+.keyword-feedback-demo-copy p {
+  margin: 0;
+}
+
+.keyword-feedback-demo-copy h2 {
+  font-size: 1rem;
+}
+
+.keyword-feedback-demo-copy p {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+}
+
 [data-theme='light'] {
   color-scheme: light;
   /* Cool blue-gray paper + elevated white panels (mirrors dark’s blue accent) */
@@ -3447,15 +3499,32 @@ a.site-icon-btn {
   box-sizing: border-box;
   height: 100%;
   padding: 0.35rem 0.65rem;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow-x: hidden;
+  overflow-y: auto;
+  white-space: normal;
   line-height: 1.25;
   text-shadow: none;
   background: transparent;
   color: var(--ink);
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar) transparent;
+}
+
+.feedback-title-content {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.feedback-title-keyword {
+  padding: 0.04em 0.18em;
+  border-radius: 0.28em;
+  background: color-mix(in srgb, var(--correct) 78%, transparent);
+  color: #052e16;
+  font: inherit;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .tile {

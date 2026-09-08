@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Manhwa } from './anilist-types'
+import type { DailyAttemptPublic } from './dailyAttempt'
 import type { ReaderTaste } from './readerTaste'
 import type { StatsModeId } from './stats'
 import { getDailyAnswer, getTodayKey } from './daily'
@@ -15,6 +16,7 @@ export type DailyAnswerSource = DailyPuzzleSource
 export interface DailyPuzzleAnswerState {
   answer: Manhwa
   source: DailyAnswerSource
+  attempt: DailyAttemptPublic | null
   characterId: number | null
   meta: Record<string, unknown> | null
   clue: DailyPublicClue | null
@@ -59,6 +61,7 @@ export function useDailyPuzzleAnswer(
 
   const [answer, setAnswer] = useState(localAnswer)
   const [source, setSource] = useState<DailyAnswerSource>('local')
+  const [attempt, setAttempt] = useState<DailyAttemptPublic | null>(null)
   const [characterId, setCharacterId] = useState<number | null>(null)
   const [meta, setMeta] = useState<Record<string, unknown> | null>(null)
   const [clue, setClue] = useState<DailyPublicClue | null>(null)
@@ -71,6 +74,7 @@ export function useDailyPuzzleAnswer(
     if (!useRemote) {
       setAnswer(localAnswer)
       setSource('local')
+      setAttempt(null)
       setCharacterId(null)
       setMeta(null)
       setClue(null)
@@ -83,6 +87,7 @@ export function useDailyPuzzleAnswer(
     // Pending remote resolution — keep showing local as a placeholder only.
     setAnswer(localAnswer)
     setSource('local')
+    setAttempt(null)
     setCharacterId(null)
     setMeta(null)
     setClue(null)
@@ -108,6 +113,7 @@ export function useDailyPuzzleAnswer(
       if (cancelled) return
       setAnswer(result.answer)
       setSource(result.source)
+      setAttempt(result.attempt ?? null)
       setCharacterId(result.characterId)
       setMeta(result.meta)
       setClue(result.clue)
@@ -124,6 +130,7 @@ export function useDailyPuzzleAnswer(
   return {
     answer,
     source,
+    attempt,
     characterId,
     meta,
     clue,

@@ -41,7 +41,12 @@ import {
 } from '../../lib/clueProgress'
 import { applyGuess } from '../../lib/guessLoop'
 import { reportWrongGenreIfCompleteMiss } from '../../lib/secretEvents'
-import { createInitialState, loadDayState, saveDayState } from '../../lib/storage'
+import {
+  createInitialState,
+  loadDayState,
+  reconcileDayStateWithAttempt,
+  saveDayState,
+} from '../../lib/storage'
 import { readerTasteShareLabel, withTastePrefix } from '../../lib/readerTaste'
 import {
   applyRankedCompletionReward,
@@ -89,8 +94,7 @@ function buildFeedbackRows(state: DayState, answer: Manhwa, pool: Manhwa[]): Gue
     const label = labels[index]?.trim()
     return [
       {
-        ...compareGuess(guess, answer),
-        displayLabel: label || undefined,
+        ...compareGuess(guess, answer, label),
       },
     ]
   })
@@ -115,6 +119,7 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
 
   const {
     answer: dailyAnswer,
+    attempt: serverAttempt,
     settled: answerSettled,
     migrationMissing,
     clue,
@@ -192,6 +197,19 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
   useEffect(() => {
     if (isPractice || !answerSettled) return
     const saved = loadDayState(dateKey, tasteStorage)
+    if (serverAttempt) {
+      const reconciled = reconcileDayStateWithAttempt(
+        saved ?? createInitialState(dateKey, dailyAnswer.id),
+        serverAttempt,
+        dailyAnswer.id,
+      )
+      saveDayState(reconciled, tasteStorage)
+      setDayState(reconciled)
+      setHardMode(reconciled.hardMode ?? false)
+      setShowResult(reconciled.status !== 'playing')
+      setShowSurrender(false)
+      return
+    }
     if (saved && saved.answerId === dailyAnswer.id) {
       setDayState(saved)
       if (saved.hardMode != null) setHardMode(saved.hardMode)
@@ -221,7 +239,14 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
       setShowResult(false)
       setShowSurrender(false)
     }
-  }, [dailyAnswer.id, dateKey, tasteStorage, isPractice, answerSettled])
+  }, [
+    dailyAnswer.id,
+    dateKey,
+    tasteStorage,
+    isPractice,
+    answerSettled,
+    serverAttempt,
+  ])
 
   const hardModeLocked = dayState.guessIds.length > 0
 

@@ -48,6 +48,11 @@ const VersusEffectsDemoPage = lazyWithStaleReload(() =>
 const GachaShopDemoPage = lazyWithStaleReload(() =>
   import('./pages/GachaShopDemoPage').then((m) => ({ default: m.GachaShopDemoPage })),
 )
+const KeywordFeedbackDemoPage = lazyWithStaleReload(() =>
+  import('./pages/KeywordFeedbackDemoPage').then((m) => ({
+    default: m.KeywordFeedbackDemoPage,
+  })),
+)
 const NewAvatarsPreviewPage = lazyWithStaleReload(() =>
   import('./pages/NewAvatarsPreviewPage').then((m) => ({ default: m.NewAvatarsPreviewPage })),
 )
@@ -224,6 +229,16 @@ function App() {
                   <LocalDevOrOwnerRoute>
                     <Suspense fallback={<RouteFallback />}>
                       <GachaShopDemoPage />
+                    </Suspense>
+                  </LocalDevOrOwnerRoute>
+                }
+              />
+              <Route
+                path="dev/keyword-feedback"
+                element={
+                  <LocalDevOrOwnerRoute>
+                    <Suspense fallback={<RouteFallback />}>
+                      <KeywordFeedbackDemoPage />
                     </Suspense>
                   </LocalDevOrOwnerRoute>
                 }
