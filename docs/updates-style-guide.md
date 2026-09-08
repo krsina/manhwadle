@@ -13,7 +13,7 @@ Release updates still use the **Brief** body shape below. Announcements may drop
 
 ## Latest published version
 
-**`1.2.0`** (Character banner shop)
+**`1.2.1`** (Matching title words)
 
 Keep this line in sync with the newest **published `update`** row in `site_updates` that carries a version. Whenever a new release update ships (via `/write-site-update`, Moderation → News, or a manual edit), update:
 
@@ -42,18 +42,17 @@ Do not use em dashes (`—`). Prefer commas, periods, colons, or parentheses.
 
 **Kind:** `update`
 
-**Version:** `1.2.0`
+**Version:** `1.2.1`
 
-**Title:** Character banner shop
+**Title:** Matching title words
 
 **Body:**
 ```
-The shop is now a character banner. Spend points to pull skins, or buy this week's featured set.
+Guesses now highlight title words you already got right, so close titles are easier to read.
 
-• One pull costs 400 points. Clearing all four modes in a day earns one pull.
-• Sign in to pull, buy a weekly featured skin, or keep copies in your collection.
-• Edit avatar and background from collection for characters and stages you own.
-• Catalog avatar buys are retired. Stages still use the collection shop.
+• Matching words from the answer title light up in green on the guess row.
+• Extra copies of a word stay plain if the title only used it once.
+• Signed-in dailies follow your saved progress, so an out-of-date device will not block guesses.
 ```
 
 ### Announcement shape
