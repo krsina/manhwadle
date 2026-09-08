@@ -78,6 +78,34 @@ describe('compareGuess', () => {
     expect(compareTitleKeywords('Solo Leveling', answer)).toEqual([])
   })
 
+  it('consumes repeated title words one-to-one against the answer', () => {
+    const answer = makeManhwa({
+      id: 1,
+      title: { english: 'The Warrior Returns', romaji: null, native: null },
+    })
+
+    expect(compareTitleKeywords('The Return of the Frozen Warrior', answer)).toEqual([
+      'the',
+      'warrior',
+    ])
+    expect(compareTitleKeywords('The The The Warrior', answer)).toEqual(['the', 'warrior'])
+  })
+
+  it('allows as many repeats as the answer itself uses', () => {
+    const answer = makeManhwa({
+      id: 1,
+      title: { english: 'The King of the Battlefield', romaji: null, native: null },
+    })
+
+    expect(compareTitleKeywords('The Rise of the Battlefield King', answer)).toEqual([
+      'the',
+      'of',
+      'the',
+      'battlefield',
+      'king',
+    ])
+  })
+
   it('checks the selected guess alias against all known answer titles', () => {
     const answer = makeManhwa({
       id: 1,
