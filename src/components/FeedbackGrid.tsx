@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { GuessFeedback } from '../lib/anilist-types'
 import { displayTitle } from '../lib/daily'
+import { normalizeTitleKeyword } from '../lib/compare'
 import { useMatchMedia } from '../hooks/useMatchMedia'
 
 interface FeedbackGridProps {
@@ -84,6 +85,21 @@ function TagValue({ row, compact }: { row: GuessFeedback; compact: boolean }) {
         ) : null}
       </ul>
     </div>
+  )
+}
+
+function HighlightedTitle({ row }: { row: GuessFeedback }) {
+  const label = row.displayLabel?.trim() || displayTitle(row.manhwa)
+  const matches = new Set(row.titleKeywordMatches)
+
+  return label.split(/([\p{L}\p{N}]+)/gu).map((part, index) =>
+    matches.has(normalizeTitleKeyword(part)) ? (
+      <mark className="feedback-title-keyword" key={`${part}-${index}`}>
+        {part}
+      </mark>
+    ) : (
+      part
+    ),
   )
 }
 
@@ -211,7 +227,9 @@ export function FeedbackGrid({ rows }: FeedbackGridProps) {
                   />
                 )}
                 <span className="feedback-title-text">
-                  {row.displayLabel?.trim() || displayTitle(row.manhwa)}
+                  <span className="feedback-title-content">
+                    <HighlightedTitle row={row} />
+                  </span>
                 </span>
               </FlipCell>
               <FlipCell

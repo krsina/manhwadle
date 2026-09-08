@@ -1,6 +1,10 @@
 import type { Manhwa } from './anilist-types'
 import { getDailyAnswer, getTodayKey } from './daily'
-import { fetchDailyPlayState, isMissingRpcError } from './dailyAttempt'
+import {
+  fetchDailyPlayState,
+  isMissingRpcError,
+  type DailyAttemptPublic,
+} from './dailyAttempt'
 import { findById } from './search'
 import { supabase, isSupabaseConfigured } from './supabase'
 import type { ReaderTaste } from './readerTaste'
@@ -26,6 +30,8 @@ export interface TodaysPuzzleResult {
   answer: Manhwa
   characterId: number | null
   source: DailyPuzzleSource
+  /** Authoritative signed-in attempt, used to reconcile stale local state. */
+  attempt?: DailyAttemptPublic | null
   /** True when today's answer_id is intentionally withheld (signed-in ranked path). */
   answerHidden: boolean
   meta: Record<string, unknown> | null
@@ -248,6 +254,7 @@ export async function getTodaysPuzzle(
           answer: revealed,
           characterId: play.attempt?.characterId ?? null,
           source: 'play_state',
+          attempt: play.attempt,
           answerHidden: false,
           meta: play.meta,
           clue: payload?.clue ?? null,
@@ -264,6 +271,7 @@ export async function getTodaysPuzzle(
           answer: guestAnswer,
           characterId: play.characterId,
           source: 'play_state',
+          attempt: play.attempt,
           answerHidden: false,
           meta: play.meta,
           clue: payload?.clue ?? null,
@@ -279,6 +287,7 @@ export async function getTodaysPuzzle(
           answer: bound,
           characterId: null,
           source: 'play_state',
+          attempt: play.attempt,
           answerHidden: false,
           meta: play.meta,
           clue: payload.clue,
@@ -289,6 +298,7 @@ export async function getTodaysPuzzle(
         answer: fingerprintAnswer(payload.fingerprint, payload.clue),
         characterId: null,
         source: 'play_state',
+        attempt: play.attempt,
         answerHidden: true,
         meta: play.meta,
         clue: payload.clue,
@@ -300,6 +310,7 @@ export async function getTodaysPuzzle(
       answer: unavailableHiddenAnswer(),
       characterId: null,
       source: 'play_state',
+      attempt: play.attempt,
       answerHidden: true,
       meta: play.meta,
       clue: null,

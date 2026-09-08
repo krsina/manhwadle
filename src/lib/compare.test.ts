@@ -3,6 +3,7 @@ import {
   buildShareText,
   compareGuess,
   comparePublisher,
+  compareTitleKeywords,
   compareYear,
   formatGuessScore,
   isCompleteMiss,
@@ -62,6 +63,32 @@ describe('compareGuess', () => {
     expect(compareGuess(same, answer).publisher.tone).toBe('correct')
     expect(compareGuess(miss, answer).publisher.tone).toBe('incorrect')
     expect(compareGuess(miss, answer).publisher.publisher).toBe('Tapas')
+  })
+
+  it('finds title keyword matches without case or punctuation sensitivity', () => {
+    const answer = makeManhwa({
+      id: 1,
+      title: { english: 'Regression Warrior Mage', romaji: null, native: null },
+    })
+
+    expect(compareTitleKeywords('MAGE: regression protocol', answer)).toEqual([
+      'mage',
+      'regression',
+    ])
+    expect(compareTitleKeywords('Solo Leveling', answer)).toEqual([])
+  })
+
+  it('checks the selected guess alias against all known answer titles', () => {
+    const answer = makeManhwa({
+      id: 1,
+      title: { english: 'Regression Warrior Mage', romaji: null, native: null },
+      synonyms: ['The Arcane Warrior'],
+    })
+    const guess = makeManhwa({ id: 2 })
+    const feedback = compareGuess(guess, answer, 'Arcane Return')
+
+    expect(feedback.displayLabel).toBe('Arcane Return')
+    expect(feedback.titleKeywordMatches).toEqual(['arcane'])
   })
 
   it('detects a complete miss when every feedback tile is incorrect', () => {

@@ -8,9 +8,43 @@ import type {
   TagFeedback,
   YearFeedback,
 } from './anilist-types'
+import { displayTitle } from './daily'
 
 function normalizeSet(values: string[]): Set<string> {
   return new Set(values.map((v) => v.trim().toLowerCase()).filter(Boolean))
+}
+
+const TITLE_WORD_PATTERN = /[\p{L}\p{N}]+/gu
+
+export function normalizeTitleKeyword(value: string): string {
+  return value.normalize('NFKC').toLocaleLowerCase()
+}
+
+function titleWords(value: string): string[] {
+  return value.match(TITLE_WORD_PATTERN) ?? []
+}
+
+function knownTitles(manhwa: Manhwa): string[] {
+  return [
+    manhwa.title.english,
+    manhwa.title.romaji,
+    manhwa.title.native,
+    ...manhwa.synonyms,
+  ].flatMap((title) => (title?.trim() ? [title] : []))
+}
+
+/** Words in a displayed guess title that occur in any known title for the answer. */
+export function compareTitleKeywords(guessLabel: string, answer: Manhwa): string[] {
+  const answerWords = new Set(
+    knownTitles(answer).flatMap((title) => titleWords(title).map(normalizeTitleKeyword)),
+  )
+  const seen = new Set<string>()
+  return titleWords(guessLabel).flatMap((word) => {
+    const normalized = normalizeTitleKeyword(word)
+    if (!answerWords.has(normalized) || seen.has(normalized)) return []
+    seen.add(normalized)
+    return [normalized]
+  })
 }
 
 function setsEqual(a: Set<string>, b: Set<string>): boolean {
@@ -105,11 +139,18 @@ export function compareTags(guess: Manhwa, answer: Manhwa): TagFeedback {
   }
 }
 
-export function compareGuess(guess: Manhwa, answer: Manhwa): GuessFeedback {
+export function compareGuess(
+  guess: Manhwa,
+  answer: Manhwa,
+  displayLabel?: string,
+): GuessFeedback {
   const isCorrect = guess.id === answer.id
+  const selectedLabel = displayLabel?.trim() || displayTitle(guess)
   return {
     manhwa: guess,
     isCorrect,
+    displayLabel: displayLabel?.trim() || undefined,
+    titleKeywordMatches: compareTitleKeywords(selectedLabel, answer),
     genres: isCorrect
       ? { tone: 'correct', shared: [...answer.genres], guessed: [...guess.genres] }
       : compareGenres(guess, answer),

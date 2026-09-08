@@ -1,4 +1,34 @@
 import type { DayState } from './anilist-types'
+import type { DailyAttemptPublic } from './dailyAttempt'
+
+/** Overlay authoritative ranked progress onto potentially stale device state. */
+export function reconcileDayStateWithAttempt(
+  local: DayState,
+  attempt: DailyAttemptPublic,
+  resolvedAnswerId: number,
+): DayState {
+  const labelsById = new Map(
+    local.guessIds.map((id, index) => [id, local.guessLabels?.[index] ?? '']),
+  )
+  const guessLabels = attempt.guessIds.map((id) => labelsById.get(id) ?? '')
+  const status =
+    attempt.status === 'won'
+      ? 'won'
+      : attempt.status === 'lost' || attempt.status === 'surrendered'
+        ? 'lost'
+        : 'playing'
+
+  return {
+    ...local,
+    dateKey: attempt.dateKey || local.dateKey,
+    answerId: attempt.answerId ?? resolvedAnswerId,
+    guessIds: attempt.guessIds,
+    ...(guessLabels.some(Boolean) ? { guessLabels } : { guessLabels: undefined }),
+    status,
+    hintsUsed: attempt.hintsUsed,
+    hardMode: attempt.hardMode,
+  }
+}
 
 export function loadDayState(
   dateKey: string,

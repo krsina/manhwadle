@@ -330,6 +330,11 @@ describe('getTodaysPuzzle', () => {
     expect(result.source).toBe('play_state')
     expect(result.answerHidden).toBe(false)
     expect(result.answer.id).toBe(2)
+    expect(result.attempt).toMatchObject({
+      status: 'won',
+      guessIds: [2],
+      answerId: 2,
+    })
   })
 
   it('falls back to local when play-state RPC is missing', async () => {
