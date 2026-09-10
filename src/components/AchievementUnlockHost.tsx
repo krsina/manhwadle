@@ -12,6 +12,7 @@ import {
   resetAchievementUnlockHydration,
   seedSeenAchievements,
 } from '../lib/achievementUnlocks'
+import { isAccountSetupComplete } from '../lib/accountSetup'
 import { fetchMyAchievements } from '../lib/leaderboardApi'
 import { AchievementUnlockModal } from './AchievementUnlockModal'
 import { useAuth } from './AuthProvider'
@@ -38,15 +39,22 @@ function awardsFromIds(ids: string[]): AchievementAward[] {
  * Konami, etc.) celebrate even when the user is not on Home.
  */
 export function AchievementUnlockHost() {
-  const { user } = useAuth()
+  const { user, account, accountLoading, needsUsername } = useAuth()
   const [unlockQueue, setUnlockQueue] = useState<AchievementAward[]>([])
   const [reloadToken, setReloadToken] = useState(0)
+  const accountSetupComplete = isAccountSetupComplete(
+    Boolean(user),
+    accountLoading,
+    account,
+  )
 
   useEffect(() => {
     function onAchievementsChanged(event: Event) {
       const detail = (event as CustomEvent<AchievementsChangedDetail>).detail
       const awardedIds = detail?.awardedIds
-      if (awardedIds && awardedIds.length > 0) {
+      // Achievement events can arrive during sign-in sync or username setup.
+      // Defer them until onboarding is complete so two modal flows never stack.
+      if (accountSetupComplete && awardedIds && awardedIds.length > 0) {
         const freshIds = claimFreshAchievementIds(awardedIds)
         const fresh = awardsFromIds(freshIds)
         if (fresh.length > 0) {
@@ -57,12 +65,16 @@ export function AchievementUnlockHost() {
     }
     window.addEventListener(ACHIEVEMENTS_CHANGED_EVENT, onAchievementsChanged)
     return () => window.removeEventListener(ACHIEVEMENTS_CHANGED_EVENT, onAchievementsChanged)
-  }, [])
+  }, [accountSetupComplete])
 
   useEffect(() => {
     if (!user) {
       resetAchievementUnlockHydration()
       setUnlockQueue([])
+      return
+    }
+    if (!accountSetupComplete) {
+      if (needsUsername) setUnlockQueue([])
       return
     }
     let cancelled = false
@@ -84,7 +96,7 @@ export function AchievementUnlockHost() {
     return () => {
       cancelled = true
     }
-  }, [user, reloadToken])
+  }, [user, accountSetupComplete, needsUsername, reloadToken])
 
   return (
     <AchievementUnlockModal

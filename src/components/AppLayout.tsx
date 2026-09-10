@@ -25,6 +25,7 @@ import {
   type PublicSiteStatus,
 } from '../lib/leaderboardApi'
 import type { ReaderTaste } from '../lib/readerTaste'
+import { isAccountSetupComplete } from '../lib/accountSetup'
 import { AppAnnouncer } from './AppAnnouncer'
 import { NetworkStatus } from './NetworkStatus'
 import { PointsBadge } from './PointsBadge'
@@ -46,9 +47,14 @@ interface AppLayoutProps {
 export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, account, accountLoading } = useAuth()
   const [siteStatus, setSiteStatus] = useState<PublicSiteStatus | null>(null)
   const [prefsOpen, setPrefsOpen] = useState(false)
+  const accountSetupComplete = isAccountSetupComplete(
+    Boolean(user),
+    accountLoading,
+    account,
+  )
 
   useEffect(() => {
     const target = legacyPlayRedirectTarget({
@@ -64,7 +70,9 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
   }, [location.pathname, location.search, location.hash, navigate])
 
   useEffect(() => {
-    if (!user) return
+    // Secret-achievement listeners begin only after account setup. This keeps
+    // username onboarding as the sole interactive flow for a new account.
+    if (!accountSetupComplete) return
     const stopBackground = createBackgroundCultivationTracker(() => {
       void reportSecretEvent('tab_open_24h')
     })
@@ -79,7 +87,7 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
       stopTwin()
       stopKonami()
     }
-  }, [user])
+  }, [accountSetupComplete])
 
   useEffect(() => {
     let cancelled = false

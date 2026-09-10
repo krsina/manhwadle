@@ -8,6 +8,7 @@ import {
 } from 'react'
 import type { Provider, Session, User } from '@supabase/supabase-js'
 import type { ReaderTaste } from '../lib/readerTaste'
+import { isAccountSetupComplete } from '../lib/accountSetup'
 import { OWNER_USER_MODE_EVENT, setOwnerUserModeEnabled, syncOwnerDevSession } from '../lib/devAccess'
 import {
   applyLocalOwnerPreview,
@@ -72,6 +73,12 @@ export function AuthProvider({
   const [loading, setLoading] = useState(configured)
   const [account, setAccount] = useState<AccountSnapshot | null>(null)
   const [accountLoading, setAccountLoading] = useState(false)
+  const needsUsername = Boolean(session?.user && account?.needsUsername)
+  const accountSetupComplete = isAccountSetupComplete(
+    Boolean(session?.user),
+    accountLoading,
+    account,
+  )
   const onSyncedTasteRef = useRef(onSyncedTaste)
   onSyncedTasteRef.current = onSyncedTaste
   /** Avoid double merge from getSession + SIGNED_IN for the same user. */
@@ -209,7 +216,9 @@ export function AuthProvider({
 
   // Ping visit milestones once per session user (server is idempotent per UTC day).
   useEffect(() => {
-    if (!session?.user || !configured) return
+    // Account setup is a distinct first step. Starting visit awards while the
+    // blocking username dialog is open can stack an achievement dialog over it.
+    if (!configured || !accountSetupComplete) return
     let cancelled = false
     void recordDailyVisit().then((result) => {
       if (cancelled || !result.ok || !result.recorded) return
@@ -219,7 +228,7 @@ export function AuthProvider({
     return () => {
       cancelled = true
     }
-  }, [session?.user?.id, configured])
+  }, [session?.user?.id, configured, accountSetupComplete])
 
   async function signInWithMagicLink(email: string) {
     if (!supabase) return { error: 'Supabase is not configured' }
@@ -266,6 +275,8 @@ export function AuthProvider({
     const result = await apiClaimUsername(username)
     if (!result.ok) return { error: result.error }
     await refreshAccount()
+    // Let achievements hydrate only after the username dialog has completed.
+    notifyAchievementsChanged()
     return { error: null }
   }
 
@@ -288,7 +299,6 @@ export function AuthProvider({
     return { error: null }
   }
 
-  const needsUsername = Boolean(session?.user && account?.needsUsername)
   const [ownerPreviewTick, setOwnerPreviewTick] = useState(0)
   useEffect(() => {
     if (!import.meta.env.DEV) return

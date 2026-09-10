@@ -56,6 +56,11 @@ const KeywordFeedbackDemoPage = lazyWithStaleReload(() =>
 const NewAvatarsPreviewPage = lazyWithStaleReload(() =>
   import('./pages/NewAvatarsPreviewPage').then((m) => ({ default: m.NewAvatarsPreviewPage })),
 )
+const AchievementIconComparisonPage = lazyWithStaleReload(() =>
+  import('./pages/AchievementIconComparisonPage').then((m) => ({
+    default: m.AchievementIconComparisonPage,
+  })),
+)
 const PrivacyPage = lazyWithStaleReload(() =>
   import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
 )
@@ -249,6 +254,16 @@ function App() {
                   <LocalDevOrOwnerRoute>
                     <Suspense fallback={<RouteFallback />}>
                       <NewAvatarsPreviewPage />
+                    </Suspense>
+                  </LocalDevOrOwnerRoute>
+                }
+              />
+              <Route
+                path="dev/achievement-icons"
+                element={
+                  <LocalDevOrOwnerRoute>
+                    <Suspense fallback={<RouteFallback />}>
+                      <AchievementIconComparisonPage />
                     </Suspense>
                   </LocalDevOrOwnerRoute>
                 }
