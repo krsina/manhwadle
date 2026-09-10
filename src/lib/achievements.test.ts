@@ -31,7 +31,7 @@ describe('shouldAwardAchievement', () => {
     )
   })
 
-  it('starts any-mode streak ladder at day 2 and keeps Clean Sweep', () => {
+  it('spaces early streak awards so first full clear does not duplicate', () => {
     expect(ACHIEVEMENT_DEFINITIONS.some((a) => a.id === 'any_streak_1')).toBe(false)
 
     const actually = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'any_streak_2')!
@@ -41,9 +41,36 @@ describe('shouldAwardAchievement', () => {
 
     const clean = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'all_mode_streak_1')!
     const double = ACHIEVEMENT_DEFINITIONS.find((a) => a.id === 'all_mode_streak_2')!
-    expect(shouldAwardAchievement(clean, { all_max_streak: 1 })).toBe(true)
+    expect(shouldAwardAchievement(clean, { all_max_streak: 3 })).toBe(false)
+    expect(shouldAwardAchievement(clean, { all_max_streak: 4 })).toBe(true)
     expect(shouldAwardAchievement(double, { all_max_streak: 2 })).toBe(true)
     expect(clean.title).toBe('Clean Sweep')
+  })
+
+  it('keeps normal full-clear ladder collisions to three or fewer', () => {
+    const ladder = ACHIEVEMENT_DEFINITIONS.filter(
+      (definition) =>
+        definition.category === 'completions' ||
+        definition.category === 'streak' ||
+        definition.category === 'all_mode',
+    )
+
+    for (let day = 1; day <= 730; day += 1) {
+      const newlyReached = ladder.filter((definition) => {
+        if (definition.metric === 'total_completions') {
+          return definition.threshold === day * 4
+        }
+        if (
+          definition.metric === 'any_max_streak' ||
+          definition.metric === 'all_max_streak' ||
+          definition.metric === 'all_complete_days'
+        ) {
+          return definition.threshold === day
+        }
+        return false
+      })
+      expect(newlyReached.length, `full-clear day ${day}`).toBeLessThanOrEqual(3)
+    }
   })
 
   it('treats hiatus returns as hush-hush metric awards', () => {

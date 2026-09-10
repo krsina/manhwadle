@@ -360,10 +360,10 @@ const ACHIEVEMENT_BASE_DEFINITIONS: readonly Omit<
     id: 'all_mode_streak_1',
     version: ACHIEVEMENT_VERSION,
     title: 'Clean Sweep',
-    description: 'Reach a 1-day all-mode streak. Every mode. One day. Receipts filed.',
+    description: 'Reach a 4-day all-mode streak. Four straight sweeps. Receipts filed.',
     category: 'all_mode',
     metric: 'all_max_streak',
-    threshold: 1,
+    threshold: 4,
   },
   {
     id: 'all_mode_streak_2',
