@@ -1,7 +1,111 @@
 import type { AchievementCategory } from '../lib/achievements'
 
-/** Silhouette glyphs for milestone seals (osu medal–style center icons). */
 export function AchievementIcon({
+  id,
+  category,
+}: {
+  id?: string
+  category: AchievementCategory
+}) {
+  const line = {
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  }
+
+  switch (id) {
+    case 'all_mode_streak_7': // Perfect Week — checked calendar
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect {...line} x="4" y="5.5" width="16" height="14" rx="2" />
+          <path {...line} d="M4 9.5h16M8 3.8v3.4M16 3.8v3.4m-7.2 7.2 2.1 2.1 4.4-4.6" />
+        </svg>
+      )
+    case 'all_mode_days_25': // Omnivore — fork, plate, and spoon
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle {...line} cx="12" cy="12.5" r="5.2" />
+          <path {...line} d="M4 4.5v5.2m-1.5-5.2v3.1c0 1 .7 1.8 1.5 1.8s1.5-.8 1.5-1.8V4.5M4 9.7v9.8M20 19.5v-7.2c-1.6-.4-2.5-1.7-2.5-3.6 0-2.2 1-3.7 2.5-4.2v15Z" />
+        </svg>
+      )
+    case 'all_mode_streak_3': // Combo — unambiguous multiplier
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <text
+            x="12"
+            y="16.2"
+            fill="currentColor"
+            fontFamily="system-ui, sans-serif"
+            fontSize="12.5"
+            fontWeight="900"
+            letterSpacing="-0.8"
+            textAnchor="middle"
+          >
+            ×3
+          </text>
+        </svg>
+      )
+    case 'all_mode_days_50': // Collector — stacked collectible cards
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect {...line} x="7" y="4" width="11" height="15" rx="1.7" />
+          <path {...line} d="M7 7H5.8C4.8 7 4 7.8 4 8.8v9.4C4 19.2 4.8 20 5.8 20H14m-1.5-12.4 1.1 2.2 2.4.3-1.7 1.7.4 2.4-2.2-1.1-2.2 1.1.4-2.4L9 10.1l2.4-.3 1.1-2.2Z" />
+        </svg>
+      )
+    case 'all_mode_streak_60': // No Skip — crossed-out skip control
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path {...line} d="m6 6 8 6-8 6V6Zm9.5 1v10M4 4l16 16" />
+        </svg>
+      )
+    case 'all_mode_days_100': // Vault — combination safe
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect {...line} x="4" y="4" width="16" height="16" rx="2.2" />
+          <circle {...line} cx="12" cy="12" r="4" />
+          <path {...line} d="M12 8v2.1m0 3.8V16m-4-4h2.1m3.8 0H16M6.5 7.2h.1m-.1 9.6h.1" />
+        </svg>
+      )
+    case 'all_mode_streak_100': // Floor Master — trophy over cleared floors
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path {...line} d="M8 4.5h8v3.2c0 2.8-1.8 4.8-4 4.8s-4-2-4-4.8V4.5Zm0 1.8H5.2v1.2c0 2 1.3 3.4 3.2 3.4m7.6-4.6h2.8v1.2c0 2-1.3 3.4-3.2 3.4M12 12.5v3m-3 0h6M7 19.5h10" />
+        </svg>
+      )
+    case 'all_mode_days_180': // Archive Key — key and book
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path {...line} d="M4.5 5.5h4c1.9 0 3.5 1.6 3.5 3.5v10c0-1.9-1.6-3.5-3.5-3.5h-4v-10Zm15 0h-4C13.6 5.5 12 7.1 12 9v10c0-1.9 1.6-3.5 3.5-3.5h4v-10Z" />
+          <circle {...line} cx="16" cy="9.5" r="1.5" />
+          <path {...line} d="m14.9 10.6-2.5 2.5m0 0 1 1m-1-1-.9.9" />
+        </svg>
+      )
+    case 'all_mode_streak_180': // Half-Realm — divided world
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle {...line} cx="12" cy="12" r="8" />
+          <path {...line} d="M4 12h16M12 4c-2.2 2.3-3.3 5-3.3 8s1.1 5.7 3.3 8" />
+          <path fill="currentColor" d="M12 4a8 8 0 0 1 0 16V4Z" opacity=".28" />
+        </svg>
+      )
+    case 'secret_cascade': // Cascade — falling panels
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect {...line} x="4" y="4" width="6" height="6" rx="1" />
+          <rect {...line} x="9" y="9" width="6" height="6" rx="1" />
+          <rect {...line} x="14" y="14" width="6" height="6" rx="1" />
+          <path {...line} d="m6.2 7 1.1 1.1 1.6-1.8m2.3 5.7 1.1 1.1 1.6-1.8m2.3 5.7 1.1 1.1 1.6-1.8" />
+        </svg>
+      )
+    default:
+      return <LegacyAchievementIcon id={id} category={category} />
+  }
+}
+
+/** Previous silhouette glyphs, retained for the local comparison page. */
+export function LegacyAchievementIcon({
   id,
   category,
 }: {
