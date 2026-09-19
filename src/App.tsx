@@ -61,6 +61,11 @@ const AchievementIconComparisonPage = lazyWithStaleReload(() =>
     default: m.AchievementIconComparisonPage,
   })),
 )
+const NextModePromptDemoPage = lazyWithStaleReload(() =>
+  import('./pages/NextModePromptDemoPage').then((m) => ({
+    default: m.NextModePromptDemoPage,
+  })),
+)
 const PrivacyPage = lazyWithStaleReload(() =>
   import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
 )
@@ -264,6 +269,16 @@ function App() {
                   <LocalDevOrOwnerRoute>
                     <Suspense fallback={<RouteFallback />}>
                       <AchievementIconComparisonPage />
+                    </Suspense>
+                  </LocalDevOrOwnerRoute>
+                }
+              />
+              <Route
+                path="dev/next-mode"
+                element={
+                  <LocalDevOrOwnerRoute>
+                    <Suspense fallback={<RouteFallback />}>
+                      <NextModePromptDemoPage />
                     </Suspense>
                   </LocalDevOrOwnerRoute>
                 }

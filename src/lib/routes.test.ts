@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   DEV_NEW_AVATARS_PATH,
+  DEV_NEXT_MODE_PATH,
   DEV_GACHA_SHOP_PATH,
   DEV_VERSUS_EFFECTS_PATH,
   SHOP_COLLECTION_PATH,
@@ -131,6 +132,10 @@ describe('dev paths', () => {
 
   it('keeps the new-avatars gallery on a stable route', () => {
     expect(DEV_NEW_AVATARS_PATH).toBe('/dev/new-avatars')
+  })
+
+  it('keeps the next-mode prompt lab on a stable route', () => {
+    expect(DEV_NEXT_MODE_PATH).toBe('/dev/next-mode')
   })
 })
 
