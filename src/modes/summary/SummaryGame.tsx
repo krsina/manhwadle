@@ -719,6 +719,8 @@ export function SummaryGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
         onBonusNameAnswer={handleBonusNameAnswer}
         isArchive={isArchive}
         surrendered={surrendered}
+        modeId="summary"
+        isPractice={isPractice}
       />
     </>
   )

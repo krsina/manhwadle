@@ -8,12 +8,15 @@ import { isFirstTrySolve } from '../lib/archive'
 import { collectCharacters } from '../lib/search'
 import { nameOrderVariants, namesMatch } from '../lib/nameMatch'
 import { celebrationCanvases } from '../lib/celebrationMotion'
+import { completedDailyModeIds } from '../lib/modeCompletion'
+import { loadReaderTaste } from '../lib/readerTaste'
 import { BonusCelebrate } from './BonusCelebrate'
 import { CharacterGuessInput } from './CharacterGuessInput'
 import { ConfettiBurst } from './ConfettiBurst'
 import { Dialog } from './Dialog'
 import { ElectricBorder } from './ElectricBorder'
 import { MediaImage } from './MediaImage'
+import { NextModeAddon } from './NextModeAddon'
 import { playSolveCelebrationSound } from '../lib/solveCelebrationSounds'
 import { playerLevelFromXp } from '../lib/playerLevel'
 import {
@@ -70,6 +73,10 @@ interface ResultModalProps {
   isArchive?: boolean
   /** Lost by surrender rather than using all guesses */
   surrendered?: boolean
+  /** Current daily mode; used to recommend the next unfinished mode */
+  modeId?: string
+  /** Practice rounds should not offer the daily next-mode path */
+  isPractice?: boolean
 }
 
 function characterNameList(character: ManhwaCharacter): string[] {
@@ -122,6 +129,8 @@ export function ResultModal({
   onBonusNameAnswer,
   isArchive = false,
   surrendered = false,
+  modeId,
+  isPractice = false,
 }: ResultModalProps) {
   const { account } = useAuth()
   const [localBonus, setLocalBonus] = useState<BonusNameResult | null>(null)
@@ -138,6 +147,14 @@ export function ResultModal({
     hardMode,
     hintsUsed,
   })
+  const showNextMode = Boolean(open && modeId && !isArchive && !isPractice)
+  const completedIds = useMemo(() => {
+    if (!showNextMode || !modeId) return []
+    return completedDailyModeIds({
+      taste: loadReaderTaste(),
+      includeModeId: modeId,
+    })
+  }, [showNextMode, modeId])
 
   const acceptedBonusCharacters = useMemo(() => {
     if (bonusAcceptCharacters && bonusAcceptCharacters.length > 0) {
@@ -536,6 +553,8 @@ export function ResultModal({
               </button>
             </div>
           </div>
+
+          {showNextMode && <NextModeAddon completedIds={completedIds} />}
 
           {shareFeedback !== 'idle' && (
             <p className="modal-share-toast" role="status" aria-live="polite">

@@ -728,6 +728,8 @@ export function CoverGame({ pool, guessPool, taste, dateKey }: GameModeProps) {
             onBonusNameAnswer={handleBonusNameAnswer}
             isArchive={isArchive}
             surrendered={surrendered}
+            modeId="cover"
+            isPractice={isPractice}
           />
         </>
       )}

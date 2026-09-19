@@ -689,6 +689,8 @@ export function HeardleGame({ pool, guessPool, taste, dateKey }: GameModeProps) 
             onBonusNameAnswer={handleBonusNameAnswer}
             isArchive={isArchive}
             surrendered={surrendered}
+            modeId="heardle"
+            isPractice={isPractice}
           />
         </>
       )}

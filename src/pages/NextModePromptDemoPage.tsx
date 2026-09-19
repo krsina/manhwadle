@@ -4,7 +4,7 @@ import { BonusCelebrate } from '../components/BonusCelebrate'
 import { ConfettiBurst } from '../components/ConfettiBurst'
 import { ElectricBorder } from '../components/ElectricBorder'
 import { MediaImage } from '../components/MediaImage'
-import { ModeGlyph } from '../components/ModeGlyph'
+import { NextModeAddon } from '../components/NextModeAddon'
 import type { Manhwa, ManhwaCharacter } from '../lib/anilist-types'
 import { characterImageUrl } from '../lib/anilist-types'
 import {
@@ -31,7 +31,6 @@ import {
 } from '../lib/readerTaste'
 import { filterPoolBySongs } from '../lib/songs'
 import { listModes } from '../modes'
-import { VERSUS_PATH, playPath } from '../lib/routes'
 import storyBlurbData from '../data/storyDescriptionBlurb.json'
 
 const storyBlurbIndex = indexStoryBlurbs(storyBlurbData as StoryDescriptionBlurbFile)
@@ -47,79 +46,6 @@ type LiveCard = {
 function pickDaily(pool: Manhwa[], dateKey: string, seed: string): Manhwa | null {
   if (pool.length === 0) return null
   return getDailyAnswer(pool, dateKey, seed)
-}
-
-function ComboAddon({
-  completedIds,
-}: {
-  completedIds: readonly string[]
-}) {
-  const modes = listModes()
-  const completed = new Set(completedIds)
-  const remaining = modes.filter((mode) => !completed.has(mode.id))
-  const recommended = remaining[0] ?? null
-  const doneToday = remaining.length === 0
-  const progressLabel = `${completed.size} of ${modes.length} today`
-
-  return (
-    <div className="nmp-addon nmp-combo">
-      <p className="nmp-kicker">{progressLabel}</p>
-      <div className="nmp-chip-row">
-        {modes.map((mode) => {
-          const finished = completed.has(mode.id)
-          const next = recommended?.id === mode.id
-          const className = `nmp-chip${finished ? ' is-done' : ''}${next ? ' is-next' : ''}`
-          const body = (
-            <>
-              <ModeGlyph presentationKey={mode.presentationKey} />
-              {mode.name}
-            </>
-          )
-          if (finished) {
-            return (
-              <span key={mode.id} className={className}>
-                {body}
-              </span>
-            )
-          }
-          return (
-            <Link
-              key={mode.id}
-              className={className}
-              to={playPath(mode.id)}
-              aria-current={next ? 'page' : undefined}
-            >
-              {body}
-            </Link>
-          )
-        })}
-      </div>
-      {doneToday || !recommended ? (
-        <div className="nmp-strip nmp-strip-done">
-          <span className="nmp-strip-copy">
-            <span>Daily set complete</span>
-            <strong>Versus</strong>
-          </span>
-          <Link className="btn btn-primary" to={VERSUS_PATH}>
-            Play Versus
-          </Link>
-        </div>
-      ) : (
-        <div className="nmp-strip">
-          <span className="nmp-strip-icon">
-            <ModeGlyph presentationKey={recommended.presentationKey} />
-          </span>
-          <span className="nmp-strip-copy">
-            <span>Up next</span>
-            <strong>{recommended.name}</strong>
-          </span>
-          <Link className="btn btn-primary" to={playPath(recommended.id)}>
-            Play {recommended.name}
-          </Link>
-        </div>
-      )}
-    </div>
-  )
 }
 
 function LiveShareFooter({ countdown }: { countdown: string }) {
@@ -198,7 +124,7 @@ function FirstTryResultBody({
         <span>{genres || '—'}</span>
       </div>
       <LiveShareFooter countdown={countdown} />
-      <ComboAddon completedIds={card.completedIds} />
+      <NextModeAddon completedIds={card.completedIds} />
     </div>
   )
 }
