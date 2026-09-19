@@ -16,6 +16,7 @@ import {
 import {
   DEV_AVATAR_BUST_CROPS_PATH,
   DEV_NEW_AVATARS_PATH,
+  DEV_NEXT_MODE_PATH,
   DEV_VERSUS_EFFECTS_PATH,
   SHOP_PATH,
 } from '../lib/routes'
@@ -140,6 +141,14 @@ function DevToolsModal({ open, onClose }: { open: boolean; onClose: () => void }
           style={{ marginLeft: '0.5rem' }}
         >
           New avatars
+        </Link>
+        <Link
+          className="btn btn-ghost"
+          to={DEV_NEXT_MODE_PATH}
+          onClick={onClose}
+          style={{ marginLeft: '0.5rem' }}
+        >
+          Next-mode prompts
         </Link>
       </section>
 

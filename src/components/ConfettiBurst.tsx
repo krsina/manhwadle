@@ -1,5 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { frameScale } from '../lib/animationFrame'
+import {
+  confettiBurstPlan,
+  confettiCanvasDpr,
+  readCelebrationMotionTier,
+} from '../lib/celebrationMotion'
 
 interface ConfettiBurstProps {
   /** Remount or change this to replay the burst */
@@ -50,20 +55,26 @@ function makeParticle(
   speed: number,
   palette: string[],
   firstTry: boolean,
+  stars: boolean,
+  lite: boolean,
 ): Particle {
   return {
     x,
     y,
     vx: Math.cos(angle) * speed + (Math.random() - 0.5) * 3,
     vy: Math.sin(angle) * speed - Math.random() * 3,
-    w: 5 + Math.random() * (firstTry ? 7 : 5),
-    h: 8 + Math.random() * (firstTry ? 10 : 8),
+    w: 5 + Math.random() * (firstTry && !lite ? 7 : 5),
+    h: 8 + Math.random() * (firstTry && !lite ? 10 : 8),
     rotation: Math.random() * Math.PI * 2,
     spin: (Math.random() - 0.5) * (firstTry ? 0.5 : 0.35),
     color: pickColor(palette),
     life: 1,
-    decay: firstTry ? 0.004 + Math.random() * 0.006 : 0.006 + Math.random() * 0.008,
-    shape: firstTry && Math.random() < 0.4 ? 'star' : 'rect',
+    decay: lite
+      ? 0.01 + Math.random() * 0.012
+      : firstTry
+        ? 0.004 + Math.random() * 0.006
+        : 0.006 + Math.random() * 0.008,
+    shape: stars && Math.random() < 0.4 ? 'star' : 'rect',
   }
 }
 
@@ -71,14 +82,17 @@ function createBurst(
   width: number,
   height: number,
   firstTry: boolean,
+  stars: boolean,
+  centerCount: number,
+  sideCount: number,
+  ringCount: number,
+  ringParticles: number,
+  lite: boolean,
 ): Particle[] {
   const palette = firstTry ? FIRST_TRY_COLORS : COLORS
   const cx = width / 2
   const cy = height * 0.42
   const particles: Particle[] = []
-  const centerCount = firstTry
-    ? Math.min(280, Math.floor((width * height) / 4500) + 180)
-    : Math.min(140, Math.floor((width * height) / 9000) + 80)
 
   for (let i = 0; i < centerCount; i++) {
     const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * (firstTry ? 1.85 : 1.35)
@@ -91,11 +105,12 @@ function createBurst(
         speed,
         palette,
         firstTry,
+        stars,
+        lite,
       ),
     )
   }
 
-  const sideCount = firstTry ? 80 : 36
   for (let i = 0; i < sideCount; i++) {
     const left = i % 2 === 0
     const angle = left
@@ -110,19 +125,19 @@ function createBurst(
         speed,
         palette,
         firstTry,
+        stars,
+        lite,
       ),
     )
   }
 
-  if (firstTry) {
-    for (let ring = 0; ring < 3; ring++) {
-      const ox = width * (0.28 + ring * 0.22)
-      const oy = height * (0.18 + (ring % 2) * 0.06)
-      for (let i = 0; i < 34; i++) {
-        const angle = (Math.PI * 2 * i) / 34 + Math.random() * 0.2
-        const speed = 6 + Math.random() * 10
-        particles.push(makeParticle(ox, oy, angle, speed, palette, true))
-      }
+  for (let ring = 0; ring < ringCount; ring++) {
+    const ox = width * (0.28 + ring * 0.22)
+    const oy = height * (0.18 + (ring % 2) * 0.06)
+    for (let i = 0; i < ringParticles; i++) {
+      const angle = (Math.PI * 2 * i) / ringParticles + Math.random() * 0.2
+      const speed = 6 + Math.random() * 10
+      particles.push(makeParticle(ox, oy, angle, speed, palette, true, stars, lite))
     }
   }
 
@@ -157,16 +172,20 @@ export function ConfettiBurst({ active, firstTry = false }: ConfettiBurstProps) 
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true }) ?? canvas.getContext('2d')
     if (!ctx) return
+
+    const tier = readCelebrationMotionTier()
+    const plan = confettiBurstPlan(window.innerWidth, window.innerHeight, firstTry, tier)
 
     let frame = 0
     let running = true
     let lastTs = 0
     let particles: Particle[] = []
+    let dpr = 1
 
     function resize() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      dpr = confettiCanvasDpr(window.devicePixelRatio || 1, tier)
       const { innerWidth: w, innerHeight: h } = window
       canvas!.width = Math.floor(w * dpr)
       canvas!.height = Math.floor(h * dpr)
@@ -177,13 +196,24 @@ export function ConfettiBurst({ active, firstTry = false }: ConfettiBurstProps) 
     }
 
     const { w, h } = resize()
-    particles = createBurst(w, h, firstTry)
+    particles = createBurst(
+      w,
+      h,
+      firstTry,
+      plan.stars,
+      plan.centerCount,
+      plan.sideCount,
+      plan.ringCount,
+      plan.ringParticles,
+      tier === 'lite',
+    )
 
     const onResize = () => resize()
     window.addEventListener('resize', onResize)
 
-    const gravity = firstTry ? 0.14 : 0.18
+    const gravity = plan.gravity
     const drag = 0.99
+    const rotate = plan.rotate
 
     function tick(timestamp: number) {
       if (!running || !ctx || !canvas) return
@@ -192,6 +222,7 @@ export function ConfettiBurst({ active, firstTry = false }: ConfettiBurstProps) 
 
       const width = canvas.clientWidth
       const height = canvas.clientHeight
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, width, height)
 
       // Convert per-frame drag into dt-scaled damping (drag^dt ≈ continuous).
@@ -205,21 +236,28 @@ export function ConfettiBurst({ active, firstTry = false }: ConfettiBurstProps) 
         p.vy = p.vy * frameDrag + gravity * dt
         p.x += p.vx * dt
         p.y += p.vy * dt
-        p.rotation += p.spin * dt
         p.life -= p.decay * dt
-
-        ctx.save()
-        ctx.translate(p.x, p.y)
-        ctx.rotate(p.rotation)
         ctx.globalAlpha = Math.max(0, p.life)
         ctx.fillStyle = p.color
+
+        if (!rotate) {
+          ctx.fillRect(p.x - p.w / 2, p.y - p.h / 2, p.w, p.h)
+          continue
+        }
+
+        p.rotation += p.spin * dt
+        const cos = Math.cos(p.rotation)
+        const sin = Math.sin(p.rotation)
+        ctx.setTransform(cos * dpr, sin * dpr, -sin * dpr, cos * dpr, p.x * dpr, p.y * dpr)
         if (p.shape === 'star') {
           drawStar(ctx, p.w, p.h)
         } else {
           ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h)
         }
-        ctx.restore()
       }
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.globalAlpha = 1
 
       if (alive > 0) {
         frame = requestAnimationFrame(tick)

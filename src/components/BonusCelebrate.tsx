@@ -1,5 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { frameScale } from '../lib/animationFrame'
+import {
+  bonusCelebratePlan,
+  confettiCanvasDpr,
+  readCelebrationMotionTier,
+} from '../lib/celebrationMotion'
 
 interface BonusCelebrateProps {
   /** Remount or bump to replay */
@@ -66,19 +71,26 @@ export function BonusCelebrate({ active }: BonusCelebrateProps) {
 
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
+    const ctx =
+      canvas.getContext('2d', { alpha: true, desynchronized: true }) ?? canvas.getContext('2d')
     if (!ctx) return
+
+    const tier = readCelebrationMotionTier()
+    const plan = bonusCelebratePlan(tier)
 
     let frame = 0
     let running = true
     let lastTs = 0
     let lastFirework = performance.now()
+    let burstCount = 0
+    let startedAt = 0
+    let dpr = 1
     const sparks: Spark[] = []
     const rings: Ring[] = []
     const stars: Star[] = []
 
     function resize() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      dpr = confettiCanvasDpr(window.devicePixelRatio || 1, tier)
       const { innerWidth: w, innerHeight: h } = window
       canvas!.width = Math.floor(w * dpr)
       canvas!.height = Math.floor(h * dpr)
@@ -93,6 +105,9 @@ export function BonusCelebrate({ active }: BonusCelebrateProps) {
     const cy = h * 0.55
 
     function launchFirework(x: number, y: number, amount: number) {
+      if (burstCount >= plan.maxBursts) return
+      burstCount += 1
+
       for (let i = rings.length - 1; i >= 0; i--) {
         if (rings[i]!.life <= 0) rings.splice(i, 1)
       }
@@ -101,15 +116,17 @@ export function BonusCelebrate({ active }: BonusCelebrateProps) {
       }
 
       const colorOffset = Math.floor(Math.random() * COLORS.length)
-      rings.push({
-        x,
-        y,
-        radius: 8,
-        max: 100 + Math.random() * 90,
-        life: 1,
-        width: 2.5 + Math.random() * 2,
-        color: COLORS[colorOffset]!,
-      })
+      if (plan.rings) {
+        rings.push({
+          x,
+          y,
+          radius: 8,
+          max: 100 + Math.random() * 90,
+          life: 1,
+          width: 2.5 + Math.random() * 2,
+          color: COLORS[colorOffset]!,
+        })
+      }
 
       for (let i = 0; i < amount; i++) {
         const angle = (Math.PI * 2 * i) / amount + Math.random() * 0.18
@@ -129,9 +146,9 @@ export function BonusCelebrate({ active }: BonusCelebrateProps) {
       }
     }
 
-    launchFirework(cx, cy, 150)
+    launchFirework(cx, cy, plan.firstBurst)
 
-    for (let i = 0; i < 55; i++) {
+    for (let i = 0; i < plan.stars; i++) {
       stars.push({
         x: Math.random() * w,
         y: Math.random() * h,
@@ -148,26 +165,32 @@ export function BonusCelebrate({ active }: BonusCelebrateProps) {
 
     function tick(timestamp: number) {
       if (!running || !ctx || !canvas) return
+      if (startedAt === 0) startedAt = timestamp
       const dt = lastTs === 0 ? 1 : frameScale(timestamp - lastTs)
       lastTs = timestamp
 
       const width = canvas.clientWidth
       const height = canvas.clientHeight
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, width, height)
 
-      if (timestamp - lastFirework >= 800) {
+      const timedOut = Number.isFinite(plan.durationMs) && timestamp - startedAt >= plan.durationMs
+      const canLaunchMore = burstCount < plan.maxBursts && !timedOut
+      if (canLaunchMore && timestamp - lastFirework >= plan.extraIntervalMs) {
         launchFirework(
           width * (0.15 + Math.random() * 0.7),
           height * (0.12 + Math.random() * 0.46),
-          55 + Math.floor(Math.random() * 35),
+          plan.extraBurst,
         )
         lastFirework = timestamp
       }
 
       const sparkDrag = Math.pow(0.985, dt)
+      let alive = 0
 
       for (const ring of rings) {
         if (ring.life <= 0) continue
+        alive++
         ring.radius += ((ring.max - ring.radius) * 0.08 + 1.8) * dt
         ring.life -= 0.016 * dt
         ctx.beginPath()
@@ -180,18 +203,24 @@ export function BonusCelebrate({ active }: BonusCelebrateProps) {
 
       for (const spark of sparks) {
         if (spark.life <= 0) continue
+        alive++
         spark.vx *= sparkDrag
         spark.vy = spark.vy * sparkDrag + 0.08 * dt
         spark.x += spark.vx * dt
         spark.y += spark.vy * dt
-        spark.rotation += spark.spin * dt
         spark.life -= spark.decay * dt
-
-        ctx.save()
-        ctx.translate(spark.x, spark.y)
-        ctx.rotate(spark.rotation)
         ctx.globalAlpha = Math.max(0, spark.life)
         ctx.fillStyle = spark.color
+
+        if (!plan.rotate) {
+          ctx.fillRect(spark.x - spark.size, spark.y - spark.size, spark.size * 2, spark.size * 2)
+          continue
+        }
+
+        spark.rotation += spark.spin * dt
+        const cos = Math.cos(spark.rotation)
+        const sin = Math.sin(spark.rotation)
+        ctx.setTransform(cos * dpr, sin * dpr, -sin * dpr, cos * dpr, spark.x * dpr, spark.y * dpr)
         ctx.beginPath()
         ctx.moveTo(0, -spark.size)
         ctx.lineTo(spark.size * 0.55, 0)
@@ -199,35 +228,34 @@ export function BonusCelebrate({ active }: BonusCelebrateProps) {
         ctx.lineTo(-spark.size * 0.55, 0)
         ctx.closePath()
         ctx.fill()
-        ctx.restore()
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       }
 
       for (const star of stars) {
         if (star.delay > 0) {
           star.delay -= dt
+          if (star.delay > 0) alive++
           continue
         }
         if (star.life <= 0) continue
+        alive++
         star.life -= 0.009 * dt
         star.twinkle += 0.16 * dt
         const beam = star.size * (1 + Math.sin(star.twinkle) * 0.35)
-        ctx.save()
-        ctx.translate(star.x, star.y)
         ctx.globalAlpha = Math.max(0, star.life) * (0.5 + Math.sin(star.twinkle) * 0.3)
         ctx.strokeStyle = '#ffffff'
         ctx.lineWidth = 1
         ctx.beginPath()
-        ctx.moveTo(-beam, 0)
-        ctx.lineTo(beam, 0)
-        ctx.moveTo(0, -beam)
-        ctx.lineTo(0, beam)
+        ctx.moveTo(star.x - beam, star.y)
+        ctx.lineTo(star.x + beam, star.y)
+        ctx.moveTo(star.x, star.y - beam)
+        ctx.lineTo(star.x, star.y + beam)
         ctx.stroke()
-        ctx.restore()
       }
 
       ctx.globalAlpha = 1
 
-      if (running) {
+      if (alive > 0 || canLaunchMore) {
         frame = requestAnimationFrame(tick)
       }
     }

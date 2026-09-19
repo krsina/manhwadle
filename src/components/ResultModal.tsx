@@ -7,6 +7,7 @@ import { formatGuessScore } from '../lib/compare'
 import { isFirstTrySolve } from '../lib/archive'
 import { collectCharacters } from '../lib/search'
 import { nameOrderVariants, namesMatch } from '../lib/nameMatch'
+import { celebrationCanvases } from '../lib/celebrationMotion'
 import { BonusCelebrate } from './BonusCelebrate'
 import { CharacterGuessInput } from './CharacterGuessInput'
 import { ConfettiBurst } from './ConfettiBurst'
@@ -295,6 +296,7 @@ export function ResultModal({
 
   const toastLabel =
     shareFeedback === 'shared' ? 'Shared' : 'Copied results to clipboard'
+  const fx = celebrationCanvases(won, doubleSolve)
 
   function handleBonusCharacter(character: ManhwaCharacter, matchedLabel?: string) {
     if (!bonusCharacter || bonusResult || acceptedBonusCharacters.length === 0) return
@@ -322,8 +324,8 @@ export function ResultModal({
       panelClassName={`${firstTry ? ' is-first-try' : ''}${showBonus ? ' has-bonus' : ''}${doubleSolve ? ' is-double-solve' : ''}${showCharacter ? ' is-character-reveal' : ''}`}
       backdropChildren={
         <>
-          {won && <ConfettiBurst active firstTry={firstTry} />}
-          {doubleSolve && <BonusCelebrate active />}
+          {fx.confetti && <ConfettiBurst active firstTry={firstTry} />}
+          {fx.bonus && <BonusCelebrate active />}
         </>
       }
     >
