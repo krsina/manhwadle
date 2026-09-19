@@ -849,6 +849,8 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
             onBonusNameAnswer={handleBonusNameAnswer}
             isArchive={isArchive}
             surrendered={surrendered}
+            modeId="character"
+            isPractice={isPractice}
           />
         </>
       )}

@@ -66,6 +66,22 @@ export function buildModeRowStatuses(input: {
   })
 }
 
+/** Finished dailies for today, including a mode that just closed its result sheet. */
+export function completedDailyModeIds(input: {
+  taste: ReaderTaste | null
+  dateKey?: string
+  includeModeId?: string
+}): string[] {
+  const dateKey = input.dateKey ?? getTodayKey()
+  const include = input.includeModeId
+  return listModes()
+    .filter((mode) => {
+      if (include && mode.id === include) return true
+      return localModeCompletionStatus(mode.id, input.taste, dateKey) === 'completed'
+    })
+    .map((mode) => mode.id)
+}
+
 export function statusLabel(status: ModeCompletionStatus): string {
   switch (status) {
     case 'completed':

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { listModes } from '../modes'
-import { buildModeRowStatuses, statusLabel } from './modeCompletion'
+import { buildModeRowStatuses, completedDailyModeIds, statusLabel } from './modeCompletion'
 
 describe('mode registry metadata', () => {
   it('exposes description, presentation, and availability for every mode', () => {
@@ -35,5 +35,15 @@ describe('buildModeRowStatuses', () => {
     })
     expect(rows.find((r) => r.modeId === 'heardle')?.status).toBe('unavailable')
     expect(statusLabel('unavailable')).toBe('Unavailable')
+  })
+})
+
+describe('completedDailyModeIds', () => {
+  it('includes the mode that just finished even without saved taste', () => {
+    expect(completedDailyModeIds({ taste: null, includeModeId: 'cover' })).toEqual(['cover'])
+  })
+
+  it('keeps registry order when the current mode is already first', () => {
+    expect(completedDailyModeIds({ taste: null, includeModeId: 'summary' })).toEqual(['summary'])
   })
 })
