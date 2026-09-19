@@ -225,16 +225,17 @@ Matches **Latest published version** in `docs/updates-style-guide.md`:
 
 ```
 Kind: update
-Version: 1.2.1
-Title: Matching title words
-Slug: matching-title-words
+Version: 1.3.0
+Title: First try, then the next mode
+Slug: first-try-then-the-next-mode
 
 Body:
-Guesses now highlight title words you already got right, so close titles are easier to read.
+First-try celebrations stay smooth on phones, and the result screen now points you to another daily.
 
-• Matching words from the answer title light up in green on the guess row.
-• Extra copies of a word stay plain if the title only used it once.
-• Signed-in dailies follow your saved progress, so an out-of-date device will not block guesses.
+• First-try wins use a lighter confetti burst on phones so you can still tap Share and keep playing.
+• Double solves keep the gold flash without stacking extra fireworks on top.
+• After you finish, chips and a Play button send you to the next mode you have not done today.
+• If you already cleared the set, Play Versus is right there.
 ```
 
 ## Anti-patterns
