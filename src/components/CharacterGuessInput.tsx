@@ -148,7 +148,6 @@ export function CharacterGuessInput({
             ? `${listId}-opt-${activeIndex}`
             : undefined
         }
-        autoFocus
       />
       {open && !disabled && (
         noResults ? (

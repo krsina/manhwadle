@@ -86,7 +86,7 @@ function FirstTryResultBody({
 
   return (
     <div
-      className={`modal next-mode-demo-result is-first-try${
+      className={`modal next-mode-demo-result is-first-try has-bonus${
         doubleSolve ? ' is-double-solve' : ''
       }${showCharacter ? ' is-character-reveal' : ''}`}
     >
@@ -123,6 +123,26 @@ function FirstTryResultBody({
         <span>{card.answer.status}</span>
         <span>{genres || '—'}</span>
       </div>
+      <section className="bonus-question" aria-label="Bonus question">
+        <p className="bonus-kicker">Bonus question</p>
+        <p className="bonus-prompt">
+          {showCharacter ? "What is the character's name?" : 'Who is the main character?'}
+        </p>
+        <div className="guess character-guess">
+          <label className="guess-label" htmlFor={`nmp-bonus-${card.modeId}`}>
+            Character name
+          </label>
+          <input
+            id={`nmp-bonus-${card.modeId}`}
+            className="guess-input"
+            type="text"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="Type a character name…"
+            readOnly
+          />
+        </div>
+      </section>
       <LiveShareFooter countdown={countdown} />
       <NextModeAddon completedIds={card.completedIds} />
     </div>
