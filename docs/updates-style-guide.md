@@ -13,7 +13,7 @@ Release updates still use the **Brief** body shape below. Announcements may drop
 
 ## Latest published version
 
-**`1.2.1`** (Matching title words)
+**`1.3.0`** (First try, then the next mode)
 
 Keep this line in sync with the newest **published `update`** row in `site_updates` that carries a version. Whenever a new release update ships (via `/write-site-update`, Moderation → News, or a manual edit), update:
 
@@ -42,17 +42,18 @@ Do not use em dashes (`—`). Prefer commas, periods, colons, or parentheses.
 
 **Kind:** `update`
 
-**Version:** `1.2.1`
+**Version:** `1.3.0`
 
-**Title:** Matching title words
+**Title:** First try, then the next mode
 
 **Body:**
 ```
-Guesses now highlight title words you already got right, so close titles are easier to read.
+First-try celebrations stay smooth on phones, and the result screen now points you to another daily.
 
-• Matching words from the answer title light up in green on the guess row.
-• Extra copies of a word stay plain if the title only used it once.
-• Signed-in dailies follow your saved progress, so an out-of-date device will not block guesses.
+• First-try wins use a lighter confetti burst on phones so you can still tap Share and keep playing.
+• Double solves keep the gold flash without stacking extra fireworks on top.
+• After you finish, chips and a Play button send you to the next mode you have not done today.
+• If you already cleared the set, Play Versus is right there.
 ```
 
 ### Announcement shape
