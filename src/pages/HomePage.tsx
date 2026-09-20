@@ -27,6 +27,7 @@ import { getTodayKey } from '../lib/daily'
 import { buildModeRowStatuses } from '../lib/modeCompletion'
 import type { AchievementAward } from '../lib/achievements'
 import { saveReaderTaste, type ReaderTaste } from '../lib/readerTaste'
+import { isAccountSetupComplete } from '../lib/accountSetup'
 import { MILESTONES_PATH, playPath } from '../lib/routes'
 import { createHomeIdleTracker, reportSecretEvent } from '../lib/secretEvents'
 import { syncAfterLocalChange } from '../lib/sync'
@@ -43,7 +44,12 @@ interface HomePageProps {
 }
 
 export function HomePage({ taste, setTaste }: HomePageProps) {
-  const { user } = useAuth()
+  const { user, account, accountLoading } = useAuth()
+  const accountSetupComplete = isAccountSetupComplete(
+    Boolean(user),
+    accountLoading,
+    account,
+  )
   const navigate = useNavigate()
   const compactHome = useMatchMedia(HOME_MOBILE_MQ)
   const [siteStatus, setSiteStatus] = useState<PublicSiteStatus | null>(null)
@@ -141,7 +147,7 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
   // Hush-Hush: home-only secret listeners (idle dwell + refresh ritual).
   // Konami is registered site-wide in AppLayout.
   useEffect(() => {
-    if (!user) return
+    if (!accountSetupComplete) return
     void reportSecretEvent('home_refresh')
 
     const stopIdle = createHomeIdleTracker(() => {
@@ -151,7 +157,7 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
     return () => {
       stopIdle()
     }
-  }, [user])
+  }, [accountSetupComplete])
 
   const unavailable = useMemo(() => {
     const set = new Set<string>()

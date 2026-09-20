@@ -72,10 +72,7 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
   useEffect(() => {
     // Secret-achievement listeners begin only after account setup. This keeps
     // username onboarding as the sole interactive flow for a new account.
-    if (!accountSetupComplete) return
-    const stopBackground = createBackgroundCultivationTracker(() => {
-      void reportSecretEvent('tab_open_24h')
-    })
+    if (!accountSetupComplete || !user?.id) return
     const stopTwin = createTabTwinTracker(() => {
       void reportSecretEvent('tab_twin')
     })
@@ -83,11 +80,18 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
       void reportSecretEvent('konami')
     })
     return () => {
-      stopBackground()
       stopTwin()
       stopKonami()
     }
-  }, [accountSetupComplete])
+  }, [accountSetupComplete, user?.id])
+
+  useEffect(() => {
+    if (!accountSetupComplete || !user?.id) return
+    const stopBackground = createBackgroundCultivationTracker(() => {
+      void reportSecretEvent('tab_open_24h')
+    }, user.id)
+    return () => stopBackground()
+  }, [accountSetupComplete, user?.id, location.pathname, location.search])
 
   useEffect(() => {
     let cancelled = false

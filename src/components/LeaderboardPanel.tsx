@@ -16,7 +16,6 @@ import {
 import { fetchLeaderboard } from '../lib/leaderboardApi'
 import { DEV_LEADERBOARD_EVENT } from '../lib/leaderboardDevFake'
 import { LEADERBOARD_PATH } from '../lib/routes'
-import { reportSecretEvent } from '../lib/secretEvents'
 import { handleTabListKeyDown } from '../lib/focusTabs'
 
 type LoadState = 'idle' | 'loading' | 'error' | 'ready'
@@ -108,7 +107,6 @@ export function LeaderboardPanel() {
       }
       setEntries(result.page.entries)
       setState('ready')
-      void reportSecretEvent('leaderboard_view')
     })
     return () => {
       cancelled = true

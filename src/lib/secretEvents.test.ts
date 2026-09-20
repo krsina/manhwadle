@@ -1,9 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ACHIEVEMENT_DEFINITIONS } from './achievements'
 import {
   advanceAccountMenuPressCount,
   advanceKonamiSequence,
+  BACKGROUND_CULTIVATION_MS,
+  consumePendingReauth,
+  isBackgroundCultivationDue,
   KONAMI_SEQUENCE,
+  markPendingReauth,
+  pendingReauthMatchesUser,
 } from './secretEvents'
 
 describe('secret achievements catalog', () => {
@@ -98,5 +103,56 @@ describe('secret event surface', () => {
     // Runtime: reporting an unknown string is not part of the public API.
     expect('multi_unlock' in mod).toBe(false)
     expect(typeof mod.reportSecretEvent).toBe('function')
+  })
+})
+
+describe('pendingReauthMatchesUser', () => {
+  it('requires the same user who signed out', () => {
+    expect(pendingReauthMatchesUser('user-a', 'user-a')).toBe(true)
+    expect(pendingReauthMatchesUser('user-a', 'user-b')).toBe(false)
+    expect(pendingReauthMatchesUser(null, 'user-a')).toBe(false)
+    expect(pendingReauthMatchesUser('1', 'user-a')).toBe(false)
+  })
+})
+
+describe('consumePendingReauth', () => {
+  const memory = new Map<string, string>()
+
+  beforeEach(() => {
+    memory.clear()
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => memory.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        memory.set(key, value)
+      },
+      removeItem: (key: string) => {
+        memory.delete(key)
+      },
+      clear: () => memory.clear(),
+    })
+  })
+
+  it('does not award Return of the King to a different signup', () => {
+    markPendingReauth('user-a')
+    expect(consumePendingReauth('user-b')).toBe(false)
+    expect(consumePendingReauth('user-a')).toBe(true)
+    expect(consumePendingReauth('user-a')).toBe(false)
+  })
+
+  it('discards the legacy browser-wide flag without awarding', () => {
+    memory.set('manhwadle:secret:pending-reauth', '1')
+    expect(consumePendingReauth('user-a')).toBe(false)
+    expect(memory.get('manhwadle:secret:pending-reauth')).toBeUndefined()
+  })
+})
+
+describe('background cultivation idle', () => {
+  it('requires two idle hours on the current page', () => {
+    const now = Date.parse('2026-09-20T00:00:00.000Z')
+    expect(BACKGROUND_CULTIVATION_MS).toBe(2 * 60 * 60 * 1000)
+    expect(isBackgroundCultivationDue(now, now)).toBe(false)
+    expect(isBackgroundCultivationDue(now, now + 60_000)).toBe(false)
+    expect(isBackgroundCultivationDue(now, now + 60 * 60 * 1000)).toBe(false)
+    expect(isBackgroundCultivationDue(now, now + BACKGROUND_CULTIVATION_MS)).toBe(true)
   })
 })
