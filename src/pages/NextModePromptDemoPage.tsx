@@ -129,7 +129,7 @@ function FirstTryResultBody({
           {showCharacter ? "What is the character's name?" : 'Who is the main character?'}
         </p>
         <div className="guess character-guess">
-          <label className="guess-label" htmlFor={`nmp-bonus-${card.modeId}`}>
+          <label className="guess-label visually-hidden" htmlFor={`nmp-bonus-${card.modeId}`}>
             Character name
           </label>
           <input
