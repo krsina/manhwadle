@@ -6,10 +6,11 @@ import {
 import {
   ACHIEVEMENTS_CHANGED_EVENT,
   type AchievementsChangedDetail,
+  bindAchievementUnlockUser,
   claimFreshAchievementIds,
   consumeNewAchievementIds,
   hasHydratedAchievements,
-  resetAchievementUnlockHydration,
+  partitionHydrationUnlocks,
   seedSeenAchievements,
 } from '../lib/achievementUnlocks'
 import { isAccountSetupComplete } from '../lib/accountSetup'
@@ -68,8 +69,8 @@ export function AchievementUnlockHost() {
   }, [accountSetupComplete])
 
   useEffect(() => {
+    bindAchievementUnlockUser(user?.id ?? null)
     if (!user) {
-      resetAchievementUnlockHydration()
       setUnlockQueue([])
       return
     }
@@ -81,13 +82,19 @@ export function AchievementUnlockHost() {
     void fetchMyAchievements().then((result) => {
       if (cancelled || !result.ok) return
       const ids = result.awards.map((a) => a.id)
+      const byId = new Map(result.awards.map((a) => [a.id, a]))
       if (!hasHydratedAchievements()) {
-        seedSeenAchievements(ids)
+        const { seedIds, toastIds } = partitionHydrationUnlocks(result.awards)
+        seedSeenAchievements(seedIds)
+        const freshIds = claimFreshAchievementIds(toastIds)
+        const fresh = freshIds
+          .map((id) => byId.get(id))
+          .filter((a): a is AchievementAward => Boolean(a))
+        if (fresh.length > 0) setUnlockQueue((q) => [...q, ...fresh])
         return
       }
       const freshIds = consumeNewAchievementIds(ids)
       if (freshIds.length === 0) return
-      const byId = new Map(result.awards.map((a) => [a.id, a]))
       const fresh = freshIds
         .map((id) => byId.get(id))
         .filter((a): a is AchievementAward => Boolean(a))

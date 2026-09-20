@@ -4,6 +4,8 @@ import {
   clearSeenAchievements,
   consumeNewAchievementIds,
   hasHydratedAchievements,
+  bindAchievementUnlockUser,
+  partitionHydrationUnlocks,
   resetAchievementUnlockSession,
   seedSeenAchievements,
   unseeAchievementIds,
@@ -69,5 +71,47 @@ describe('unseeAchievementIds', () => {
     expect(claimFreshAchievementIds(['secret_konami'])).toEqual([])
     unseeAchievementIds(['secret_konami'])
     expect(claimFreshAchievementIds(['secret_konami'])).toEqual(['secret_konami'])
+  })
+})
+
+describe('partitionHydrationUnlocks', () => {
+  it('toasts signup-time awards and seeds older ones', () => {
+    const now = Date.parse('2026-09-20T00:00:00.000Z')
+    const { seedIds, toastIds } = partitionHydrationUnlocks(
+      [
+        { id: 'secret_early_bird', awardedAt: '2026-09-19T23:30:00.000Z' },
+        { id: 'first_completion', awardedAt: '2026-08-01T00:00:00.000Z' },
+      ],
+      now,
+    )
+    expect(toastIds).toEqual(['secret_early_bird'])
+    expect(seedIds).toEqual(['first_completion'])
+  })
+
+  it('seeds awards with missing or future timestamps', () => {
+    const now = Date.parse('2026-09-20T00:00:00.000Z')
+    const { seedIds, toastIds } = partitionHydrationUnlocks(
+      [
+        { id: 'secret_early_bird', awardedAt: 'not-a-date' },
+        { id: 'secret_lurker', awardedAt: '2026-09-21T00:00:00.000Z' },
+      ],
+      now,
+    )
+    expect(toastIds).toEqual([])
+    expect(seedIds).toEqual(['secret_early_bird', 'secret_lurker'])
+  })
+})
+
+describe('bindAchievementUnlockUser', () => {
+  beforeEach(() => {
+    resetAchievementUnlockSession()
+  })
+
+  it('does not inherit seen ids from another account', () => {
+    bindAchievementUnlockUser('user-a')
+    seedSeenAchievements(['secret_early_bird'])
+    bindAchievementUnlockUser('user-b')
+    expect(hasHydratedAchievements()).toBe(false)
+    expect(claimFreshAchievementIds(['secret_early_bird'])).toEqual(['secret_early_bird'])
   })
 })

@@ -18,6 +18,8 @@ import { HOME_PATH } from '../lib/routes'
 import { reportSecretEvent } from '../lib/secretEvents'
 import { handleTabListKeyDown } from '../lib/focusTabs'
 import { USERNAME_MAX, USERNAME_MIN } from '../lib/username'
+import { isAccountSetupComplete } from '../lib/accountSetup'
+import { useAuth } from '../components/AuthProvider'
 
 type LoadState = 'idle' | 'loading' | 'error' | 'ready'
 type PageLayout = 'hero' | 'list'
@@ -56,6 +58,12 @@ function savePageLayout(layout: PageLayout) {
 
 /** Full leaderboard with hero gallery (all avatars + stages) or compact list. */
 export function LeaderboardPage() {
+  const { user, account, accountLoading } = useAuth()
+  const accountSetupComplete = isAccountSetupComplete(
+    Boolean(user),
+    accountLoading,
+    account,
+  )
   const [active, setActive] = useState<LeaderboardBoard>('current_streak')
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
@@ -108,13 +116,16 @@ export function LeaderboardPage() {
         setCursor(result.page.nextCursor)
         setHasMore(result.page.hasMore)
         setState('ready')
-        void reportSecretEvent('leaderboard_view')
+        // Homepage rankings do not count; only the dedicated leaderboard page.
+        if (accountSetupComplete) {
+          void reportSecretEvent('leaderboard_view')
+        }
       },
     )
     return () => {
       cancelled = true
     }
-  }, [active, reloadToken])
+  }, [active, reloadToken, accountSetupComplete])
 
   async function loadMore() {
     if (!cursor || state === 'loading') return

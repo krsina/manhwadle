@@ -1,5 +1,8 @@
 const SEEN_KEY = 'manhwadle:achievements:seen-v1'
 
+/** First hydrate: toast awards granted this recently (e.g. Early Bird on signup). */
+export const RECENT_UNLOCK_MS = 60 * 60 * 1000
+
 /** Fired after server-side awards may have changed (e.g. daily visit ping). */
 export const ACHIEVEMENTS_CHANGED_EVENT = 'manhwadle:achievements-changed'
 
@@ -23,11 +26,25 @@ let memorySeen: Set<string> | null = null
 /** True after the first server sync (or an immediate claim) this session. */
 let hydrated = false
 
+/** Seen ids are per account so switching users does not inherit toasts. */
+let boundUserId: string | null = null
+
+function seenStorageKey(): string {
+  return boundUserId ? `${SEEN_KEY}:${boundUserId}` : SEEN_KEY
+}
+
+export function bindAchievementUnlockUser(userId: string | null) {
+  if (boundUserId === userId) return
+  boundUserId = userId
+  memorySeen = null
+  hydrated = false
+}
+
 function readSeen(): Set<string> {
   if (memorySeen) return new Set(memorySeen)
   if (typeof localStorage === 'undefined') return new Set()
   try {
-    const raw = localStorage.getItem(SEEN_KEY)
+    const raw = localStorage.getItem(seenStorageKey())
     if (!raw) return new Set()
     const parsed = JSON.parse(raw) as unknown
     if (!Array.isArray(parsed)) return new Set()
@@ -43,7 +60,7 @@ function writeSeen(ids: Set<string>) {
   memorySeen = new Set(ids)
   if (typeof localStorage === 'undefined') return
   try {
-    localStorage.setItem(SEEN_KEY, JSON.stringify([...ids]))
+    localStorage.setItem(seenStorageKey(), JSON.stringify([...ids]))
   } catch {
     // Ignore quota / private mode.
   }
@@ -51,6 +68,28 @@ function writeSeen(ids: Set<string>) {
 
 export function hasHydratedAchievements(): boolean {
   return hydrated
+}
+
+/** Split first-sync awards so signup unlocks can toast instead of seeding silently. */
+export function partitionHydrationUnlocks(
+  awards: { id: string; awardedAt?: string | null }[],
+  nowMs = Date.now(),
+): { seedIds: string[]; toastIds: string[] } {
+  const seedIds: string[] = []
+  const toastIds: string[] = []
+  for (const award of awards) {
+    const awardedAt = award.awardedAt ? Date.parse(award.awardedAt) : Number.NaN
+    const recent =
+      Number.isFinite(awardedAt) &&
+      nowMs - awardedAt >= 0 &&
+      nowMs - awardedAt < RECENT_UNLOCK_MS
+    if (recent) {
+      toastIds.push(award.id)
+    } else {
+      seedIds.push(award.id)
+    }
+  }
+  return { seedIds, toastIds }
 }
 
 /** Seed existing awards without toasting. Call once after login sync. */
@@ -113,7 +152,7 @@ export function clearSeenAchievements() {
   hydrated = true
   if (typeof localStorage === 'undefined') return
   try {
-    localStorage.removeItem(SEEN_KEY)
+    localStorage.removeItem(seenStorageKey())
   } catch {
     // Ignore.
   }
@@ -126,10 +165,13 @@ export function resetAchievementUnlockHydration() {
 
 /** Full reset for tests. */
 export function resetAchievementUnlockSession() {
+  const key = seenStorageKey()
   hydrated = false
   memorySeen = null
+  boundUserId = null
   if (typeof localStorage === 'undefined') return
   try {
+    localStorage.removeItem(key)
     localStorage.removeItem(SEEN_KEY)
   } catch {
     // Ignore.

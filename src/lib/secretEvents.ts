@@ -26,9 +26,11 @@ export type SecretEvent =
   | 'mode_open'
 
 const REAUTH_FLAG_KEY = 'manhwadle:secret:pending-reauth'
-const HOME_OPEN_MS_KEY = 'manhwadle:secret:home-open-started-ms'
 const TAB_CHANNEL = 'manhwadle:secret-tabs'
 export const DIALOG_ESCAPE_EVENT = 'manhwadle:dialog-escape'
+
+/** Background Cultivation: current page left idle this long. Reloads and navigation reset. */
+export const BACKGROUND_CULTIVATION_MS = 2 * 60 * 60 * 1000
 
 const claimedLocally = new Set<string>()
 
@@ -184,22 +186,44 @@ export function resetAccountMenuPressCountForTests() {
   resetAccountMenuPressSession()
 }
 
-export function markPendingReauth() {
+/** True only when the same signed-out user is signing back in. */
+export function pendingReauthMatchesUser(
+  stored: string | null,
+  userId: string | null | undefined,
+): boolean {
+  if (!stored || !userId) return false
+  // Legacy browser-wide flag awarded Return of the King to the next signup.
+  if (stored === '1') return false
+  return stored === userId
+}
+
+export function markPendingReauth(userId?: string | null) {
+  if (!userId) return
   try {
-    localStorage.setItem(REAUTH_FLAG_KEY, '1')
+    localStorage.setItem(REAUTH_FLAG_KEY, userId)
   } catch {
     // ignore
   }
 }
 
-export function consumePendingReauth(): boolean {
+export function consumePendingReauth(userId?: string | null): boolean {
   try {
-    if (localStorage.getItem(REAUTH_FLAG_KEY) !== '1') return false
+    const stored = localStorage.getItem(REAUTH_FLAG_KEY)
+    if (!pendingReauthMatchesUser(stored, userId)) {
+      if (stored === '1') localStorage.removeItem(REAUTH_FLAG_KEY)
+      return false
+    }
     localStorage.removeItem(REAUTH_FLAG_KEY)
     return true
   } catch {
     return false
   }
+}
+
+/** Drop in-tab secret short-circuit when the signed-in user changes. */
+export function resetSecretEventSession() {
+  claimedLocally.clear()
+  resetAccountMenuPressSession()
 }
 
 /** Konami: ↑↑↓↓←→←→BA (case-insensitive for B/A). */
@@ -250,45 +274,15 @@ export function createKonamiListener(onComplete: () => void): () => void {
   return () => window.removeEventListener('keydown', onKeyDown)
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000
 const IDLE_MS = 10 * 60 * 1000
+const LEGACY_HOME_OPEN_MS_KEY = 'manhwadle:secret:home-open-started-ms'
 
-/** Tracks continuous home dwell across reloads via localStorage timestamp. */
-export function createBackgroundCultivationTracker(onComplete: () => void): () => void {
-  const now = Date.now()
-  let started = now
-  try {
-    const raw = localStorage.getItem(HOME_OPEN_MS_KEY)
-    const parsed = raw ? Number(raw) : NaN
-    if (Number.isFinite(parsed) && parsed > 0 && now - parsed < DAY_MS * 2) {
-      started = parsed
-    } else {
-      localStorage.setItem(HOME_OPEN_MS_KEY, String(now))
-      started = now
-    }
-  } catch {
-    started = now
-  }
-
-  function check() {
-    if (document.visibilityState === 'hidden') return
-    if (Date.now() - started >= DAY_MS) onComplete()
-  }
-
-  check()
-  const interval = window.setInterval(check, 60_000)
-  function onVisibility() {
-    if (document.visibilityState === 'visible') check()
-  }
-  document.addEventListener('visibilitychange', onVisibility)
-
-  return () => {
-    window.clearInterval(interval)
-    document.removeEventListener('visibilitychange', onVisibility)
-  }
+export function isBackgroundCultivationDue(startedMs: number, nowMs: number): boolean {
+  return nowMs - startedMs >= BACKGROUND_CULTIVATION_MS
 }
 
-export function createHomeIdleTracker(onComplete: () => void): () => void {
+/** Idle timeout: activity, hiding the tab, or a new page starts the wait over. */
+export function createIdleTracker(onComplete: () => void, idleMs: number): () => void {
   let timer: number | null = null
 
   function clear() {
@@ -301,7 +295,7 @@ export function createHomeIdleTracker(onComplete: () => void): () => void {
   function arm() {
     clear()
     if (document.visibilityState === 'hidden') return
-    timer = window.setTimeout(() => onComplete(), IDLE_MS)
+    timer = window.setTimeout(() => onComplete(), idleMs)
   }
 
   function onActivity() {
@@ -324,6 +318,27 @@ export function createHomeIdleTracker(onComplete: () => void): () => void {
     window.removeEventListener('scroll', onActivity)
     document.removeEventListener('visibilitychange', onActivity)
   }
+}
+
+/**
+ * Background Cultivation: the current page must sit idle for 2 hours.
+ * Reloads, route changes, and input all restart the wait.
+ */
+export function createBackgroundCultivationTracker(
+  onComplete: () => void,
+  userId?: string | null,
+): () => void {
+  try {
+    localStorage.removeItem(LEGACY_HOME_OPEN_MS_KEY)
+    if (userId) localStorage.removeItem(`${LEGACY_HOME_OPEN_MS_KEY}:${userId}`)
+  } catch {
+    // ignore leftover keys from the old dwell timer
+  }
+  return createIdleTracker(onComplete, BACKGROUND_CULTIVATION_MS)
+}
+
+export function createHomeIdleTracker(onComplete: () => void): () => void {
+  return createIdleTracker(onComplete, IDLE_MS)
 }
 
 /** Detect a second Manhwadle tab via BroadcastChannel ping/pong. */

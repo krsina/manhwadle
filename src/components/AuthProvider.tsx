@@ -31,6 +31,7 @@ import {
   consumePendingReauth,
   markPendingReauth,
   reportSecretEvent,
+  resetSecretEventSession,
   DIALOG_ESCAPE_EVENT,
 } from '../lib/secretEvents'
 
@@ -84,6 +85,8 @@ export function AuthProvider({
   /** Avoid double merge from getSession + SIGNED_IN for the same user. */
   const lastMergedUserIdRef = useRef<string | null>(null)
   const mergeInFlightRef = useRef<Promise<void> | null>(null)
+  /** Last confirmed user id; SIGNED_OUT's session is already null. */
+  const authedUserIdRef = useRef<string | null>(null)
 
   async function refreshAccount(): Promise<AccountSnapshot | null> {
     if (!supabase) {
@@ -165,6 +168,7 @@ export function AuthProvider({
       if (data.session?.user) {
         // Keep owner-dev routes from treating a signed-in owner as a guest
         // while merge + get_my_account are still in flight.
+        authedUserIdRef.current = data.session.user.id
         setAccountLoading(true)
         setLoading(false)
         void syncUser(data.session.user.id)
@@ -176,22 +180,29 @@ export function AuthProvider({
     const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next)
       if (event === 'SIGNED_OUT') {
+        markPendingReauth(authedUserIdRef.current)
+        authedUserIdRef.current = null
         lastMergedUserIdRef.current = null
         setAccount(null)
         setAccountLoading(false)
         syncOwnerDevSession(null)
-        markPendingReauth()
+        resetSecretEventSession()
         return
       }
       if (event === 'SIGNED_IN' && next?.user) {
+        const signedInId = next.user.id
+        if (authedUserIdRef.current && authedUserIdRef.current !== signedInId) {
+          resetSecretEventSession()
+        }
+        authedUserIdRef.current = signedInId
         // Magic-link redirects often emit getSession + SIGNED_IN together.
         // Avoid flipping accountLoading again when sync already owns this user;
         // that remount race can leave the username dialog inert/unfocusable.
-        if (lastMergedUserIdRef.current !== next.user.id && !mergeInFlightRef.current) {
+        if (lastMergedUserIdRef.current !== signedInId && !mergeInFlightRef.current) {
           setAccountLoading(true)
         }
-        void syncUser(next.user.id)
-        if (consumePendingReauth()) {
+        void syncUser(signedInId)
+        if (consumePendingReauth(signedInId)) {
           void reportSecretEvent('reauth')
         }
       }
@@ -260,10 +271,11 @@ export function AuthProvider({
       syncOwnerDevSession(null)
       return
     }
+    markPendingReauth(session?.user?.id ?? authedUserIdRef.current)
     lastMergedUserIdRef.current = null
     setAccount(null)
     syncOwnerDevSession(null)
-    markPendingReauth()
+    resetSecretEventSession()
     if (import.meta.env.DEV && !session) {
       setOwnerUserModeEnabled(true)
       return
