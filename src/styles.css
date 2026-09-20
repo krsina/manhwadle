@@ -5635,12 +5635,11 @@ a.modal-character-subtitle:hover {
   }
 
   .result-shell .modal.has-bonus .nmp-combo {
-    gap: 0.35rem;
+    gap: 0.3rem;
   }
 
-  .result-shell .modal.has-bonus .nmp-combo .nmp-chip {
-    padding: 0.28rem 0.48rem;
-    font-size: 0.74rem;
+  .result-shell .modal.has-bonus .nmp-combo .nmp-chip.is-icon {
+    padding: 0.32rem 0.16rem;
   }
 
   .result-shell .modal.has-bonus .nmp-strip,
@@ -16029,17 +16028,46 @@ a.database-tile-link:hover .database-title {
 
 .nmp-combo {
   display: grid;
+  gap: 0.45rem;
+}
+
+.nmp-combo-modes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.55rem;
 }
 
+.nmp-combo-modes .nmp-kicker {
+  flex-shrink: 0;
+}
+
 .nmp-combo .nmp-chip-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem;
+  display: flex;
+  flex: 1;
+  flex-wrap: nowrap;
+  gap: 0.32rem;
+  min-width: 0;
 }
 
 .nmp-combo .nmp-chip {
+  flex: 1;
   justify-content: center;
+}
+
+.nmp-combo .nmp-chip.is-icon {
+  min-width: 0;
+  min-height: 2.2rem;
+  padding: 0.38rem 0.2rem;
+}
+
+.nmp-combo .nmp-chip.is-icon.is-done {
+  opacity: 0.62;
+}
+
+.nmp-combo .nmp-chip.is-icon svg {
+  width: 1.12rem;
+  height: 1.12rem;
 }
 
 .nmp-kicker {

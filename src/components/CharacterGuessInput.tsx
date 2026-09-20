@@ -118,7 +118,7 @@ export function CharacterGuessInput({
 
   return (
     <div className="guess character-guess" ref={rootRef}>
-      <label className="guess-label" htmlFor={inputId}>
+      <label className="guess-label visually-hidden" htmlFor={inputId}>
         Character name
       </label>
       <input

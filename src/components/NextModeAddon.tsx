@@ -16,24 +16,25 @@ export function NextModeAddon({ completedIds }: NextModeAddonProps) {
   const doneToday = remaining.length === 0
   const progressLabel = `${completed.size} of ${modes.length} today`
 
-  return (
-    <div className="nmp-addon nmp-combo">
+  const modeRow = (
+    <div className="nmp-combo-modes">
       <p className="nmp-kicker">{progressLabel}</p>
-      <div className="nmp-chip-row">
+      <div className="nmp-chip-row" role="group" aria-label="Today’s modes">
         {modes.map((mode) => {
           const finished = completed.has(mode.id)
           const next = recommended?.id === mode.id
-          const className = `nmp-chip${finished ? ' is-done' : ''}${next ? ' is-next' : ''}`
-          const body = (
-            <>
-              <ModeGlyph presentationKey={mode.presentationKey} />
-              {mode.name}
-            </>
-          )
+          const className = `nmp-chip is-icon${finished ? ' is-done' : ''}${next ? ' is-next' : ''}`
+          const label = finished
+            ? `${mode.name}, completed`
+            : next
+              ? `${mode.name}, up next`
+              : `Play ${mode.name}`
+          const body = <ModeGlyph presentationKey={mode.presentationKey} />
           if (finished) {
             return (
-              <span key={mode.id} className={className}>
+              <span key={mode.id} className={className} title={label}>
                 {body}
+                <span className="visually-hidden">{label}</span>
               </span>
             )
           }
@@ -42,6 +43,8 @@ export function NextModeAddon({ completedIds }: NextModeAddonProps) {
               key={mode.id}
               className={className}
               to={playPath(mode.id)}
+              aria-label={label}
+              title={label}
               aria-current={next ? 'page' : undefined}
             >
               {body}
@@ -49,6 +52,11 @@ export function NextModeAddon({ completedIds }: NextModeAddonProps) {
           )
         })}
       </div>
+    </div>
+  )
+
+  return (
+    <div className="nmp-addon nmp-combo">
       {doneToday || !recommended ? (
         <div className="nmp-strip nmp-strip-done">
           <span className="nmp-strip-copy">
@@ -73,6 +81,7 @@ export function NextModeAddon({ completedIds }: NextModeAddonProps) {
           </Link>
         </div>
       )}
+      {modeRow}
     </div>
   )
 }
