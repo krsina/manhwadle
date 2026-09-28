@@ -754,6 +754,7 @@ export function CharacterGame({ pool, guessPool, taste, dateKey }: GameModeProps
                 canRevealMore={hardMode && canRevealMore}
                 onRevealMore={hardMode ? handleRevealMore : undefined}
                 grayscale={grayscale}
+                loading={!answerReady}
                 revealName={
                   revealCharacter &&
                   (dayState.status !== 'won' || dayState.bonusNameGuess != null)

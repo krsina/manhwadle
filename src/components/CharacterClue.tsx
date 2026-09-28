@@ -27,6 +27,11 @@ interface CharacterClueProps {
    * name guess is answered so the clue board does not spoil it.
    */
   revealName?: string | null
+  /**
+   * Keep the frame empty until the daily answer settles; the pre-settle crop
+   * is a local placeholder and would flash the wrong character.
+   */
+  loading?: boolean
 }
 
 /** Character portrait clue in a fixed portrait frame. */
@@ -41,6 +46,7 @@ export function CharacterClue({
   progressiveZoom = true,
   progressivePixelate = false,
   revealName = null,
+  loading = false,
 }: CharacterClueProps) {
   const scale = progressiveZoom
     ? cropZoomScale(failedGuesses, { finished })
@@ -86,28 +92,33 @@ export function CharacterClue({
           )}
         </div>
         <div className={`crop-reveal-stage${shownName ? ' has-name' : ''}`}>
-          <div className="crop-frame crop-frame-portrait">
-            <CropPixelateCanvas
-              src={crop.imageUrl}
-              alt={
-                shownName
-                  ? `Portrait of ${shownName}`
-                  : progressiveZoom && progressivePixelate
-                    ? 'Character clue. Wrong guesses zoom out and clear the pixels.'
-                    : progressivePixelate
-                      ? 'Character clue. Wrong guesses clear the pixels.'
-                      : progressiveZoom
-                        ? 'Character clue. Wrong guesses zoom out the crop.'
-                        : 'Character clue.'
-              }
-              fallbackLabel="Character image unavailable"
-              zoomScale={scale}
-              focusX={focusX}
-              focusY={focusY}
-              pixelSize={pixelScale}
-              grayscale={grayscale}
-              referrerPolicy="no-referrer"
-            />
+          <div
+            className="crop-frame crop-frame-portrait"
+            aria-busy={loading || undefined}
+          >
+            {!loading && (
+              <CropPixelateCanvas
+                src={crop.imageUrl}
+                alt={
+                  shownName
+                    ? `Portrait of ${shownName}`
+                    : progressiveZoom && progressivePixelate
+                      ? 'Character clue. Wrong guesses zoom out and clear the pixels.'
+                      : progressivePixelate
+                        ? 'Character clue. Wrong guesses clear the pixels.'
+                        : progressiveZoom
+                          ? 'Character clue. Wrong guesses zoom out the crop.'
+                          : 'Character clue.'
+                }
+                fallbackLabel="Character image unavailable"
+                zoomScale={scale}
+                focusX={focusX}
+                focusY={focusY}
+                pixelSize={pixelScale}
+                grayscale={grayscale}
+                referrerPolicy="no-referrer"
+              />
+            )}
           </div>
           {shownName && (
             <div className="crop-clue-reveal" aria-live="polite">
