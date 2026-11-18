@@ -26,7 +26,18 @@ main (or develop) → feat/<short-name> → PR → wait for quality → merge
 
 ## 2. Preflight (run locally before push)
 
-CI runs the sequence in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml). Mirror it before you push or ask for merge:
+CI runs the sequence in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml). Mirror it before you push or ask for merge. The one-command version is:
+
+```bash
+npm run preflight            # clean worktree of HEAD, every CI step, CI=true
+npm run preflight -- --here  # current checkout, including uncommitted edits
+```
+
+`npm run preflight` ([scripts/preflight.mjs](../scripts/preflight.mjs)) checks out a detached copy of the current commit into a temp git worktree, so only committed code is tested, then runs the `quality` steps below in order with `CI=true` (fresh Playwright server, CI retries, `forbidOnly`). It prints a pass/fail summary with the commit SHA and warns when local Node differs from `.nvmrc`. Keep its `STEPS` list in sync with `ci.yml`.
+
+**When GitHub Actions can't run** (for example a `Startup failure` from an account billing block): a green `npm run preflight` on the PR's exact head commit stands in for `quality`. Record the SHA and the summary in the PR, then merge with `gh pr merge <n> --merge --delete-branch` (add `--admin` only if branch protection requires it). Re-run CI once Actions works again.
+
+The individual steps, if you need to run one by hand:
 
 ```bash
 # Node must match .nvmrc (currently 22+)

@@ -73,3 +73,6 @@ tmp-secret-query.json
 # Python bytecode
 **/__pycache__/
 *.py[cod]
+
+# Claude Code: per-user settings stay local
+.claude/settings.local.json

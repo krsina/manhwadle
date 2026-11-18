@@ -90,11 +90,14 @@ only.
 4. **Publish to Supabase (required for visibility)**
    - After approval (or when the user says publish / write the update), insert
      or upsert a **published** row so `/news` shows it.
-   - Prefer Supabase MCP `execute_sql` on the **manhwadle** project
+   - Prefer the Supabase MCP server's `execute_sql` tool (in Claude Code it
+     shows up as `mcp__supabase__execute_sql` or similar; load it with
+     ToolSearch if deferred) on the **manhwadle** project
      (`snzhnkcccbxkwerbaido`) using `public.moderation_upsert_site_update`
      with an owner `p_actor_id` (see below). Pass `p_kind`.
    - Fallback: owner UI on `/news` (Edit) or Moderation → **News**, only if
-     MCP/SQL is unavailable.
+     MCP/SQL is unavailable. If no Supabase MCP server is connected, say so and
+     hand the user the SQL instead of guessing credentials.
    - Do **not** publish while the matching UI/code is still unreleased unless
      they explicitly want that announcement live early.
    - After publish, verify with `get_public_site_updates` (or a select on
@@ -225,17 +228,16 @@ Matches **Latest published version** in `docs/updates-style-guide.md`:
 
 ```
 Kind: update
-Version: 1.3.0
-Title: First try, then the next mode
-Slug: first-try-then-the-next-mode
+Version: 1.4.0
+Title: Heardle moves to the footer
+Slug: heardle-moves-to-the-footer
 
 Body:
-First-try celebrations stay smooth on phones, and the result screen now points you to another daily.
+The daily set is now Summary, Character, and Cover, and Heardle stays on as an optional side mode.
 
-• First-try wins use a lighter confetti burst on phones so you can still tap Share and keep playing.
-• Double solves keep the gold flash without stacking extra fireworks on top.
-• After you finish, chips and a Play button send you to the next mode you have not done today.
-• If you already cleared the set, Play Versus is right there.
+• Heardle is still here every day. Find it in the footer at the bottom of any page.
+• The homepage, mode tabs, and Up next prompts now focus on the three daily modes.
+• All-mode streaks only need Summary, Character, and Cover from now on, so skipping Heardle will not break your run.
 ```
 
 ## Anti-patterns

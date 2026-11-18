@@ -30,6 +30,7 @@
     "check:migrations": "node scripts/check-migration-timestamps.mjs",
     "check:migration-drift": "node scripts/check-migration-drift.mjs",
     "check:secrets": "node scripts/secret-scan.mjs",
+    "preflight": "node scripts/preflight.mjs",
     "preview": "vite preview",
     "fetch-data": "node scripts/fetch-manhwa.mjs",
     "sync-data": "node scripts/sync-game-data.mjs && node scripts/build-protagonists.mjs",

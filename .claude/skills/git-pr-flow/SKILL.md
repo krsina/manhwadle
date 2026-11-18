@@ -56,6 +56,24 @@ PR Progress:
 
 ### Preflight (mirror CI)
 
+Run the whole CI `quality` job locally with one command:
+
+```bash
+npm run preflight            # clean worktree of HEAD, every CI step, CI=true
+npm run preflight -- --here  # include uncommitted edits
+```
+
+It tests only committed code (a temp git worktree of HEAD), prints a summary
+with the commit SHA, and exits non-zero on the first failure. Run it in the
+background; it takes a few minutes.
+
+**If GitHub Actions can't start** (run shows `Startup failure`, often an
+account billing block; the run page annotation says why): a green
+`npm run preflight` on the PR's exact head SHA stands in for `quality`. Post
+the summary + SHA as a PR comment, merge with `--merge --delete-branch`
+(`--admin` only if protection blocks it), and tell the user CI was bypassed
+and why.
+
 Full sequence from the guide / `.github/workflows/ci.yml`:
 
 ```bash
@@ -93,7 +111,7 @@ Use `gh pr create` with a HEREDOC body. Push with `-u` if the branch has no upst
 
 ## Hard rules (do not violate)
 
-- Do not merge on red `quality`.
+- Do not merge on red `quality`. A `Startup failure` is not red: fall back to a green `npm run preflight` on the head SHA (see Preflight).
 - Do not commit `.env`, keys, `supabase/.branches/`, or unintended local catalog churn.
 - New migration timestamps must be unique (`npm run check:migrations`).
 - If a hook/CI fix is needed, add a **new** commit (no force-push on shared branches unless alone and stated).
