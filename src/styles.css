@@ -6443,13 +6443,20 @@ a.modal-character-subtitle:hover {
   gap: 1rem;
   align-items: stretch;
   min-width: 0;
-  /* Modes column sets row height; side stretches to match without growing it. */
-  height: 0;
-  min-height: 100%;
 }
 
 .home-side > * {
   min-width: 0;
+}
+
+/*
+ * Rankings fill the row without growing it. The row height comes from the
+ * modes column or the character panel, whichever is taller, so the character
+ * stats never get clipped when there are fewer mode rows.
+ */
+.home-side > .leaderboard-panel {
+  height: 0;
+  min-height: 100%;
 }
 
 .home-section-head {
@@ -8808,7 +8815,9 @@ a.database-tile-link:hover .database-title {
   }
 
   /* Self-contained scrollable rankings when the side is no longer height-locked. */
-  .leaderboard-panel {
+  .leaderboard-panel,
+  .home-side > .leaderboard-panel {
+    min-height: 0;
     height: auto;
     max-height: min(70vh, 34rem);
     overflow: hidden;
