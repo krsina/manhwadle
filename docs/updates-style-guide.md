@@ -13,13 +13,13 @@ Release updates still use the **Brief** body shape below. Announcements may drop
 
 ## Latest published version
 
-**`1.3.0`** (First try, then the next mode)
+**`1.4.0`** (Heardle moves to the footer)
 
 Keep this line in sync with the newest **published `update`** row in `site_updates` that carries a version. Whenever a new release update ships (via `/write-site-update`, Moderation → News, or a manual edit), update:
 
 1. This **Latest published version** line
 2. The **Example (preferred)** version / title / body / kind below so they match that post
-3. The **Good example** in `.cursor/skills/write-site-update/SKILL.md`
+3. The **Good example** in `.claude/skills/write-site-update/SKILL.md`
 
 Do not leave the guide or skill pointing at an older version after a publish. Announcements do not move this stamp unless they also ship a versioned release update.
 
@@ -42,18 +42,17 @@ Do not use em dashes (`—`). Prefer commas, periods, colons, or parentheses.
 
 **Kind:** `update`
 
-**Version:** `1.3.0`
+**Version:** `1.4.0`
 
-**Title:** First try, then the next mode
+**Title:** Heardle moves to the footer
 
 **Body:**
 ```
-First-try celebrations stay smooth on phones, and the result screen now points you to another daily.
+The daily set is now Summary, Character, and Cover, and Heardle stays on as an optional side mode.
 
-• First-try wins use a lighter confetti burst on phones so you can still tap Share and keep playing.
-• Double solves keep the gold flash without stacking extra fireworks on top.
-• After you finish, chips and a Play button send you to the next mode you have not done today.
-• If you already cleared the set, Play Versus is right there.
+• Heardle is still here every day. Find it in the footer at the bottom of any page.
+• The homepage, mode tabs, and Up next prompts now focus on the three daily modes.
+• All-mode streaks only need Summary, Character, and Cover from now on, so skipping Heardle will not break your run.
 ```
 
 ### Announcement shape
