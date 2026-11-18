@@ -9,9 +9,11 @@ export const heardleModeMeta = {
   description: 'Listen to a short track clip and guess which manhwa it belongs to.',
   presentationKey: 'heardle' as const,
   availability: {
-    requiredForAllMode: true,
+    // Footer-only side mode: no longer part of the daily set or the all-mode streak.
+    requiredForAllMode: false,
     defaultAvailable: true,
     leaderboardEligible: true,
+    footerOnly: true,
   },
   seedPrefix: 'manhwadle:heardle',
   storagePrefix: 'manhwadle:heardle:day:',

@@ -61,3 +61,13 @@ export function listModes(): GameModeDefinition[] {
     modes[heardleModeMeta.id]!,
   ].filter(Boolean)
 }
+
+/** Modes in the daily set: homepage rows, mode tabs, and next-mode prompts. */
+export function listDailyModes(): GameModeDefinition[] {
+  return listModes().filter((mode) => !mode.availability.footerOnly)
+}
+
+/** Playable modes linked only from the site footer (e.g. Heardle). */
+export function listFooterModes(): GameModeDefinition[] {
+  return listModes().filter((mode) => mode.availability.footerOnly)
+}

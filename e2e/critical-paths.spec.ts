@@ -9,7 +9,10 @@ test.describe('critical paths', () => {
     await expect(page.getByRole('link', { name: /Play Summary/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Play Character/i })).toBeVisible()
     await expect(page.getByRole('link', { name: /Play Cover/i })).toBeVisible()
-    await expect(page.getByRole('link', { name: /Play Heardle/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Play Heardle/i })).toHaveCount(0)
+    await expect(
+      page.getByRole('navigation', { name: /Site/i }).getByRole('link', { name: 'Heardle' }),
+    ).toHaveAttribute('href', '/play/heardle')
     await expect(page.getByRole('heading', { name: 'Milestones' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'News' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'All news' })).toHaveAttribute('href', '/news')
