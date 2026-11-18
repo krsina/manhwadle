@@ -6565,6 +6565,30 @@ a.modal-character-subtitle:hover {
   gap: 0.65rem;
 }
 
+/*
+ * Two-column homepage: the mode rows share out the row height so the list
+ * ends level with the Character and Rankings panels beside it.
+ */
+@media (min-width: 981px) {
+  .home-modes {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .home-modes .mode-row-list {
+    flex: 1 1 auto;
+  }
+
+  .home-modes .mode-row-list > [role='listitem'] {
+    display: flex;
+    flex: 1 1 0;
+  }
+
+  .home-modes .mode-row-list .mode-row {
+    flex: 1 1 auto;
+  }
+}
+
 .mode-row {
   display: grid;
   grid-template-columns: auto 1fr;
