@@ -197,7 +197,7 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
             </h1>
             <div className="home-section-blurb-row">
               <p className="home-section-blurb">
-                Four daily puzzles plus live Versus.
+                Three daily puzzles plus live Versus.
               </p>
               <ArchiveButton onClick={requestArchive} label="Archive" />
             </div>
