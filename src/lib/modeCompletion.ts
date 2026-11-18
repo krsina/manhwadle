@@ -2,7 +2,7 @@ import { getTodayKey } from './daily'
 import type { ReaderTaste } from './readerTaste'
 import { withTastePrefix } from './readerTaste'
 import { loadDayState } from './storage'
-import { listModes } from '../modes'
+import { listDailyModes, listModes } from '../modes'
 
 export type ModeCompletionStatus =
   | 'not_started'
@@ -74,7 +74,7 @@ export function completedDailyModeIds(input: {
 }): string[] {
   const dateKey = input.dateKey ?? getTodayKey()
   const include = input.includeModeId
-  return listModes()
+  return listDailyModes()
     .filter((mode) => {
       if (include && mode.id === include) return true
       return localModeCompletionStatus(mode.id, input.taste, dateKey) === 'completed'

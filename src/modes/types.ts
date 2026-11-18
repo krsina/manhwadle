@@ -24,6 +24,11 @@ export interface ModeAvailabilityMeta {
   defaultAvailable: boolean
   /** Eligible for Top Rankings once live */
   leaderboardEligible: boolean
+  /**
+   * Hidden from the homepage, play-page mode tabs, and next-mode prompts.
+   * Still playable by URL (`/play/<id>`); linked from the site footer instead.
+   */
+  footerOnly?: boolean
   /** ISO date when this mode started counting (UTC YYYY-MM-DD), if known */
   launchDateKey?: string
 }

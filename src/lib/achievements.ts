@@ -396,7 +396,7 @@ const ACHIEVEMENT_BASE_DEFINITIONS: readonly Omit<
     id: 'all_mode_streak_7',
     version: ACHIEVEMENT_VERSION,
     title: 'Perfect Week',
-    description: 'Reach a 7-day all-mode streak. Four modes. Seven days. Zero excuses.',
+    description: 'Reach a 7-day all-mode streak. Every daily mode. Seven days. Zero excuses.',
     category: 'all_mode',
     metric: 'all_max_streak',
     threshold: 7,

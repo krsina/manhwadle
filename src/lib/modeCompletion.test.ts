@@ -9,7 +9,7 @@ describe('mode registry metadata', () => {
     for (const mode of modes) {
       expect(mode.description.length).toBeGreaterThan(10)
       expect(mode.presentationKey).toBe(mode.id)
-      expect(mode.availability.requiredForAllMode).toBe(true)
+      expect(mode.availability.requiredForAllMode).toBe(!mode.availability.footerOnly)
       expect(mode.availability.defaultAvailable).toBe(true)
       expect(mode.availability.leaderboardEligible).toBe(true)
     }

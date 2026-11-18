@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { listModes } from '../modes'
+import { listDailyModes } from '../modes'
 import { handleTabListKeyDown } from '../lib/focusTabs'
 
 const MODE_STORAGE_KEY = 'manhwadle:mode'
@@ -35,9 +35,11 @@ interface ModeSwitcherProps {
 
 /** Compact mode tabs for switching daily variants. */
 export function ModeSwitcher({ activeId, onChange }: ModeSwitcherProps) {
-  const modes = listModes()
+  const modes = listDailyModes()
   const tablistRef = useRef<HTMLDivElement>(null)
   if (modes.length < 2) return null
+  // Footer-only modes (Heardle) have no tab; keep the tablist keyboard-reachable.
+  const hasActiveTab = modes.some((mode) => mode.id === activeId)
 
   return (
     <div
@@ -49,7 +51,7 @@ export function ModeSwitcher({ activeId, onChange }: ModeSwitcherProps) {
         if (tablistRef.current) handleTabListKeyDown(event, tablistRef.current)
       }}
     >
-      {modes.map((mode) => {
+      {modes.map((mode, index) => {
         const active = mode.id === activeId
         return (
           <button
@@ -57,7 +59,7 @@ export function ModeSwitcher({ activeId, onChange }: ModeSwitcherProps) {
             type="button"
             role="tab"
             aria-selected={active}
-            tabIndex={active ? 0 : -1}
+            tabIndex={active || (!hasActiveTab && index === 0) ? 0 : -1}
             className={`mode-switcher-btn${active ? ' is-active' : ''}`}
             onClick={() => onChange(mode.id)}
           >

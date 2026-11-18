@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { listModes } from '../modes'
+import { listDailyModes } from '../modes'
 import { playPath, VERSUS_PATH } from '../lib/routes'
 import { ModeGlyph } from './ModeGlyph'
 
@@ -9,7 +9,7 @@ interface NextModeAddonProps {
 
 /** Result-modal chips + Play button for the next unfinished daily. */
 export function NextModeAddon({ completedIds }: NextModeAddonProps) {
-  const modes = listModes()
+  const modes = listDailyModes()
   const completed = new Set(completedIds)
   const remaining = modes.filter((mode) => !completed.has(mode.id))
   const recommended = remaining[0] ?? null

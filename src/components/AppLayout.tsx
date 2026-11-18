@@ -8,6 +8,7 @@ import { StreakBadge } from './StreakBadge'
 import { UsernameOnboarding } from './UsernameOnboarding'
 import { StatusBanner } from './StatusBanner'
 import { DevToolsLauncher } from './DevToolsModal'
+import { listFooterModes } from '../modes'
 import {
   ABOUT_PATH,
   ATTRIBUTION_PATH,
@@ -16,6 +17,7 @@ import {
   legacyPlayRedirectTarget,
   MODERATION_POLICY_PATH,
   NEWS_PATH,
+  playPath,
   PRIVACY_PATH,
   TERMS_PATH,
   VERSUS_PATH,
@@ -177,6 +179,11 @@ export function AppLayout({ taste, onTasteChange }: AppLayoutProps) {
           <Link to={HOW_IT_WORKS_PATH}>How it works</Link>
           <Link to={NEWS_PATH}>News</Link>
           {user && <Link to={VERSUS_PATH}>Versus</Link>}
+          {listFooterModes().map((mode) => (
+            <Link key={mode.id} to={playPath(mode.id)}>
+              {mode.name}
+            </Link>
+          ))}
           <Link to={DATABASE_PATH}>Manhwa Database</Link>
           <Link to={PRIVACY_PATH}>Privacy</Link>
           <Link to={TERMS_PATH}>Terms</Link>

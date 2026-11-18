@@ -5,7 +5,7 @@ import {
   ArchiveCalendarModal,
 } from '../components/ArchiveCalendarModal'
 import { ReaderTastePrompt } from '../components/ReaderTastePrompt'
-import { listModes, resolveActiveMode } from '../modes'
+import { listDailyModes, resolveActiveMode } from '../modes'
 import { ModeRow, VersusModeRow } from '../components/ModeRow'
 import { LeaderboardPanel } from '../components/LeaderboardPanel'
 import { CharacterPanel } from '../components/CharacterPanel'
@@ -185,7 +185,7 @@ export function HomePage({ taste, setTaste }: HomePageProps) {
     [taste, user, serverModes, unavailable],
   )
 
-  const modes = listModes()
+  const modes = listDailyModes()
 
   return (
     <div className="home-page">

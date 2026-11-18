@@ -10,7 +10,7 @@ export function AboutPage() {
         <h2>What is {APP_NAME}?</h2>
         <p>
           {APP_NAME} is a daily manhwa guessing game in the spirit of Wordle-style puzzles. Each
-          UTC day brings shared challenges across Summary, Character, Cover, and Heardle modes.
+          UTC day brings shared challenges across Summary, Character, and Cover, plus Heardle as an optional side mode.
           Everyone gets the same puzzles; progress resets at UTC midnight.
         </p>
       </section>
