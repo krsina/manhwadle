@@ -54,6 +54,12 @@ verify_jwt = true
 [functions.select-daily-puzzles]
 verify_jwt = false
 
+# Owner-only private downloads. Platform JWT check must stay off so callers
+# without a session get the function's own plain 404 (not a gateway 401).
+# Auth happens in-function: PRIVATE_FILES_TOKEN bearer or owner session JWT.
+[functions.private-files]
+verify_jwt = false
+
 # Optional: enable Before User Created Postgres hook after applying roles_moderation.
 # Dashboard → Authentication → Hooks → Before User Created → hook_before_user_created
 # Hosted projects: enable in Dashboard (cannot be committed for production).
