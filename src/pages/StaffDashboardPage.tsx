@@ -5,6 +5,7 @@ import { ModerationCommentsPanel } from '../components/ModerationCommentsPanel'
 import {
   STAFF_ANALYTICS_PATH,
   STAFF_COMMENTS_PATH,
+  STAFF_FILES_PATH,
   STAFF_MODERATION_PATH,
   STAFF_PATH,
 } from '../lib/routes'
@@ -41,6 +42,11 @@ export function StaffDashboardPage() {
         <NavLink to={STAFF_COMMENTS_PATH} className="btn btn-ghost">
           Comments
         </NavLink>
+        {isOwner && (
+          <NavLink to={STAFF_FILES_PATH} className="btn btn-ghost">
+            Files
+          </NavLink>
+        )}
       </nav>
       <Outlet />
     </main>

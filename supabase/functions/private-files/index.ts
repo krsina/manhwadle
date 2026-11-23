@@ -27,6 +27,7 @@ Deno.serve(async (req: Request) => {
       ownerId: Deno.env.get("PRIVATE_FILES_OWNER_ID"),
       files: PRIVATE_FILES,
       getUserId,
+      allowedOriginsEnv: Deno.env.get("CORS_ALLOWED_ORIGINS"),
     });
   } catch {
     return notFound();

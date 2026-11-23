@@ -8,6 +8,7 @@ import {
   parsePrivatePath,
   type PrivateFilesDeps,
 } from '../../supabase/functions/private-files/handler.ts'
+import { PRIVATE_FILE_NAMES as CLIENT_FILE_NAMES } from './privateFilesApi'
 
 const SLUG = 'k3Jx9QpL2mVt8RwZ4yHc'
 const TOKEN = 'tok_' + 'a'.repeat(40)
@@ -164,6 +165,53 @@ describe('private-files edge function', () => {
     }
   })
 
+  it('serves the slug-less browser route to the owner session only', async () => {
+    const url = `${BASE}/ids.txt`
+    const ok = await handlePrivateFileRequest(get(url, OWNER_JWT), deps())
+    expect(ok.status).toBe(200)
+    expect(await ok.text()).toBe(IDS)
+    // The curl token is only good on the slug route.
+    await expect404(await handlePrivateFileRequest(get(url, TOKEN), deps()))
+    await expect404(await handlePrivateFileRequest(get(url, OTHER_JWT), deps()))
+    await expect404(await handlePrivateFileRequest(get(url), deps()))
+    await expect404(
+      await handlePrivateFileRequest(get(`${BASE}/index.ts`, OWNER_JWT), deps()),
+    )
+  })
+
+  it('answers the CORS preflight only for allowlisted site origins', async () => {
+    const site = 'https://manhwadle.net'
+    const env = { allowedOriginsEnv: `${site},https://*.pages.dev` }
+    const pre = (origin: string) =>
+      new Request(`${BASE}/ids.txt`, {
+        method: 'OPTIONS',
+        headers: { Origin: origin },
+      })
+
+    const ok = await handlePrivateFileRequest(pre(site), deps(env))
+    expect(ok.status).toBe(204)
+    expect(ok.headers.get('Access-Control-Allow-Origin')).toBe(site)
+    expect(ok.headers.get('Access-Control-Allow-Headers')).toContain(
+      'authorization',
+    )
+
+    await expect404(
+      await handlePrivateFileRequest(pre('https://evil.example'), deps(env)),
+    )
+
+    const res = await handlePrivateFileRequest(
+      new Request(`${BASE}/ids.txt`, {
+        headers: { Origin: site, Authorization: `Bearer ${OWNER_JWT}` },
+      }),
+      deps(env),
+    )
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(site)
+    expect(res.headers.get('Access-Control-Expose-Headers')).toContain(
+      'Content-Disposition',
+    )
+  })
+
   it('keeps the bundler allowlist in sync and private files out of git and public/', () => {
     const script = fs.readFileSync(
       path.resolve('scripts/build-private-files.mjs'),
@@ -174,6 +222,8 @@ describe('private-files edge function', () => {
     expect(JSON.parse(m![1].replace(/'/g, '"'))).toEqual(
       Object.keys(ALLOWED_FILES),
     )
+
+    expect([...CLIENT_FILE_NAMES]).toEqual(Object.keys(ALLOWED_FILES))
 
     const gitignore = fs.readFileSync(path.resolve('.gitignore'), 'utf8')
     expect(gitignore).toContain('supabase/functions/private-files/files/*')
