@@ -44,7 +44,6 @@ export const STAFF_ANALYTICS_PATH = '/staff/analytics'
 export const STAFF_MODERATION_PATH = '/staff/moderation'
 export const STAFF_COMMENTS_PATH = '/staff/comments'
 export const STAFF_FILES_PATH = '/staff/files'
-export const STAFF_OSU_PATH = '/staff/osu'
 export const PLAY_PATH_PREFIX = '/play'
 export const VERSUS_PATH = '/versus'
 
