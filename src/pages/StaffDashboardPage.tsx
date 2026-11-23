@@ -6,7 +6,6 @@ import {
   STAFF_ANALYTICS_PATH,
   STAFF_COMMENTS_PATH,
   STAFF_FILES_PATH,
-  STAFF_OSU_PATH,
   STAFF_MODERATION_PATH,
   STAFF_PATH,
 } from '../lib/routes'
@@ -46,11 +45,6 @@ export function StaffDashboardPage() {
         {isOwner && (
           <NavLink to={STAFF_FILES_PATH} className="btn btn-ghost">
             Files
-          </NavLink>
-        )}
-        {isOwner && (
-          <NavLink to={STAFF_OSU_PATH} className="btn btn-ghost">
-            osu! maps
           </NavLink>
         )}
       </nav>
