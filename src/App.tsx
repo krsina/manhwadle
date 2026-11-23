@@ -112,6 +112,9 @@ const AnalyticsDashboardPage = lazyWithStaleReload(() =>
 const StaffFilesPage = lazyWithStaleReload(() =>
   import('./pages/StaffFilesPage').then((m) => ({ default: m.StaffFilesPage })),
 )
+const StaffOsuPage = lazyWithStaleReload(() =>
+  import('./pages/StaffOsuPage').then((m) => ({ default: m.StaffOsuPage })),
+)
 
 function RouteFallback() {
   return (
@@ -394,6 +397,16 @@ function App() {
                     <Suspense fallback={<RouteFallback />}>
                       <StaffModerationPage />
                     </Suspense>
+                  }
+                />
+                <Route
+                  path="osu"
+                  element={
+                    <StaffRoute ownerOnly>
+                      <Suspense fallback={<RouteFallback />}>
+                        <StaffOsuPage />
+                      </Suspense>
+                    </StaffRoute>
                   }
                 />
                 <Route
