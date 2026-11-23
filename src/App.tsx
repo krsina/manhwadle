@@ -109,6 +109,9 @@ const AnalyticsDashboardPage = lazyWithStaleReload(() =>
     default: m.AnalyticsDashboardPage,
   })),
 )
+const StaffFilesPage = lazyWithStaleReload(() =>
+  import('./pages/StaffFilesPage').then((m) => ({ default: m.StaffFilesPage })),
+)
 
 function RouteFallback() {
   return (
@@ -391,6 +394,16 @@ function App() {
                     <Suspense fallback={<RouteFallback />}>
                       <StaffModerationPage />
                     </Suspense>
+                  }
+                />
+                <Route
+                  path="files"
+                  element={
+                    <StaffRoute ownerOnly>
+                      <Suspense fallback={<RouteFallback />}>
+                        <StaffFilesPage />
+                      </Suspense>
+                    </StaffRoute>
                   }
                 />
                 <Route

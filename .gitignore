@@ -76,3 +76,8 @@ tmp-secret-query.json
 
 # Claude Code: per-user settings stay local
 .claude/settings.local.json
+
+# Owner-only private downloads (Edge Function `private-files`): never commit
+supabase/functions/private-files/files/*
+!supabase/functions/private-files/files/README.md
+supabase/functions/private-files/files.generated.ts
