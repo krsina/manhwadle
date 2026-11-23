@@ -18,12 +18,10 @@ async function getUserId(jwt: string): Promise<string | null> {
   return data.user.id;
 }
 
-// No logging in this function: never echo headers, tokens or paths.
+// No logging in this function: never echo headers or session tokens.
 Deno.serve(async (req: Request) => {
   try {
     return await handlePrivateFileRequest(req, {
-      slug: Deno.env.get("PRIVATE_FILES_SLUG"),
-      token: Deno.env.get("PRIVATE_FILES_TOKEN"),
       ownerId: Deno.env.get("PRIVATE_FILES_OWNER_ID"),
       files: PRIVATE_FILES,
       getUserId,

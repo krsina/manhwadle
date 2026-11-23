@@ -56,7 +56,7 @@ verify_jwt = false
 
 # Owner-only private downloads. Platform JWT check must stay off so callers
 # without a session get the function's own plain 404 (not a gateway 401).
-# Auth happens in-function: PRIVATE_FILES_TOKEN bearer or owner session JWT.
+# Auth happens in-function: owner session JWT vs PRIVATE_FILES_OWNER_ID.
 [functions.private-files]
 verify_jwt = false
 

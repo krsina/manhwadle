@@ -1,19 +1,15 @@
 /**
- * Owner-only private file downloads.
+ * Owner-only private file downloads (Staff → Files).
  *
- * Routes:
- *   /functions/v1/private-files/<PRIVATE_FILES_SLUG>/<filename>
- *       curl: PRIVATE_FILES_TOKEN bearer, or the owner's session JWT.
- *   /functions/v1/private-files/<filename>
- *       browser (Staff → Files): the owner's session JWT only. No slug, so
- *       nothing secret has to ship in the public JS bundle.
+ * Route: /functions/v1/private-files/<filename>
+ * Auth:  the owner's Supabase session JWT (Authorization: Bearer <jwt>),
+ *        matched against PRIVATE_FILES_OWNER_ID.
  *
  * Everything that is not an allowed, authorised download gets the same plain
- * 404 (wrong method, wrong slug, unknown file, traversal attempt, missing or
- * bad credentials, non-owner account, feature not configured). The one
- * exception is the CORS preflight (OPTIONS) from an allowlisted site origin,
- * which browsers need before they will send the Authorization header.
- * Nothing here logs request headers.
+ * 404 (wrong method, unknown file, traversal attempt, missing or bad session,
+ * non-owner account, feature not configured). The one exception is the CORS
+ * preflight (OPTIONS) from an allowlisted site origin, which browsers need
+ * before they will send the Authorization header. Nothing here logs.
  *
  * Pure logic with injected dependencies so it runs under Deno (Edge Runtime)
  * and Vitest alike.
@@ -29,16 +25,8 @@ export const ALLOWED_FILES: Readonly<Record<string, string>> = Object.freeze({
   'ids.txt': 'text/plain; charset=utf-8',
 })
 
-/** Slugs and tokens shorter than this are treated as "not configured". */
-export const MIN_SLUG_LENGTH = 16
-export const MIN_TOKEN_LENGTH = 32
-
 export interface PrivateFilesDeps {
-  /** PRIVATE_FILES_SLUG — secret path segment. Unset → endpoint disabled. */
-  slug: string | undefined
-  /** PRIVATE_FILES_TOKEN — curl bearer token. Unset → token access off. */
-  token: string | undefined
-  /** PRIVATE_FILES_OWNER_ID — the only Supabase user id allowed via session JWT. */
+  /** PRIVATE_FILES_OWNER_ID — the only Supabase user id allowed. Unset → disabled. */
   ownerId: string | undefined
   /** Base64(gzip(file)) keyed by filename (built from the local files folder). */
   files: Readonly<Record<string, string>>
@@ -88,28 +76,21 @@ function corsFor(
 const SAFE_SEGMENT = /^[A-Za-z0-9._-]+$/
 
 /**
- * Pull `<slug>/<filename>` (or just `<filename>`, slug null) out of the raw,
- * still percent-encoded pathname.
+ * Pull `<filename>` out of the raw, still percent-encoded pathname.
  * Hosted Edge Functions see `/private-files/...`; some proxies keep the
  * `/functions/v1` prefix. Anything encoded, dotted-only or nested is rejected.
  */
-export function parsePrivatePath(
-  pathname: string,
-): { slug: string | null; filename: string } | null {
+export function parsePrivatePath(pathname: string): string | null {
+  if (pathname.includes('//')) return null
   const parts = pathname.split('/').filter((p) => p.length > 0)
   const fnIndex = parts.indexOf(FUNCTION_NAME)
   if (fnIndex === -1) return null
   const rest = parts.slice(fnIndex + 1)
-  if (rest.length !== 1 && rest.length !== 2) return null
-  // Exact empty-segment check too: `//` would have been dropped above.
-  if (pathname.includes('//')) return null
-  const slug = rest.length === 2 ? rest[0] : null
-  const filename = rest[rest.length - 1]
-  for (const seg of rest) {
-    if (!SAFE_SEGMENT.test(seg)) return null // blocks %2e, %2f, \, :, etc.
-    if (seg === '.' || seg === '..') return null
-  }
-  return { slug, filename }
+  if (rest.length !== 1) return null
+  const [filename] = rest
+  if (!SAFE_SEGMENT.test(filename)) return null // blocks %2e, %2f, \, :, etc.
+  if (filename === '.' || filename === '..') return null
+  return filename
 }
 
 async function sha256(value: string): Promise<Uint8Array> {
@@ -128,38 +109,20 @@ export async function safeEqual(a: string, b: string): Promise<boolean> {
   return diff === 0
 }
 
-function bearer(req: Request): string | null {
-  const header = req.headers.get('Authorization')
-  if (!header) return null
-  const match = /^Bearer\s+(\S+)\s*$/i.exec(header)
-  return match ? match[1] : null
-}
+const BEARER_JWT =
+  /^Bearer\s+([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)\s*$/i
 
-const JWT_SHAPE = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/
-
-async function isAuthorised(
-  req: Request,
-  deps: PrivateFilesDeps,
-  allowToken: boolean,
-): Promise<boolean> {
-  const presented = bearer(req)
-  if (!presented) return false
-
-  const token = deps.token?.trim()
-  if (allowToken && token && token.length >= MIN_TOKEN_LENGTH) {
-    if (await safeEqual(presented, token)) return true
-  }
-
+async function isOwner(req: Request, deps: PrivateFilesDeps): Promise<boolean> {
   const ownerId = deps.ownerId?.trim()
-  if (ownerId && JWT_SHAPE.test(presented)) {
-    try {
-      const userId = await deps.getUserId(presented)
-      if (userId && (await safeEqual(userId, ownerId))) return true
-    } catch {
-      return false
-    }
+  if (!ownerId) return false
+  const match = BEARER_JWT.exec(req.headers.get('Authorization') ?? '')
+  if (!match) return false
+  try {
+    const userId = await deps.getUserId(match[1])
+    return userId !== null && (await safeEqual(userId, ownerId))
+  } catch {
+    return false
   }
-  return false
 }
 
 /** Files are bundled as base64 of gzip (keeps the deploy payload small). */
@@ -186,27 +149,15 @@ export async function handlePrivateFileRequest(
   }
   if (req.method !== 'GET' && req.method !== 'HEAD') return notFound(cors)
 
-  const parsed = parsePrivatePath(new URL(req.url).pathname)
-  if (!parsed) return notFound(cors)
-
-  // Slug route: needs the configured slug. Slug-less route: owner session only.
-  if (parsed.slug !== null) {
-    const slug = deps.slug?.trim()
-    if (!slug || slug.length < MIN_SLUG_LENGTH) return notFound(cors)
-    if (!(await safeEqual(parsed.slug, slug))) return notFound(cors)
-  }
-
-  const { filename } = parsed
+  const filename = parsePrivatePath(new URL(req.url).pathname)
+  if (!filename) return notFound(cors)
   if (!Object.prototype.hasOwnProperty.call(ALLOWED_FILES, filename)) {
     return notFound(cors)
   }
   if (!Object.prototype.hasOwnProperty.call(deps.files, filename)) {
     return notFound(cors)
   }
-
-  if (!(await isAuthorised(req, deps, parsed.slug !== null))) {
-    return notFound(cors)
-  }
+  if (!(await isOwner(req, deps))) return notFound(cors)
 
   const body = await decodeBundled(deps.files[filename])
   return new Response(req.method === 'HEAD' ? null : body, {

@@ -7,7 +7,7 @@
  * Both the files folder contents and the generated module are gitignored.
  *
  * Usage: node scripts/build-private-files.mjs
- * Then:  npx supabase functions deploy private-files --project-ref <ref> --no-verify-jwt
+ * Then:  npx supabase functions deploy private-files --remote=<ref> --no-verify-jwt --use-api
  */
 import fs from 'node:fs'
 import path from 'node:path'
